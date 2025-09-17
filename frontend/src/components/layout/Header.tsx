@@ -1,22 +1,28 @@
 'use client'
 
-import { Menu, Bell, User } from 'lucide-react'
+import { Menu, Bell, User, LogOut } from 'lucide-react'
+import { useAuth } from '@/contexts/AuthContext'
+import { Button } from '@/components/ui/Button'
 
 interface HeaderProps {
-  onMenuClick: () => void
+  onMenuClick?: () => void
 }
 
 export function Header({ onMenuClick }: HeaderProps) {
+  const { user, signOut } = useAuth()
+
   return (
     <header className="bg-white shadow-sm border-b border-gray-200">
       <div className="flex items-center justify-between h-16 px-4 lg:px-6">
         <div className="flex items-center">
-          <button
-            onClick={onMenuClick}
-            className="p-2 rounded-md text-gray-600 hover:text-gray-900 hover:bg-gray-100 lg:hidden"
-          >
-            <Menu className="h-5 w-5" />
-          </button>
+          {onMenuClick && (
+            <button
+              onClick={onMenuClick}
+              className="p-2 rounded-md text-gray-600 hover:text-gray-900 hover:bg-gray-100 lg:hidden"
+            >
+              <Menu className="h-5 w-5" />
+            </button>
+          )}
           
           <div className="ml-4 lg:ml-0">
             <h2 className="text-lg font-semibold text-gray-900">
@@ -38,9 +44,19 @@ export function Header({ onMenuClick }: HeaderProps) {
               <User className="h-4 w-4 text-gray-600" />
             </div>
             <div className="hidden sm:block">
-              <p className="text-sm font-medium text-gray-900">Usuário</p>
+              <p className="text-sm font-medium text-gray-900">
+                {user?.email || 'Usuário'}
+              </p>
               <p className="text-xs text-gray-500">LaplataLunaria</p>
             </div>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={signOut}
+              className="text-gray-600 hover:text-gray-900"
+            >
+              <LogOut className="h-4 w-4" />
+            </Button>
           </div>
         </div>
       </div>

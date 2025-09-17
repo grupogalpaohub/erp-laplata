@@ -1,24 +1,33 @@
 'use client'
 
-import { useState } from 'react'
-import { Sidebar } from '@/components/layout/Sidebar'
-import { Header } from '@/components/layout/Header'
-import { Dashboard } from '@/components/dashboard/Dashboard'
+import { useAuth } from '@/contexts/AuthContext'
+import { useRouter } from 'next/navigation'
+import { useEffect } from 'react'
 
 export default function Home() {
-  const [sidebarOpen, setSidebarOpen] = useState(false)
+  const { user, loading } = useAuth()
+  const router = useRouter()
 
-  return (
-    <div className="flex h-screen bg-gray-50">
-      <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
-      
-      <div className="flex-1 flex flex-col overflow-hidden">
-        <Header onMenuClick={() => setSidebarOpen(true)} />
-        
-        <main className="flex-1 overflow-x-hidden overflow-y-auto bg-gray-50">
-          <Dashboard />
-        </main>
+  useEffect(() => {
+    if (!loading) {
+      if (user) {
+        router.push('/dashboard')
+      } else {
+        router.push('/login')
+      }
+    }
+  }, [user, loading, router])
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-600"></div>
       </div>
-    </div>
-  )
+    )
+  }
+
+  return null // Will redirect
 }
+
+// Force dynamic rendering
+export const dynamic = 'force-dynamic'

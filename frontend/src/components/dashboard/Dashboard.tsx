@@ -5,7 +5,7 @@ import { ModuleTile } from '@/components/ui/ModuleTile'
 
 export function Dashboard() {
   return (
-    <div className="p-6">
+    <div className="lg:ml-64 p-6">
       {/* KPIs */}
       <div className="mb-8">
         <h3 className="text-lg font-semibold text-gray-900 mb-4">Indicadores Principais</h3>

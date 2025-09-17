@@ -1,21 +1,10 @@
 export const runtime = 'edge';
 
-import { supabaseServer } from '@/lib/supabaseServer';
-
 export default async function MMPurchasesPage() {
-  const supabase = supabaseServer();
-  let ping: any = null;
-  try {
-    const { data } = await supabase.from('materials').select('*').limit(1);
-    ping = data ?? null;
-  } catch {}
-
   return (
     <main className="p-6">
-      <h1 className="text-xl font-semibold">Compras</h1>
-      <p className="mt-2 text-sm text-gray-500">
-        runtime: edge • supabase ping: {ping ? 'ok' : '—'}
-      </p>
+      <h1 className="text-2xl font-semibold">Compras</h1>
+      <p className="text-sm opacity-70">Placeholder carregado. Nenhum dado ainda.</p>
     </main>
   );
 }

@@ -1,10 +1,2 @@
 name = "erp-laplata"
 compatibility_date = "2024-01-01"
-pages_build_output_dir = "frontend/out"
-
-[env.production]
-account_id = "474986f8df1636411d115dede3dff401"
-
-[[pages_builds]]
-command = "cd frontend && npm ci && npm run build"
-publish = "frontend/out"

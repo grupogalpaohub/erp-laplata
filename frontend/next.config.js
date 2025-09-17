@@ -1,11 +1,9 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  // Always use export for Cloudflare Pages
   output: 'export',
   trailingSlash: true,
-  images: {
-    unoptimized: true
-  }
-}
+  images: { unoptimized: true },
+  // NADA de distDir aqui
+};
 
-module.exports = nextConfig
+module.exports = nextConfig;

@@ -1,0 +1,18 @@
+{
+  "runtime": "edge",
+  "name": "fi/payables",
+  "deploymentTarget": "v8-worker",
+  "entrypoint": "index.js",
+  "assets": [],
+  "framework": {
+    "slug": "nextjs",
+    "version": "15.5.2"
+  },
+  "environment": {
+    "__NEXT_BUILD_ID": "358A-syHSoIMx_FhS-zaW",
+    "NEXT_SERVER_ACTIONS_ENCRYPTION_KEY": "EcBbCumMm1j75/SAEnVtl6rJSI08OzQSX/8wEhTyj9k=",
+    "__NEXT_PREVIEW_MODE_ID": "4e9c971932fbb4efec8b02d407409317",
+    "__NEXT_PREVIEW_MODE_SIGNING_KEY": "e3a8b1a33537f501d89071a1dcd25a6e2c5de0332f6cdb0598a11ac4c6ba2feb",
+    "__NEXT_PREVIEW_MODE_ENCRYPTION_KEY": "7a6ca78b1991c825e79cb5ff0c1fc2c0cef465c993abe134fa65db41356e5569"
+  }
+}

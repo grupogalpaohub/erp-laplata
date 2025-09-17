@@ -8,7 +8,7 @@ echo "🚀 Deploying ERP Laplata to Cloudflare Pages..."
 # Build the frontend
 echo "📦 Building frontend..."
 cd frontend
-npm install
+npm ci
 npm run build
 cd ..
 

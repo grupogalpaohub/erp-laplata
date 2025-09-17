@@ -1,5 +1,6 @@
 'use client'
 
+import Link from 'next/link'
 import { cn } from '@/lib/utils'
 import { 
   Package, 
@@ -92,7 +93,7 @@ export function ModuleTile({
   const config = colorConfig[color]
 
   return (
-    <a
+    <Link
       href={href}
       className={cn(
         "block bg-white rounded-xl shadow-sm border border-gray-100 p-6 hover:shadow-md hover:scale-105 transition-all duration-200 group"
@@ -143,7 +144,7 @@ export function ModuleTile({
           <div className="h-px bg-gray-100"></div>
           <div className="grid grid-cols-1 gap-1">
             {links.map((link, index) => (
-              <a
+              <Link
                 key={index}
                 href={link.href}
                 className={cn(
@@ -153,11 +154,11 @@ export function ModuleTile({
                 onClick={(e) => e.stopPropagation()}
               >
                 {link.label}
-              </a>
+              </Link>
             ))}
           </div>
         </div>
       )}
-    </a>
+    </Link>
   )
 }

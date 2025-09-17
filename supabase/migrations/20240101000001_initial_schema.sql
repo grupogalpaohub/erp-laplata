@@ -5,7 +5,7 @@ CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 CREATE TYPE user_role AS ENUM ('admin', 'manager', 'user', 'viewer');
 CREATE TYPE material_type AS ENUM ('raw_material', 'finished_good', 'component', 'service');
 CREATE TYPE material_class AS ENUM ('prata', 'ouro', 'acabamento', 'embalagem');
-CREATE TYPE order_status AS ENUM ('draft', 'approved', 'received', 'cancelled', 'shipped', 'delivered', 'invoiced');
+CREATE TYPE order_status AS ENUM ('draft', 'pending', 'approved', 'received', 'cancelled', 'shipped', 'delivered', 'invoiced');
 CREATE TYPE customer_type AS ENUM ('PF', 'PJ');
 CREATE TYPE payment_method AS ENUM ('pix', 'cartao', 'boleto', 'transferencia');
 CREATE TYPE account_type AS ENUM ('caixa', 'banco');

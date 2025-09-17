@@ -1,36 +1,59 @@
-'use client'
+// app/wh/reports/page.tsx
+export const runtime = 'edge';
+export const dynamic = 'force-dynamic';
 
-import { Header } from '@/components/layout/Header'
-import { Sidebar } from '@/components/layout/Sidebar'
+import { z } from 'zod';
+import { createServerClient } from '@/lib/supabase/server';
 
-export default function ReportsPage() {
+const Report = z.object({
+  id: z.string(),
+  report_name: z.string(),
+  generated_at: z.string(),
+  status: z.string(),
+});
+type Report = z.infer<typeof Report>;
+
+export default async function Page() {
+  const supabase = createServerClient();
+
+  // não cachear
+  const { unstable_noStore } = await import('next/cache');
+  unstable_noStore?.();
+
+  const { data, error } = await supabase
+    .from('wh_report')
+    .select('id, report_name, generated_at, status')
+    .order('generated_at', { ascending: false })
+    .limit(50);
+
+  if (error) {
+    console.error('[WH/Reports] supabase error', error);
+    throw new Error('Falha ao carregar relatórios');
+  }
+
+  const rows = z.array(Report).parse(data ?? []);
+
   return (
-    <div className="min-h-screen bg-gray-50">
-      <Sidebar />
-      <Header title="Warehouse Management" subtitle="Gestão de Estoque" />
-      <main className="lg:ml-72 p-6">
-        <h1 className="text-2xl font-bold text-gray-900">Relatórios de Estoque</h1>
-        <p className="mt-2 text-gray-600">Análises e relatórios detalhados do estoque.</p>
-        
-        <div className="mt-8 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
-            <h3 className="text-lg font-semibold text-gray-900">Inventário</h3>
-            <p className="mt-2 text-gray-600">Relatório completo de inventário</p>
-          </div>
-          
-          <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
-            <h3 className="text-lg font-semibold text-gray-900">Movimentações</h3>
-            <p className="mt-2 text-gray-600">Histórico detalhado de movimentações</p>
-          </div>
-          
-          <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
-            <h3 className="text-lg font-semibold text-gray-900">Análises</h3>
-            <p className="mt-2 text-gray-600">Análises de giro e performance</p>
-          </div>
-        </div>
-      </main>
-    </div>
-  )
+    <main className="p-6 space-y-4">
+      <h1 className="text-2xl font-semibold">Relatórios WH</h1>
+      <table className="min-w-full text-sm">
+        <thead>
+          <tr className="text-left border-b">
+            <th className="py-2">Nome do Relatório</th>
+            <th className="py-2">Status</th>
+            <th className="py-2">Gerado em</th>
+          </tr>
+        </thead>
+        <tbody>
+          {rows.map(r => (
+            <tr key={r.id} className="border-b">
+              <td className="py-2">{r.report_name}</td>
+              <td className="py-2">{r.status}</td>
+              <td className="py-2">{new Date(r.generated_at).toLocaleDateString('pt-BR')}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </main>
+  );
 }
-
-export const dynamic = 'force-dynamic'

@@ -1,36 +1,65 @@
-'use client'
+// app/wh/movements/page.tsx
+export const runtime = 'edge';
+export const dynamic = 'force-dynamic';
 
-import { Header } from '@/components/layout/Header'
-import { Sidebar } from '@/components/layout/Sidebar'
+import { z } from 'zod';
+import { createServerClient } from '@/lib/supabase/server';
 
-export default function MovementsPage() {
+const Movement = z.object({
+  id: z.string(),
+  sku: z.string(),
+  plant_id: z.string(),
+  movement_type: z.string(),
+  quantity: z.number(),
+  created_at: z.string(),
+});
+type Movement = z.infer<typeof Movement>;
+
+export default async function Page() {
+  const supabase = createServerClient();
+
+  // não cachear
+  const { unstable_noStore } = await import('next/cache');
+  unstable_noStore?.();
+
+  const { data, error } = await supabase
+    .from('wh_movement')
+    .select('id, sku, plant_id, movement_type, quantity, created_at')
+    .order('created_at', { ascending: false })
+    .limit(50);
+
+  if (error) {
+    console.error('[WH/Movements] supabase error', error);
+    throw new Error('Falha ao carregar movimentações');
+  }
+
+  const rows = z.array(Movement).parse(data ?? []);
+
   return (
-    <div className="min-h-screen bg-gray-50">
-      <Sidebar />
-      <Header title="Warehouse Management" subtitle="Gestão de Estoque" />
-      <main className="lg:ml-72 p-6">
-        <h1 className="text-2xl font-bold text-gray-900">Movimentações de Estoque</h1>
-        <p className="mt-2 text-gray-600">Controle de entradas, saídas e transferências de produtos.</p>
-        
-        <div className="mt-8 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
-            <h3 className="text-lg font-semibold text-gray-900">Entradas</h3>
-            <p className="mt-2 text-gray-600">Recebimento de mercadorias</p>
-          </div>
-          
-          <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
-            <h3 className="text-lg font-semibold text-gray-900">Saídas</h3>
-            <p className="mt-2 text-gray-600">Expedição e consumo de produtos</p>
-          </div>
-          
-          <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
-            <h3 className="text-lg font-semibold text-gray-900">Transferências</h3>
-            <p className="mt-2 text-gray-600">Movimentação entre depósitos</p>
-          </div>
-        </div>
-      </main>
-    </div>
-  )
+    <main className="p-6 space-y-4">
+      <h1 className="text-2xl font-semibold">Movimentações</h1>
+      <table className="min-w-full text-sm">
+        <thead>
+          <tr className="text-left border-b">
+            <th className="py-2">SKU</th>
+            <th className="py-2">Depósito</th>
+            <th className="py-2">Tipo</th>
+            <th className="py-2">Quantidade</th>
+            <th className="py-2">Data</th>
+          </tr>
+        </thead>
+        <tbody>
+          {rows.map(r => (
+            <tr key={r.id} className="border-b">
+              <td className="py-2">{r.sku}</td>
+              <td className="py-2">{r.plant_id}</td>
+              <td className="py-2">{r.movement_type}</td>
+              <td className="py-2">{r.quantity}</td>
+              <td className="py-2">{new Date(r.created_at).toLocaleDateString('pt-BR')}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </main>
+  );
 }
-
-export const dynamic = 'force-dynamic'

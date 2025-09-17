@@ -1,0 +1,79 @@
+# ==========================
+# Cursor Rules — Laplata ERP/CRM
+# ==========================
+# Objetivo: impedir drift entre Supabase (DB), GitHub (migrations/código) e Cloudflare (frontend),
+# e proibir “simplificações” que fogem do blueprint (NUNCA inventar dado/esquema).
+
+# ==========================
+# Database Rules
+# ==========================
+- O Supabase (Postgres) é a FONTE DE VERDADE do schema.
+- SEMPRE introspectar o Supabase (via Supabase JS ou pg/DATABASE_URL) antes de gerar SQL, tipos ou modelos.
+- NUNCA inventar colunas, tabelas, enums, índices, chaves, triggers, views ou renomear campos “para facilitar”.
+- QUALQUER mudança de schema deve virar migration versionada em /db/migrations (padrão VYYYYMMDD__descricao.sql).
+- O snapshot atual do schema deve estar em /db/schema.sql (commitado no GitHub) e deve ser atualizado somente após migrations aplicadas.
+- Seeds iniciais em /db/initial_load.sql. NÃO inventar dados. NÃO criar “dados de teste” fora dos arquivos de seeds.
+- Customizações (ENUMs/Triggers/Índices/Functions) em /db/customizing.sql, idempotentes.
+- NUNCA usar metacomandos psql (\d, \ir, \copy). Usar SQL puro compatível com Supabase.
+
+# ==========================
+# Frontend Rules (Cloudflare)
+# ==========================
+- O frontend roda em Cloudflare Pages/Workers.
+- O frontend consome o Supabase EXCLUSIVAMENTE via Supabase JS Client (chaves anon/service) ou Edge Functions.
+- NUNCA bypassar auth/row level security com “mock” local. NUNCA replicar o banco em arrays/JSON “temporários”.
+- Tipagem das chamadas deve refletir o schema real (introspecção ou /db/schema.sql).
+
+# ==========================
+# Harmonização (Supabase ↔ GitHub ↔ Cloudflare)
+# ==========================
+- Antes de gerar código/queries, GARANTIR que /db/schema.sql reflete o estado atual do Supabase.
+- Se houver divergência: (1) gerar migration em /db/migrations, (2) aplicar no Supabase, (3) introspectar de novo, (4) atualizar /db/schema.sql.
+- Alinhar as chamadas do frontend com a tipagem real (tipos gerados por introspecção ou snapshot).
+
+# ==========================
+# 🔒 ANTI-SIMPLIFICAÇÃO (OBRIGATÓRIO)
+# ==========================
+- PROIBIDO:
+  - “Simplificar” removendo/renomeando campos/relacionamentos para passar build.
+  - Criar dados fictícios, defaults mágicos, ou “exemplos” que não existam em /db/initial_load.sql.
+  - Substituir ENUM por TEXT “temporariamente”.
+  - Bypassar validações/constraints/trigger “só para funcionar”.
+  - Trocar tipos (ex.: bigint → text) sem migration formal.
+  - Mexer em RLS/policies para driblar erro de permissão sem aprovação explícita.
+- PERMITIDO:
+  - Detectar a causa raiz do erro (coluna inexistente, enum faltando, trigger quebrado).
+  - Propor a correção via migration versionada, idempotente, com `BEGIN/COMMIT` e checagens `IF NOT EXISTS`.
+  - Ajustar queries para respeitar o schema existente (sem alterar o schema).
+- SE DER ERRO:
+  1) Reportar a mensagem EXATA.
+  2) Explicar a causa raiz com referência ao schema atual.
+  3) Sugerir UMA das duas vias:
+     - (A) Ajuste de código para aderir ao schema existente; ou
+     - (B) Migration (DDL) clara e mínima para adaptar o schema (com plano de rollback se aplicável).
+  4) NUNCA “resolver” inventando dados ou mudando nomes.
+
+# ==========================
+# Migrations & Idempotência
+# ==========================
+- Toda migration deve ser idempotente quando possível (verificar existência antes de criar/alterar).
+- Separar “ENUM ADD VALUE” em transação própria e COMMIT antes de usar o novo label (evita erro 55P04).
+- Funções/Triggers: dropar dependências explicitamente antes de recriar; evitar CASCADE agressivo.
+- Seeds não alteram schema. Seeds devem falhar com erro claro se dependerem de rótulos ENUM ausentes (ou criar labels antes).
+
+# ==========================
+# Qualidade & Segurança
+# ==========================
+- Preferir transações (`BEGIN/COMMIT`) nos blocos de DDL/DML críticos.
+- Validar constraints (PK/UK/FK), triggers e enums após migrations (health-check SQL).
+- NUNCA expor segredos. Usar `.env` e `.env.example`. Não commitar chaves reais.
+- Logs e mensagens de erro devem apontar a tabela/coluna exata e a ação sugerida.
+
+# ==========================
+# Checklists (antes de abrir PR)
+# ==========================
+- [ ] Código usa apenas colunas/tabelas/enum existentes no Supabase.
+- [ ] Se schema mudou: há migration em /db/migrations e snapshot /db/schema.sql atualizado.
+- [ ] Nenhum mock de dados substitui o banco (sem arrays/JSON “temporários”).
+- [ ] Seeds só em /db/initial_load.sql. Nada hardcoded no frontend.
+- [ ] Queries testadas contra o Supabase real (leitura) e respeitam RLS.

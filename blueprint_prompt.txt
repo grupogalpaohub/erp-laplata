@@ -1,0 +1,466 @@
+🧠 SYSTEM PROMPT — ERP La Plata (Fiori-like, Next 14 + Supabase, Free Tier-Ready)
+
+Implemente um ERP/CRM modular (MM/WH, SD, CRM, FI, CO) com telas de Setup/Customizing.
+Stack: Next.js 14 (App Router, React + TS) + Tailwind + Radix/shadcn + TanStack Query + Supabase (DB/Auth/Edge Functions) + Cloudflare Pages.
+Repositório: erp-laplata, branch: erp-git.
+
+Regras globais (obrigatórias)
+
+Multi-tenant: toda tabela tem tenant_id (text). MVP usa LaplataLunaria.
+
+Planta/Depósito: plant_id (warehouse). Exatamente 1 is_default=true por tenant (constraint única parcial).
+
+Moeda: valores em centavos (integer).
+
+Datas: date ou timestamptz conforme indicado.
+
+RLS: todas as tabelas com policies por tenant_id. Leituras/escritas só do tenant atual.
+
+Numeração: usar doc_numbering (não hardcode). Função atômica next_doc_number.
+
+Auth: Supabase Auth (e-mail/password). user_profile.user_id é o UUID do Supabase.
+
+Service Role: apenas nas Edge Functions. Front usa só NEXT_PUBLIC_SUPABASE_ANON_KEY.
+
+UI: Fiori-like — sidebar fixa, header com busca global, 4 KPIs comparativos no topo, tiles por módulo.
+
+Aderência a Free Tier: consultas paginadas, índices mínimos, nenhuma função com loops pesados, snapshots de KPI assíncronos e com caching (detalhes no fim).
+
+KPIs de topo (linha de 4 cards)
+
+Pedidos Hoje — subtítulo: “Média diária do mês”.
+
+Receita do Mês — subtítulo: “Média mensal histórica”.
+
+Leads Ativos (semana) — subtítulo: “Média mensal”.
+
+Estoque Crítico (itens) — subtítulo: “PNs críticos · Tendência de consumo”.
+
+Renderizar como <KpiCard title value comparisonText trend? />.
+
+📁 Estrutura do projeto
+erp-laplata/
+├─ frontend/                     # Next 14
+│  ├─ src/app/(routes)/
+│  │  ├─ launchpad/
+│  │  ├─ co|mm|sd|wh|crm|fi/     # módulos
+│  │  └─ setup/(co|mm|sd|wh|crm|fi)/
+│  ├─ src/components/            # KpiCard, ModuleTile, DataTable, forms
+│  └─ src/lib/supabase.ts
+├─ supabase/
+│  ├─ migrations/                # DDL + RLS + triggers
+│  ├─ seed/                      # seeds iniciais (customizings + dados mínimos)
+│  └─ functions/                 # Edge Functions (setup, po/so, kpi)
+└─ docs/BLUEPRINT_CURSOR.md      # este arquivo
+
+🔌 Variáveis de ambiente (Cloudflare Pages → Project Settings)
+
+NEXT_PUBLIC_APP_NAME = ERP Laplata
+
+NEXT_PUBLIC_SUPABASE_URL = <url do projeto>
+
+NEXT_PUBLIC_SUPABASE_ANON_KEY = <anon key>
+
+(Edge Functions) SUPABASE_SERVICE_ROLE_KEY (apenas no backend, jamais no front)
+
+Build:
+
+Root dir: /
+
+Build command: cd frontend && npm install && npm run build
+
+Output dir: frontend/out
+
+next.config.js com output: 'export' + images.unoptimized = true.
+
+🎨 UI & Navegação
+
+Sidebar com módulos (CO, MM, SD, WH, CRM, FI, Analytics).
+
+Launchpad: tiles por módulo (Central, Dashboard, Setup, Criar Documento).
+
+Form padrão (shadcn + zod), tabelas com paginação server-side (TanStack Query).
+
+Permissões: use role_permission para ocultar ações/botões (além de RLS no banco).
+
+🗄️ Banco de dados — Tabelas (MVP)
+
+Todas as tabelas possuem tenant_id text. Chaves: simples ou compostas conforme indicado.
+Aqui vai o catálogo mínimo para o ERP funcionar ponta a ponta (dados + customizings).
+
+🔐 Setup & Segurança
+
+tenant: tenant_id(PK), display_name, locale, timezone, created_at
+
+user_profile: tenant_id, user_id(PK), name, email, role, is_active, created_at
+
+role_permission: tenant_id, role, resource, action, allowed
+
+app_setting: tenant_id, key, value, updated_at
+
+doc_numbering: tenant_id, doc_type, prefix, format, next_seq, is_active
+
+audit_log: tenant_id, audit_id, table_name, record_pk, action, diff_json, actor_user, created_at
+
+import_job/import_log: logs de importação (bootstrap/seeds)
+
+📦 MM — Materiais & Fornecedores (negócio)
+
+mm_vendor: tenant_id, vendor_id(PK), vendor_name, email, telefone, cidade, estado, vendor_rating
+
+mm_material: tenant_id, mm_material(PK), mm_comercial, mm_desc, mm_mat_type, mm_mat_class, mm_price_cents, barcode, weight_grams, status, mm_pur_link, mm_vendor_id?
+
+mm_purchase_order: tenant_id, mm_order(PK), vendor_id, status, po_date, expected_delivery?, notes?
+
+mm_purchase_order_item: tenant_id, po_item_id(PK), mm_order, plant_id, mm_material, mm_qtt numeric, unit_cost_cents, line_total_cents, notes?
+
+mm_receiving: tenant_id, recv_id(PK), mm_order, plant_id, mm_material, qty_received numeric, received_at timestamptz
+
+🏭 WH — Depósitos & Estoque (negócio)
+
+wh_warehouse: tenant_id, plant_id(PK), name, is_default boolean (UNIQUE por tenant onde true)
+
+wh_inventory_balance: tenant_id, plant_id, mm_material, on_hand_qty numeric, reserved_qty numeric (PK composta tenant_id, plant_id, mm_material)
+
+wh_inventory_ledger (opcional no MVP, recomendado): ledger_id bigserial(PK), tenant_id, plant_id, mm_material, movement (IN|OUT|RESERVE|RELEASE|ADJUST), qty numeric, ref_type, ref_id, created_at
+
+🛒 SD — Vendas (negócio)
+
+crm_customer: tenant_id, customer_id(PK), name, email?, telefone?, customer_type(PF|PJ), status, created_date
+
+sd_sales_order: tenant_id, so_id(PK), customer_id, status, order_date, expected_ship?, total_cents
+
+sd_sales_order_item: tenant_id, so_id, sku, quantity, unit_price_cents, line_total_cents (PK composta tenant_id, so_id, sku, row_no? se precisar)
+
+sd_shipment: tenant_id, shipment_id(PK), so_id, warehouse_id, ship_date, status, carrier?, tracking_code?
+
+sd_payment: tenant_id, payment_id(PK), so_id, amount_cents, payment_date, payment_method, status
+
+🧲 CRM — Leads & Oportunidades (negócio)
+
+crm_lead: tenant_id, lead_id(PK), name, email?, phone?, source, status, score?, owner_user?, created_date
+
+crm_opportunity: tenant_id, opp_id(PK), lead_id, stage, est_value_cents?, probability?, next_action_at?, status, created_date
+
+crm_interaction: tenant_id, interaction_id(PK), lead_id, channel, content, sentiment?, created_date
+
+💰 FI — Financeiro (negócio)
+
+fi_account: tenant_id, account_id(PK), name, type(caixa|banco), currency, is_active
+
+fi_invoice: tenant_id, invoice_id(PK), source_type(PO|SO), source_id, customer_id?, vendor_id?, amount_cents, due_date, status, created_date
+
+fi_payment: tenant_id, payment_id(PK), invoice_id, account_id, amount_cents, payment_date, method, status
+
+fi_transaction: tenant_id, transaction_id(PK), account_id, type(credito|debito), amount_cents, ref_type(invoice|payment|ajuste), ref_id, date
+
+📊 CO — Controladoria & Dashboard (negócio)
+
+co_cost_center: tenant_id, cc_id(PK), name, parent_cc_id?, is_active
+
+co_fiscal_period: tenant_id, period_id(PK), start_date, end_date, status
+
+co_kpi_definition: tenant_id, kpi_key(PK), name, unit, description?
+
+co_kpi_snapshot: tenant_id, kpi_key, snapshot_at, value_number numeric, meta_json text (PK composta tenant_id, kpi_key, snapshot_at)
+
+co_dashboard_tile: tenant_id, tile_id(PK), kpi_key, title, subtitle?, order_index, color?, is_active
+
+🎛️ Customizings / Setup por módulo
+
+Tabelas de setup (*_setup) + listas definidas pelo usuário (*_def).
+Usadas pelas telas de Setup (chips/selects/switches) e validadas no backend.
+
+MM — Materiais
+
+mm_setup: default_payment_terms int, default_currency, default_wh_id, require_mat_type bool, require_mat_class bool, allow_zero_price bool, default_uom
+
+mm_category_def: category, is_active
+
+mm_classification_def: classification, is_active
+
+mm_price_channel_def: channel, is_active
+
+mm_currency_def: currency, is_active
+
+mm_vendor_rating_def: rating, is_active
+
+mm_status_def: object_type(material|purchase_order|receiving), status, description?, is_final bool, order_index int
+
+WH — Depósitos
+
+wh_setup: default_plant_id, reserve_policy(no_backorder|allow_backorder), negative_stock_allowed bool, picking_strategy(fifo|lifo)
+
+wh_inventory_status_def (opcional): status(good|damaged|hold), is_active
+
+SD — Vendas
+
+sd_setup: backorder_policy(block|allow|partial), pricing_mode(material|price_list), default_channel, auto_reserve_on_confirm bool
+
+sd_order_status_def: status, description?, is_final bool, order_index int
+
+sd_shipment_status_def: status, description?, is_final bool, order_index int
+
+sd_carrier_def: carrier_code, carrier_name, is_active
+
+sd_channel_def: channel, is_active
+
+CRM — Leads
+
+crm_setup: require_contact_info bool, auto_convert_on_first_order bool
+
+crm_source_def: source, is_active
+
+crm_lead_status_def: status, description?, order_index int, is_final bool
+
+crm_opp_stage_def: stage, description?, order_index int, is_final bool
+
+FI — Financeiro
+
+fi_setup: currency, tax_inclusive bool, default_ar_account_id?, default_ap_account_id?, rounding_policy(bankers|up|down)
+
+fi_payment_method_def: method, display_name, is_active
+
+fi_payment_terms_def: terms_code, description?, days int, is_active
+
+fi_tax_code_def (opcional): tax_code, description?, rate_bp int
+
+CO — Controladoria
+
+co_setup: timezone, kpi_refresh_cron
+
+🔐 Segurança (RLS & permissões)
+
+Habilitar RLS em todas as tabelas novas.
+
+Policies padrão:
+
+SELECT: tenant_id = current_setting('request.jwt.claims', true)::json->>'tenant_id'
+
+INSERT/UPDATE/DELETE: mesma checagem em USING e WITH CHECK.
+
+role_permission controla UI (não substitui RLS):
+resource: mm_material, mm_purchase_order, sd_sales_order, sd_shipment, fi_invoice, crm_lead, co_* etc.
+action: read|create|update|delete|approve|receive|confirm|ship.
+
+🔀 Fluxos principais & APIs (Edge Functions)
+
+Todas as funções recebem/retornam JSON. Autenticação por Supabase JWT.
+Padrão de contrato: { ok: boolean, data?, error? }.
+Paginação: ?limit=&offset=. Nunca retornar coleções sem paginação.
+
+Setup (para cada módulo)
+
+GET /setup/:module → { setup, defs: {...} }
+
+POST /setup/:module → upsert em *_setup
+
+POST /setup/:module/def/:entity → create; PUT/DELETE idem
+
+Compras (MM/WH)
+
+POST /po/create → cria mm_purchase_order + itens; gera mm_order via doc_numbering
+
+POST /po/approve → muda status conforme mm_status_def
+
+POST /po/receive → grava em mm_receiving, atualiza wh_inventory_balance (on_hand += qty), opcional: ledger IN
+
+Vendas (SD/WH/FI)
+
+POST /so/create → cria sd_sales_order + itens (doc_numbering)
+
+POST /so/confirm → se sd_setup.auto_reserve_on_confirm, reserva saldo (reserved += qty), checando backorder_policy
+
+POST /shipment/ship → baixa estoque (on_hand -= qty, reserved -= qty se havia), atualiza sd_shipment.status
+
+POST /payment/confirm → cria fi_invoice (se não existir), fi_payment e fi_transaction (crédito ou débito)
+
+KPIs (CO)
+
+POST /kpi/refresh (agendado) → escreve co_kpi_snapshot para:
+
+kpi_orders_today
+
+kpi_month_revenue_cents
+
+kpi_active_leads
+
+kpi_stock_critical_count
+
+Observações de consistência
+
+Todas as mutações de estoque devem ser transacionais (BEGIN/COMMIT).
+
+wh_warehouse: garantir uma is_default=true por tenant (constraint parcial e validação na função).
+
+next_doc_number deve fazer UPDATE … SET next_seq = next_seq+1 RETURNING para evitar colisão.
+
+🌱 Seeds mínimos (exemplos)
+
+tenant: LaplataLunaria
+
+user_profile: 1 admin (UUID do Supabase)
+
+doc_numbering: SO/MM/SH/PAY/INV com YYYYMM-SEQ6
+
+wh_warehouse: plant_id=GOIANIA, is_default=true
+
+mm_setup/sd_setup/crm_setup/fi_setup/co_setup: linhas default
+
+Def tables:
+
+MM: category(brinco, colar), classification(prata), currency(BRL), vendor_rating(A,B,C), status(material: active,draft,archived; purchase_order: draft,approved,received,cancelled)
+
+SD: order_status(draft,confirmed,shipped,invoiced,delivered,cancelled), shipment_status(pending,partial,complete,cancelled), carrier(correios,jadlog), channel(site,whatsapp)
+
+CRM: source(instagram,whatsapp,site), lead_status(novo,em_contato,qualificado,convertido), opp_stage(discovery,validation,closing)
+
+FI: payment_method(pix,cartao,boleto), payment_terms(NET30=30d)
+
+CO: tiles 1–4 apontando para KPIs do topo
+
+Dados de negócio de exemplo:
+
+Fornecedor SUP_00001, Material BR-001, Depósito WH-001 (default), Saldo on_hand=100
+
+Cliente CUST-0001, SO SO-YYYYMM-000001 com 1 item
+
+Conta FI ACC-0001 (Banco)
+
+🧪 Validações de negócio (must-have)
+
+MM Material: se mm_setup.require_mat_type, mm_mat_type não nulo; mm_mat_type ∈ mm_category_def.active.
+
+Purchase Order: status deve pertencer a mm_status_def(object_type='purchase_order') e seguir ordem (enforce por app/EF).
+
+Reserva/Backorder: respeitar sd_setup.backorder_policy (block/allow/partial).
+
+Warehouse Default: impedir múltiplos is_default=true por tenant (constraint).
+
+Pagamentos/Faturas: fi_payment_terms_def.days preenche due_date ao emitir fatura.
+
+🧱 Índices & Performance (Free Tier)
+
+Índices compostos:
+
+ON mm_purchase_order_item(tenant_id, mm_order)
+
+ON mm_receiving(tenant_id, mm_order)
+
+ON wh_inventory_balance(tenant_id, plant_id, mm_material) UNIQUE
+
+ON sd_sales_order_item(tenant_id, so_id)
+
+ON co_kpi_snapshot(tenant_id, kpi_key, snapshot_at DESC)
+
+Paginação sempre (limit 50 default).
+
+Funções leves: nada de loops por toda a base; usar queries agregadas e snapshots para dashboards.
+
+Cache: no frontend, TanStack Query com staleTime 30–120s para listas estáveis.
+
+Cron KPI: no free da Supabase, rodar a cada 15 min.
+
+🧰 Build & Deploy (Free Tier friendly)
+Cloudflare Pages
+
+Framework preset: None
+
+Build command: cd frontend && npm install && npm run build
+
+Output: frontend/out
+
+Branch de produção: erp-git
+
+Images: unoptimized: true no next.config.js
+
+Env: somente NEXT_PUBLIC_* no Pages; service role não.
+
+Supabase
+
+Rodar migrações (supabase/migrations) e depois seeds (supabase/seed).
+
+Publicar Edge Functions (supabase functions deploy …) para: setup_*, po, so, shipment, payment, kpi_refresh.
+
+Habilitar RLS em todas as tabelas novas e aplicar policies padrão por tenant.
+
+GitHub
+
+Repositório com monorepo simples (frontend + supabase + docs).
+
+CI opcional: lint + typecheck (sem build pesado para não estourar minutos do free).
+
+🧯 Lições aprendidas incorporadas (do relatório de falhas)
+
+Dependências: travar versões principais (Next 14.0.x, React 18). Evitar libs abandonadas; remover pacotes não usados.
+
+Scripts de import: consolidar em uma EF de bootstrap com validação; logs em import_job/log.
+
+Padronização de campos: nomes canônicos (ex.: mm_material, plant_id, so_id, mm_order), todos em snake_case.
+
+Variáveis de ambiente: usar somente NEXT_PUBLIC_* no front; checagens no next.config.js foram removidas (No more “invalid next.config env”).
+
+Bundle Frontend: lazy-load nas páginas de módulos; evitar ícones/packs gigantes.
+
+Queries: todas as tabelas com índices úteis + paginação.
+
+✅ Checklists de verificação
+Após migrações
+
+ wh_warehouse: exatamente 1 is_default=true por tenant
+
+ RLS habilitada em todas as tabelas novas
+
+ doc_numbering com SO/MM/SH/PAY/INV ativos
+
+Após seeds
+
+ mm_*_def, sd_*_def, crm_*_def, fi_*_def preenchidos
+
+ tiles CO configurados (4 KPIs do topo)
+
+ 1 fornecedor, 1 material, 1 depósito (default), 1 cliente
+
+Após publicar Edge Functions
+
+ GET /setup/mm retorna setup + defs
+
+ POST /po/create cria PO e itens; receive atualiza estoque
+
+ POST /so/confirm reserva saldo conforme política
+
+ POST /shipment/ship dá saída de estoque
+
+ POST /payment/confirm cria invoice/payment/transaction
+
+ POST /kpi/refresh grava snapshots
+
+Cloudflare
+
+ Variáveis NEXT_PUBLIC_* setadas
+
+ Build aponta para frontend/out
+
+ Branch de produção = erp-git
+
+🧩 Componentes/base de código a gerar
+
+<KpiCard /> (valor + comparativo pequeno)
+
+<ModuleTile /> (card com links)
+
+DataTable com paginação server-side
+
+Forms (shadcn) para CRUD de material, fornecedor, cliente, PO/SO
+
+Páginas Setup para todos os módulos (chips/listas/seletores gravando nas tabelas *_def/*_setup)
+
+🔚 Observações finais
+
+Este documento é a fonte única da verdade para gerar migrations, seeds, Edge Functions e páginas.
+
+Priorize MVP funcional (ciclos: Compra→Recebimento→Estoque e Venda→Expedição→Pagamento).
+
+Mantenha a compatibilidade com planos free: nada de rotas sem paginação, nada que varra a base inteira, KPIs por snapshot.
+
+Pronto. Gere a implementação respeitando fielmente este blueprint.

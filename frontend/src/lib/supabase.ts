@@ -1,13 +1,23 @@
 import { createClient } from '@supabase/supabase-js'
 
-// Only create client on the client side
+// Only create client on the client side with valid URLs
 let supabase: any = null
 
 if (typeof window !== 'undefined') {
-  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://example.supabase.co'
-  const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImV4YW1wbGUiLCJyb2xlIjoiYW5vbiIsImlhdCI6MTY0MDk5NTIwMCwiZXhwIjoxOTU2NTcxMjAwfQ.example'
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
+  const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
   
-  supabase = createClient(supabaseUrl, supabaseAnonKey)
+  // Only create client if we have valid environment variables
+  if (supabaseUrl && supabaseAnonKey && 
+      supabaseUrl.startsWith('https://') && 
+      supabaseAnonKey.length > 10) {
+    try {
+      supabase = createClient(supabaseUrl, supabaseAnonKey)
+    } catch (error) {
+      console.warn('Failed to create Supabase client:', error)
+      supabase = null
+    }
+  }
 }
 
 export { supabase }

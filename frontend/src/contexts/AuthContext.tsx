@@ -30,6 +30,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setSession(session)
       setUser(session?.user ?? null)
       setLoading(false)
+    }).catch((error: any) => {
+      console.warn('Failed to get session:', error)
+      setLoading(false)
     })
 
     // Listen for auth changes
@@ -41,7 +44,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setLoading(false)
     })
 
-    return () => subscription.unsubscribe()
+    return () => {
+      if (subscription) {
+        subscription.unsubscribe()
+      }
+    }
   }, [])
 
   const signInWithGoogle = async () => {

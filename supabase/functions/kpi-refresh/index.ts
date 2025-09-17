@@ -11,93 +11,129 @@ serve(async (req) => {
     return new Response('ok', { headers: corsHeaders })
   }
 
+  if (req.method !== 'POST') {
+    return new Response('Method not allowed', { status: 405, headers: corsHeaders })
+  }
+
   try {
     const supabaseClient = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     )
 
+    // Get tenant_id from JWT
     const authHeader = req.headers.get('Authorization')
     if (!authHeader) {
-      return new Response(
-        JSON.stringify({ ok: false, error: 'Missing authorization header' }),
-        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      )
+      throw new Error('Authorization header required')
     }
 
     const token = authHeader.replace('Bearer ', '')
     const { data: { user }, error: authError } = await supabaseClient.auth.getUser(token)
     
     if (authError || !user) {
-      return new Response(
-        JSON.stringify({ ok: false, error: 'Invalid token' }),
-        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      )
+      throw new Error('Invalid token')
     }
 
-    const { data: profile, error: profileError } = await supabaseClient
-      .from('user_profile')
-      .select('tenant_id')
-      .eq('user_id', user.id)
-      .single()
+    const tenantId = user.user_metadata?.tenant_id || 'LaplataLunaria'
+    const now = new Date()
+    const today = now.toISOString().split('T')[0]
+    const thisMonth = now.toISOString().substring(0, 7) // YYYY-MM
 
-    if (profileError || !profile) {
-      return new Response(
-        JSON.stringify({ ok: false, error: 'User profile not found' }),
-        { status: 404, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      )
-    }
+    // Calculate KPIs
+    const kpis = await calculateKPIs(supabaseClient, tenantId, today, thisMonth)
 
-    const tenantId = profile.tenant_id
+    // Store KPI snapshots
+    const snapshots = Object.entries(kpis).map(([key, value]) => ({
+      tenant_id: tenantId,
+      kpi_key: key,
+      kpi_value: value,
+      snapshot_at: now.toISOString(),
+      created_at: now.toISOString()
+    }))
 
-    if (req.method === 'POST') {
-      // Call the refresh KPI snapshots function
-      const { data, error } = await supabaseClient
-        .rpc('refresh_kpi_snapshots', { p_tenant_id: tenantId })
+    const { error: insertError } = await supabaseClient
+      .from('co_kpi_snapshot')
+      .insert(snapshots)
 
-      if (error) {
-        return new Response(
-          JSON.stringify({ ok: false, error: error.message }),
-          { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-        )
-      }
-
-      // Get the latest KPI snapshots
-      const { data: snapshots, error: snapshotsError } = await supabaseClient
-        .from('co_kpi_snapshot')
-        .select('*')
-        .eq('tenant_id', tenantId)
-        .order('snapshot_at', { ascending: false })
-        .limit(4)
-
-      if (snapshotsError) {
-        return new Response(
-          JSON.stringify({ ok: false, error: snapshotsError.message }),
-          { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-        )
-      }
-
-      return new Response(
-        JSON.stringify({ 
-          ok: true, 
-          data: { 
-            snapshots,
-            refreshed_at: new Date().toISOString()
-          } 
-        }),
-        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      )
-    }
+    if (insertError) throw insertError
 
     return new Response(
-      JSON.stringify({ ok: false, error: 'Method not allowed' }),
-      { status: 405, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      JSON.stringify({
+        success: true,
+        data: {
+          kpis,
+          snapshot_at: now.toISOString()
+        }
+      }),
+      { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 200 }
     )
 
   } catch (error) {
+    console.error('KPI refresh error:', error)
     return new Response(
-      JSON.stringify({ ok: false, error: error.message }),
-      { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      JSON.stringify({ success: false, error: error.message }),
+      { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 500 }
     )
   }
 })
+
+async function calculateKPIs(supabaseClient: any, tenantId: string, today: string, thisMonth: string) {
+  const kpis: { [key: string]: number } = {}
+
+  try {
+    // KPI: Orders today
+    const { count: ordersToday } = await supabaseClient
+      .from('sd_sales_order')
+      .select('*', { count: 'exact', head: true })
+      .eq('tenant_id', tenantId)
+      .eq('order_date', today)
+
+    kpis.kpi_orders_today = ordersToday || 0
+
+    // KPI: Month revenue (in cents)
+    const { data: revenueData } = await supabaseClient
+      .from('sd_sales_order')
+      .select('total_amount')
+      .eq('tenant_id', tenantId)
+      .gte('order_date', `${thisMonth}-01`)
+      .lt('order_date', `${thisMonth}-32`)
+
+    kpis.kpi_month_revenue_cents = revenueData?.reduce((sum: number, order: any) => sum + (order.total_amount || 0), 0) || 0
+
+    // KPI: Active leads
+    const { count: activeLeads } = await supabaseClient
+      .from('crm_lead')
+      .select('*', { count: 'exact', head: true })
+      .eq('tenant_id', tenantId)
+      .in('status', ['new', 'contacted', 'qualified'])
+
+    kpis.kpi_active_leads = activeLeads || 0
+
+    // KPI: Stock critical count (items with stock below min_stock)
+    const { data: criticalStock } = await supabaseClient
+      .from('wh_inventory_balance')
+      .select(`
+        sku,
+        quantity_on_hand,
+        mm_material!inner(min_stock)
+      `)
+      .eq('tenant_id', tenantId)
+      .eq('status', 'active')
+
+    const criticalCount = criticalStock?.filter((item: any) => 
+      item.quantity_on_hand <= (item.mm_material?.min_stock || 0)
+    ).length || 0
+
+    kpis.kpi_stock_critical_count = criticalCount
+
+  } catch (error) {
+    console.error('Error calculating KPIs:', error)
+    // Return default values on error
+    kpis.kpi_orders_today = 0
+    kpis.kpi_month_revenue_cents = 0
+    kpis.kpi_active_leads = 0
+    kpis.kpi_stock_critical_count = 0
+  }
+
+  return kpis
+}

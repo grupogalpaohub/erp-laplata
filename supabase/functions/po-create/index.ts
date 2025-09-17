@@ -11,127 +11,109 @@ serve(async (req) => {
     return new Response('ok', { headers: corsHeaders })
   }
 
+  if (req.method !== 'POST') {
+    return new Response('Method not allowed', { status: 405, headers: corsHeaders })
+  }
+
   try {
     const supabaseClient = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     )
 
+    const { vendor_id, items, notes } = await req.json()
+
+    // Get tenant_id from JWT
     const authHeader = req.headers.get('Authorization')
     if (!authHeader) {
-      return new Response(
-        JSON.stringify({ ok: false, error: 'Missing authorization header' }),
-        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      )
+      throw new Error('Authorization header required')
     }
 
     const token = authHeader.replace('Bearer ', '')
     const { data: { user }, error: authError } = await supabaseClient.auth.getUser(token)
     
     if (authError || !user) {
-      return new Response(
-        JSON.stringify({ ok: false, error: 'Invalid token' }),
-        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      )
+      throw new Error('Invalid token')
     }
 
-    const { data: profile, error: profileError } = await supabaseClient
-      .from('user_profile')
-      .select('tenant_id')
-      .eq('user_id', user.id)
+    const tenantId = user.user_metadata?.tenant_id || 'LaplataLunaria'
+
+    // Generate PO number
+    const { data: poNumber, error: poError } = await supabaseClient
+      .rpc('next_doc_number', { p_tenant: tenantId, p_doc_type: 'MM' })
+
+    if (poError) throw poError
+
+    // Create purchase order
+    const poData = {
+      po_id: poNumber,
+      tenant_id: tenantId,
+      vendor_id,
+      order_date: new Date().toISOString().split('T')[0],
+      expected_delivery: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0], // 7 days from now
+      status: 'draft',
+      total_amount: 0,
+      currency: 'BRL',
+      notes,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString()
+    }
+
+    const { data: po, error: poInsertError } = await supabaseClient
+      .from('mm_purchase_order')
+      .insert(poData)
+      .select()
       .single()
 
-    if (profileError || !profile) {
-      return new Response(
-        JSON.stringify({ ok: false, error: 'User profile not found' }),
-        { status: 404, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      )
-    }
+    if (poInsertError) throw poInsertError
 
-    const tenantId = profile.tenant_id
+    // Create purchase order items
+    const poItems = items.map((item: any, index: number) => ({
+      item_id: `POI${String(index + 1).padStart(3, '0')}`,
+      tenant_id: tenantId,
+      po_id: poNumber,
+      sku: item.sku,
+      quantity: item.quantity,
+      unit_price: item.unit_price,
+      currency: 'BRL',
+      notes: item.notes,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString()
+    }))
 
-    if (req.method === 'POST') {
-      const body = await req.json()
-      const { vendor_id, po_date, expected_delivery, notes, items } = body
+    const { data: itemsData, error: itemsError } = await supabaseClient
+      .from('mm_purchase_order_item')
+      .insert(poItems)
+      .select()
 
-      // Generate PO number
-      const { data: poNumber, error: poError } = await supabaseClient
-        .rpc('next_doc_number', { p_tenant_id: tenantId, p_doc_type: 'MM' })
+    if (itemsError) throw itemsError
 
-      if (poError) {
-        return new Response(
-          JSON.stringify({ ok: false, error: poError.message }),
-          { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-        )
-      }
+    // Get updated PO with total
+    const { data: updatedPO, error: fetchError } = await supabaseClient
+      .from('mm_purchase_order')
+      .select('*')
+      .eq('po_id', poNumber)
+      .eq('tenant_id', tenantId)
+      .single()
 
-      // Create purchase order
-      const { data: po, error: poCreateError } = await supabaseClient
-        .from('mm_purchase_order')
-        .insert({
-          tenant_id: tenantId,
-          mm_order: poNumber,
-          vendor_id,
-          po_date,
-          expected_delivery,
-          notes,
-          status: 'draft'
-        })
-        .select()
-        .single()
-
-      if (poCreateError) {
-        return new Response(
-          JSON.stringify({ ok: false, error: poCreateError.message }),
-          { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-        )
-      }
-
-      // Create purchase order items
-      const poItems = items.map((item: any) => ({
-        tenant_id: tenantId,
-        mm_order: poNumber,
-        plant_id: item.plant_id,
-        mm_material: item.mm_material,
-        mm_qtt: item.mm_qtt,
-        unit_cost_cents: item.unit_cost_cents,
-        line_total_cents: item.mm_qtt * item.unit_cost_cents,
-        notes: item.notes
-      }))
-
-      const { data: itemsData, error: itemsError } = await supabaseClient
-        .from('mm_purchase_order_item')
-        .insert(poItems)
-        .select()
-
-      if (itemsError) {
-        return new Response(
-          JSON.stringify({ ok: false, error: itemsError.message }),
-          { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-        )
-      }
-
-      return new Response(
-        JSON.stringify({ 
-          ok: true, 
-          data: { 
-            po, 
-            items: itemsData 
-          } 
-        }),
-        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      )
-    }
+    if (fetchError) throw fetchError
 
     return new Response(
-      JSON.stringify({ ok: false, error: 'Method not allowed' }),
-      { status: 405, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      JSON.stringify({
+        success: true,
+        data: {
+          po: updatedPO,
+          items: itemsData
+        }
+      }),
+      { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 201 }
     )
 
   } catch (error) {
+    console.error('PO create error:', error)
     return new Response(
-      JSON.stringify({ ok: false, error: error.message }),
-      { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      JSON.stringify({ success: false, error: error.message }),
+      { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 500 }
     )
   }
 })

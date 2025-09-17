@@ -9,12 +9,17 @@ frontend
 
 ### Build Command
 ```bash
-npm ci && npm run build
+npm run pages:build
 ```
 
 ### Build Output Directory (Publish Directory)
 ```
-out
+.vercel/output/static
+```
+
+### Functions Directory
+```
+.vercel/output/functions
 ```
 
 ## Variáveis de Ambiente
@@ -40,13 +45,15 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY=<sua_chave_anonima_aqui>
 
 ```
 frontend/
-├── out/                    # Build output (publish directory)
+├── .vercel/output/        # Build output (publish directory)
+│   ├── static/           # Static files
+│   └── functions/        # Cloudflare Functions
 ├── src/
-│   ├── app/               # Next.js App Router
-│   ├── components/        # React components
-│   └── lib/              # Utilities
-├── next.config.js         # Next.js config (export mode)
-└── package.json          # Dependencies
+│   ├── app/              # Next.js App Router
+│   ├── components/       # React components
+│   └── lib/             # Utilities
+├── next.config.js        # Next.js config
+└── package.json         # Dependencies
 ```
 
 ## Comandos de Deploy
@@ -54,14 +61,14 @@ frontend/
 ### Deploy Manual
 ```bash
 cd frontend
-npm ci
-npm run build
-npx wrangler pages deploy out --project-name=erp-laplata
+npm run pages:build
+npx wrangler pages deploy .vercel/output/static --functions .vercel/output/functions --project-name=erp-laplata
 ```
 
-### Deploy via Script
+### Preview Local
 ```bash
-./deploy.sh
+cd frontend
+npm run preview:cf
 ```
 
 ## Verificação

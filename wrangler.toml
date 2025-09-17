@@ -2,12 +2,8 @@ name = "erp-laplata"
 compatibility_date = "2024-01-01"
 
 [env.production]
-name = "erp-laplata"
+account_id = "474986f8df1636411d115dede3dff401"
 
-[[env.production.pages_builds]]
+[[pages_builds]]
 command = "cd frontend && npm install && npm run build"
-cwd = "frontend"
-watch_dir = "frontend"
-
-[env.production.vars]
-NEXT_PUBLIC_APP_NAME = "ERP Laplata"
+publish = "frontend/out"

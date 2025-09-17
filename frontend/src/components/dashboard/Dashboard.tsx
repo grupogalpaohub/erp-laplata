@@ -2,6 +2,7 @@
 
 import { KpiCard } from '@/components/ui/KpiCard'
 import { ModuleTile } from '@/components/ui/ModuleTile'
+import { AuthDebug } from '@/components/debug/AuthDebug'
 import { 
   ShoppingCart, 
   DollarSign, 
@@ -17,6 +18,11 @@ import {
 export function Dashboard() {
   return (
     <div className="lg:ml-72 p-6 bg-gray-50 min-h-screen">
+      {/* Debug - Remove after fixing */}
+      <div className="mb-6">
+        <AuthDebug />
+      </div>
+
       {/* Breadcrumbs */}
       <div className="mb-6">
         <nav className="flex" aria-label="Breadcrumb">

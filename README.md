@@ -28,6 +28,13 @@ erp-laplata/
 
 ## 🚀 Instalação e Configuração
 
+### Pré-requisitos
+
+- Node.js 18+ ou 20
+- npm ou yarn
+- Conta no Supabase
+- Conta no Cloudflare
+
 ### 1. Configurar Supabase
 
 ```bash
@@ -56,30 +63,59 @@ cd frontend
 npm install
 
 # Copiar variáveis de ambiente
-cp .env.local.example .env.local
+cp .env.example .env.local
 
 # Configurar .env.local com suas credenciais
 NEXT_PUBLIC_SUPABASE_URL=https://gpjcfwjssfvqhppxdudp.supabase.co
 NEXT_PUBLIC_SUPABASE_ANON_KEY=sua_anon_key_aqui
-NEXT_PUBLIC_APP_NAME=ERP Laplata
+SUPABASE_SERVICE_ROLE_KEY=sua_service_role_key_aqui
 
 # Executar em desenvolvimento
 npm run dev
 ```
 
-### 3. Deploy no Cloudflare Pages
+### 3. Preview Local com Cloudflare
+
+```bash
+# Preview com adaptador Cloudflare
+npm run preview:cf
+
+# Acesse http://localhost:8788
+```
+
+### 4. Deploy no Cloudflare Pages
 
 1. Conectar repositório GitHub ao Cloudflare Pages
 2. Configurar build settings:
-   - **Framework preset**: None
-   - **Build command**: `cd frontend && npm install && npm run build`
-   - **Build output directory**: `frontend/out`
-   - **Root directory**: `/`
+   - **Root directory**: `frontend`
+   - **Build command**: `npm run pages:build`
+   - **Build output directory**: `.vercel/output/static`
+   - **Functions directory**: `.vercel/output/functions`
 
-3. Configurar variáveis de ambiente:
+3. Configurar variáveis de ambiente (Production e Preview):
    - `NEXT_PUBLIC_SUPABASE_URL`
    - `NEXT_PUBLIC_SUPABASE_ANON_KEY`
-   - `NEXT_PUBLIC_APP_NAME`
+   - `SUPABASE_SERVICE_ROLE_KEY`
+   - `NEXT_PUBLIC_APP_URL`
+
+### 5. Scripts Disponíveis
+
+```bash
+# Desenvolvimento
+npm run dev
+
+# Build para produção
+npm run build
+
+# Build para Cloudflare Pages
+npm run pages:build
+
+# Preview local com Cloudflare
+npm run preview:cf
+
+# Healthcheck do build
+npm run healthcheck
+```
 
 ## 🗄️ Banco de Dados
 

@@ -47,16 +47,16 @@ console.log('✅ .vercel/output/functions encontrado');
 console.log('\n4️⃣ Verificando rotas principais...');
 const routes = [
   'index.html',
-  'dashboard/index.html',
-  'wh/index.html',
-  'wh/inventory/index.html',
-  'wh/movements/index.html',
-  'wh/reports/index.html',
-  'mm/index.html',
-  'sd/index.html',
-  'crm/index.html',
-  'fi/index.html',
-  'co/index.html'
+  'dashboard.html',
+  'wh.html',
+  'wh/inventory.html',
+  'wh/movements.html',
+  'wh/reports.html',
+  'mm.html',
+  'sd.html',
+  'crm.html',
+  'fi.html',
+  'co.html'
 ];
 
 let missingRoutes = [];

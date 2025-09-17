@@ -1,0 +1,37 @@
+tenant_id,sku,mm_comercial,mm_desc,mm_mat_type,mm_mat_class,mm_price_cents,status
+LaplataLunaria,B_175,Símbolo,Brinco Argola Cravejado Trevo Resina Preto Misto,brinco,,24453,active
+LaplataLunaria,B_176,Nauriah,Brinco Círculo Cravejado Olho Grego de Prata,brinco,,19653,active
+LaplataLunaria,B_177,Nyra,Brinco Estrelas Liso de Prata,brinco,,10853,active
+LaplataLunaria,B_178,Senara,Brinco Infinito Cravejado com Borda de Prata,brinco,,24453,active
+LaplataLunaria,B_179,Selune,Brinco Lua Cravejado Médio de Prata,brinco,,19653,active
+LaplataLunaria,B_180,Sorcha,Brinco Fios Polidos com Bolinhas de Prata,brinco,,19653,active
+LaplataLunaria,B_181,Alaya,Brinco Triângulo Arabescos,brinco,,12453,active
+LaplataLunaria,B_182,Aliena,Brinco Argola Fio Quadrado,brinco,,19653,active
+LaplataLunaria,B_183,Alita,Brinco Argola Tarracha,brinco,,19653,active
+LaplataLunaria,B_184,Amyra,Brinco Argola Torcida,brinco,,19653,active
+LaplataLunaria,B_185,Amaranth,Brinco Argola Lisa Fina Mini,brinco,,12990,active
+LaplataLunaria,B_186,Anabeth,Brinco Argola Lisa Grossa,brinco,,28990,active
+LaplataLunaria,B_187,Anahi,Brinco Argola Lisa Média,brinco,,18990,active
+LaplataLunaria,B_188,Anisa,Brinco Argola Lisa Pequena,brinco,,15990,active
+LaplataLunaria,B_189,Asha,Brinco Argola Lisa Super Fina,brinco,,14990,active
+LaplataLunaria,B_190,Ayra,Brinco Argola Lisa Torcida,brinco,,18990,active
+LaplataLunaria,B_191,Calyssa,Brinco Argola com Pingente Coração,brinco,,21990,active
+LaplataLunaria,B_192,Danika,Brinco Argola com Pingente Estrela,brinco,,21990,active
+LaplataLunaria,B_193,Elara,Brinco Argola com Pingente Lua,brinco,,21990,active
+LaplataLunaria,B_194,Elis,Brinco Argola com Pingente Raio,brinco,,21990,active
+LaplataLunaria,B_195,Elodie,Brinco Argola Bolinhas,brinco,,18990,active
+LaplataLunaria,B_196,Elys,Brinco Argola Esferas Torcidas,brinco,,21990,active
+LaplataLunaria,B_197,Freya,Brinco Argola Fio Quadrado Pequena,brinco,,19990,active
+LaplataLunaria,B_198,Gaea,Brinco Argola Fio Quadrado Média,brinco,,22990,active
+LaplataLunaria,B_199,Gaia,Brinco Argola Fio Quadrado Grossa,brinco,,25990,active
+LaplataLunaria,B_200,Helena,Brinco Argola Quadrada,brinco,,22990,active
+LaplataLunaria,B_201,Ilara,Brinco Argola Quadrada Texturizada,brinco,,24990,active
+LaplataLunaria,B_202,Inaya,Brinco Argola Torcida Média,brinco,,21990,active
+LaplataLunaria,B_203,Ione,Brinco Argola Torcida Fina,brinco,,19990,active
+LaplataLunaria,B_204,Kaia,Brinco Argola com Bolinha,brinco,,17990,active
+LaplataLunaria,B_205,Kaira,Brinco Argola com Pingente Gotinha,brinco,,21990,active
+LaplataLunaria,B_206,Keira,Brinco Argola com Pingente Cruz,brinco,,21990,active
+LaplataLunaria,B_207,Lyra,Brinco Argola com Pingente Estrela do Mar,brinco,,21990,active
+LaplataLunaria,B_208,Maia,Brinco Argola com Pingente Concha,brinco,,21990,active
+LaplataLunaria,B_209,Nyx,Brinco Argola com Pingente Olho Grego,brinco,,22990,active
+LaplataLunaria,B_210,Orla,Brinco Argola com Pingente Trevo,brinco,,21990,active

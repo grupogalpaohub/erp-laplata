@@ -224,4 +224,4 @@ Este projeto é proprietário da Laplata Lunaria.
 
 ## 🤝 Suporte
 
-Para suporte técnico, entre em contato com a equipe de desenvolvimento.
+Para suporte técnico, entre em contato com a equipe de desenvolvimento.# Deploy trigger Thu Sep 18 09:35:05 AM UTC 2025

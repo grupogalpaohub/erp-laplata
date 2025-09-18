@@ -1,20 +1,18 @@
 export const runtime = 'edge';
-import './globals.css';
-import Link from 'next/link';
 export default function RootLayout({children}:{children:React.ReactNode}){
-  const links=[
-    '/', '/login', '/setup', '/analytics',
-    '/co/dashboard','/co/reports','/co/costs',
-    '/mm/catalog','/mm/vendors','/mm/purchases',
-    '/sd','/sd/orders','/sd/customers','/sd/invoices',
-    '/wh/inventory','/wh/movements','/wh/reports',
-    '/crm/leads','/crm/opportunities','/crm/activities',
-    '/fi/payables','/fi/receivables','/fi/cashflow'
-  ];
   return (
     <html lang="pt-BR"><body>
       <nav style={{padding:12,borderBottom:'1px solid #eee',display:'flex',gap:12,flexWrap:'wrap'}}>
-        {links.map(p => <Link key={p} href={p}>{p}</Link>)}
+        <a href="/">/</a>
+        <a href="/login">/login</a>
+        <a href="/setup">/setup</a>
+        <a href="/analytics">/analytics</a>
+        <a href="/co/dashboard">/co/dashboard</a>
+        <a href="/mm/catalog">/mm/catalog</a>
+        <a href="/sd">/sd</a>
+        <a href="/wh/inventory">/wh/inventory</a>
+        <a href="/crm/leads">/crm/leads</a>
+        <a href="/fi/payables">/fi/payables</a>
       </nav>
       <main style={{padding:24}}>{children}</main>
     </body></html>

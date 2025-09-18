@@ -1,4 +1,4 @@
-export const dynamic = "force-dynamic";
-export default async function Page() {
-  return <main style={{padding:24}}>Página em construção — render estável (sem erro de Server Components).</main>;
+// app/sd/page.tsx
+export default function SD() {
+  return <div className="rounded-xl border bg-white p-6">Vendas — Em construção (UI pronto, lógica a implementar).</div>;
 }

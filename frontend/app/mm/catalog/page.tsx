@@ -1,3 +1,4 @@
+// app/mm/catalog/page.tsx
 import { supabaseServer } from "@/lib/supabase/server";
 
 type Row = {
@@ -7,69 +8,53 @@ type Row = {
   mm_mat_type: string | null;
   mm_mat_class: string | null;
   sales_price_cents: number | null;
-  avg_unit_cost_cents: number | null;
 };
 
-export const dynamic = "force-dynamic"; // evita cache agressivo em produção
+export const revalidate = 30; // ISR
 
-export default async function CatalogPage() {
+export default async function Catalog() {
   const sb = supabaseServer();
-
-  // Use a VIEW (security definer) já existente no seu projeto:
-  const { data, error } = await sb
-    .from("v_material_overview")
-    .select("tenant_id, sku, mm_comercial, mm_mat_type, mm_mat_class, sales_price_cents, avg_unit_cost_cents")
-    .order("sku", { ascending: true })
-    .limit(200);
+  // Lê do VIEW (sem mexer em schema/tabelas)
+  const { data, error } = await sb.from("v_material_overview" as any)
+    .select("tenant_id, sku, mm_comercial, mm_mat_type, mm_mat_class, sales_price_cents")
+    .order("mm_comercial", { ascending: true })
+    .limit(300);
 
   if (error) {
-    // não quebrar o render: mostrar msg amigável
-    return (
-      <main style={{padding:"24px"}}>
-        <h1>Catálogo de Materiais</h1>
-        <p style={{color:"#b00"}}>Erro ao consultar catálogo: {error.message}</p>
-        <p>Diagnóstico rápido: acesse <code>/api/diag/supabase</code> para ver env/permissões.</p>
-      </main>
-    );
+    return <pre className="text-red-600">Erro ao carregar catálogo: {error.message}</pre>;
   }
 
-  const rows = (data ?? []) as Row[];
+  if (!data || data.length === 0) {
+    return <div className="rounded-xl border bg-white p-4">Nenhum material encontrado.</div>;
+  }
 
   return (
-    <main style={{padding:"24px"}}>
-      <h1>Catálogo de Materiais</h1>
-      {rows.length === 0 ? (
-        <p>Nenhum material encontrado.</p>
-      ) : (
-        <table style={{borderCollapse:"collapse",minWidth:900,marginTop:12}}>
-          <thead>
-            <tr>
-              <th style={{textAlign:"left",borderBottom:"1px solid #ddd",padding:"8px"}}>SKU</th>
-              <th style={{textAlign:"left",borderBottom:"1px solid #ddd",padding:"8px"}}>Nome Comercial</th>
-              <th style={{textAlign:"left",borderBottom:"1px solid #ddd",padding:"8px"}}>Tipo</th>
-              <th style={{textAlign:"left",borderBottom:"1px solid #ddd",padding:"8px"}}>Classe</th>
-              <th style={{textAlign:"right",borderBottom:"1px solid #ddd",padding:"8px"}}>Preço (R$)</th>
-              <th style={{textAlign:"right",borderBottom:"1px solid #ddd",padding:"8px"}}>Custo (R$)</th>
+    <div className="rounded-xl border bg-white">
+      <div className="p-4 border-b font-semibold">Catálogo de Materiais</div>
+      <table className="w-full text-sm">
+        <thead className="bg-slate-50 text-slate-600">
+          <tr>
+            <th className="p-2 text-left">SKU</th>
+            <th className="p-2 text-left">Nome</th>
+            <th className="p-2 text-left">Tipo</th>
+            <th className="p-2 text-left">Classe</th>
+            <th className="p-2 text-right">Preço</th>
+          </tr>
+        </thead>
+        <tbody>
+          {data.map((r: Row) => (
+            <tr key={`${r.tenant_id}-${r.sku}`} className="border-t">
+              <td className="p-2">{r.sku}</td>
+              <td className="p-2">{r.mm_comercial}</td>
+              <td className="p-2">{r.mm_mat_type}</td>
+              <td className="p-2">{r.mm_mat_class}</td>
+              <td className="p-2 text-right">
+                {r.sales_price_cents != null ? (r.sales_price_cents / 100).toLocaleString("pt-BR", { style: "currency", currency: "BRL" }) : "—"}
+              </td>
             </tr>
-          </thead>
-          <tbody>
-            {rows.map((r, i) => (
-              <tr key={i}>
-                <td style={{padding:"8px",borderBottom:"1px solid #f0f0f0"}}>{r.sku ?? "-"}</td>
-                <td style={{padding:"8px",borderBottom:"1px solid #f0f0f0"}}>{r.mm_comercial ?? "-"}</td>
-                <td style={{padding:"8px",borderBottom:"1px solid #f0f0f0"}}>{r.mm_mat_type ?? "-"}</td>
-                <td style={{padding:"8px",borderBottom:"1px solid #f0f0f0"}}>{r.mm_mat_class ?? "-"}</td>
-                <td style={{padding:"8px",textAlign:"right",borderBottom:"1px solid #f0f0f0"}}>
-                  {r.sales_price_cents != null ? (r.sales_price_cents/100).toFixed(2) : "-"}
-                </td>
-                <td style={{padding:"8px",textAlign:"right",borderBottom:"1px solid #f0f0f0"}}>
-                  {r.avg_unit_cost_cents != null ? (r.avg_unit_cost_cents/100).toFixed(2) : "-"}
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      )}
-    </main>
+          ))}
+        </tbody>
+      </table>
+    </div>
   );
 }

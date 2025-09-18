@@ -1,1 +1,4 @@
-export default function Loading() { return <div style={{padding:24}}>Carregando…</div>; }
+// app/loading.tsx
+export default function Loading() {
+  return <div className="rounded-xl border bg-white p-6">Carregando…</div>;
+}

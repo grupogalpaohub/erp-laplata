@@ -1,2 +1,1 @@
-
-export default function Page(){ return <div>OK: /co/costs</div>; }
+export default function Page(){ return <div>Em breve…</div> }

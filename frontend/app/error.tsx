@@ -1,2 +1,4 @@
-'use client';
-export default function Error({error}:{error:Error}){ return <div>Erro: {error.message}</div>; }
+'use client'
+export default function Error({error}:{error:Error}){ 
+  return <pre style={{whiteSpace:'pre-wrap',color:'#b00'}}>Erro: {error.message}</pre>
+}

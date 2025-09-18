@@ -1,2 +1,1 @@
-
-export default function Page(){ return <div>OK: /login</div>; }
+export default function Page(){ return <div>Em breve…</div> }

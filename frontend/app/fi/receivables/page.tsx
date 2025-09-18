@@ -1,2 +1,1 @@
-
-export default function Page(){ return <div>OK: /fi/receivables</div>; }
+export default function Page(){ return <div>Em breve…</div> }

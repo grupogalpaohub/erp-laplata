@@ -1,0 +1,10 @@
+#!/usr/bin/env bash
+set -euo pipefail
+./scripts/check_static.sh
+./scripts/check_package_next.sh
+./scripts/check_next_config.sh
+./scripts/check_sql_ddls.sh
+./scripts/check_env_leak.sh
+APP_DIR="."
+[ -d "frontend/app" ] && APP_DIR="frontend"
+./scripts/check_required_routes.sh "$APP_DIR"

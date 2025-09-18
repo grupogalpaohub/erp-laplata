@@ -1,19 +1,22 @@
-import "./globals.css";
-import { AuthProvider } from '@/contexts/AuthContext'
-
-export const metadata = {
-  title: "ERP Laplata",
-  description: "Sistema de Gestão",
-};
-
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+export const runtime = 'edge';
+import './globals.css';
+import Link from 'next/link';
+export default function RootLayout({children}:{children:React.ReactNode}){
+  const links=[
+    '/', '/login', '/setup', '/analytics',
+    '/co/dashboard','/co/reports','/co/costs',
+    '/mm/catalog','/mm/vendors','/mm/purchases',
+    '/sd','/sd/orders','/sd/customers','/sd/invoices',
+    '/wh/inventory','/wh/movements','/wh/reports',
+    '/crm/leads','/crm/opportunities','/crm/activities',
+    '/fi/payables','/fi/receivables','/fi/cashflow'
+  ];
   return (
-    <html lang="pt-BR">
-      <body className="min-h-screen bg-gray-50">
-        <AuthProvider>
-          {children}
-        </AuthProvider>
-      </body>
-    </html>
+    <html lang="pt-BR"><body>
+      <nav style={{padding:12,borderBottom:'1px solid #eee',display:'flex',gap:12,flexWrap:'wrap'}}>
+        {links.map(p => <Link key={p} href={p}>{p}</Link>)}
+      </nav>
+      <main style={{padding:24}}>{children}</main>
+    </body></html>
   );
 }

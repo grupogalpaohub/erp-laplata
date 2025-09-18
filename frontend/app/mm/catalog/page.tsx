@@ -1,55 +1,61 @@
-import { supabaseServer } from '@/lib/supabase'
-type Row = {
-  tenant_id: string
-  mm_material: string
-  mm_comercial: string
-  mm_desc: string
-  mm_mat_type: unknown
-  mm_mat_class: unknown
-  mm_price_cents: number
-  status: string | null
-}
-export const dynamic = 'force-dynamic'
-export default async function Page(){
-  const sb = supabaseServer()
-  const { data, error } = await sb
-    .from('mm_material')
-    .select('tenant_id, mm_material, mm_comercial, mm_desc, mm_mat_type, mm_mat_class, mm_price_cents, status')
-    .order('mm_material', { ascending: true })
-    .limit(300)
-  if (error) throw new Error(`mm_material: ${error.message}`)
-  if (!data || data.length === 0) return <div>Nenhum material encontrado.</div>
+// app/mm/catalog/page.tsx
+import { getMaterials } from '@/lib/data/materials';
+
+export const revalidate = 0; // sempre ler do banco
+
+export default async function Page() {
+  const rows = await getMaterials(300);
+
   return (
-    <div style={{display:'grid', gap:16}}>
-      <h1>Catálogo de Materiais</h1>
-      <table style={{borderCollapse:'collapse', width:'100%'}}>
-        <thead>
-          <tr>
-            <Th>SKU</Th><Th>Comercial</Th><Th>Descrição</Th>
-            <Th>Categoria</Th><Th>Classificação</Th>
-            <Th style={{textAlign:'right'}}>Preço</Th><Th>Status</Th>
-          </tr>
-        </thead>
-        <tbody>
-          {data.map(r=>(
-            <tr key={r.mm_material}>
-              <Td>{r.mm_material}</Td>
-              <Td>{r.mm_comercial}</Td>
-              <Td>{r.mm_desc}</Td>
-              <Td>{String(r.mm_mat_type)}</Td>
-              <Td>{String(r.mm_mat_class)}</Td>
-              <Td style={{textAlign:'right'}}>R$ {(r.mm_price_cents/100).toFixed(2)}</Td>
-              <Td>{r.status ?? ''}</Td>
+    <main style={{maxWidth: 1080, margin: '1.5rem auto', padding: '0 1rem'}}>
+      <h1>Catálogo</h1>
+
+      {rows.length === 0 ? (
+        <p>Nenhum material encontrado.</p>
+      ) : (
+        <table style={{width:'100%', borderCollapse:'collapse'}}>
+          <thead>
+            <tr>
+              <th style={th}>Código</th>
+              <th style={th}>Nome Comercial</th>
+              <th style={th}>Tipo</th>
+              <th style={th}>Classe</th>
+              <th style={{...th, textAlign:'right'}}>Preço (R$)</th>
+              <th style={th}>Status</th>
             </tr>
-          ))}
-        </tbody>
-      </table>
-    </div>
-  )
+          </thead>
+          <tbody>
+            {rows.map((r) => {
+              const name = r.commercial_name ?? r.mm_comercial ?? '';
+              return (
+                <tr key={`${r.tenant_id}:${r.mm_material}`}>
+                  <td style={td}>{r.mm_material}</td>
+                  <td style={td}>{name}</td>
+                  <td style={td}>{r.mm_mat_type}</td>
+                  <td style={td}>{r.mm_mat_class}</td>
+                  <td style={{...td, textAlign:'right'}}>
+                    {typeof r.mm_price_cents === 'number'
+                      ? (r.mm_price_cents / 100).toFixed(2)
+                      : '-'}
+                  </td>
+                  <td style={td}>{r.status ?? '-'}</td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+      )}
+    </main>
+  );
 }
-function Th(p:React.PropsWithChildren<{style?:React.CSSProperties}>){
-  return <th style={{borderBottom:'1px solid #ddd', textAlign:'left', padding:'8px', fontWeight:600, ...(p.style||{})}}>{p.children}</th>
-}
-function Td(p:React.PropsWithChildren<{style?:React.CSSProperties}>){
-  return <td style={{borderBottom:'1px solid #eee', padding:'8px', ...(p.style||{})}}>{p.children}</td>
-}
+
+const th: React.CSSProperties = {
+  textAlign: 'left',
+  borderBottom: '1px solid #eaeaea',
+  padding: '8px',
+  fontWeight: 600,
+};
+const td: React.CSSProperties = {
+  borderBottom: '1px solid #f2f2f2',
+  padding: '8px',
+};

@@ -1,0 +1,328 @@
+{
+  "metadata": {
+    "inspection_date": "2025-09-18T07:23:45.29189+00:00",
+    "supabase_url": "https://gpjcfwjssfvqhppxdudp.supabase.co",
+    "project_id": "gpjcfwjssfvqhppxdudp",
+    "tenant": "LaplataLunaria",
+    "total_tables": 50,
+    "tables_with_data": 10,
+    "empty_tables": 40
+  },
+  "tenant": {
+    "tenant_id": "LaplataLunaria",
+    "display_name": "La Plata Lunária",
+    "created_at": "2025-09-18T07:23:45.29189+00:00"
+  },
+  "data": {
+    "mm_vendor": [
+      {
+        "tenant_id": "LaplataLunaria",
+        "vendor_id": "SUP_00001",
+        "vendor_name": "Silvercrown",
+        "email": "sac.silvercrown@gmail.com",
+        "telefone": "(44) 9184-4337",
+        "cidade": "Paranavai",
+        "estado": "PR",
+        "vendor_rating": "A",
+        "created_at": "2025-09-18T07:23:45.29189+00:00",
+        "contact_person": null,
+        "address": null,
+        "city": null,
+        "state": null,
+        "zip_code": null,
+        "country": "Brasil",
+        "tax_id": null,
+        "payment_terms": 30,
+        "rating": "B",
+        "status": "active"
+      }
+    ],
+    "wh_warehouse": [
+      {
+        "tenant_id": "LaplataLunaria",
+        "plant_id": "WH-001",
+        "name": "Depósito Principal",
+        "is_default": true,
+        "created_at": "2025-09-18T07:23:45.29189+00:00",
+        "address": null,
+        "city": null,
+        "state": null,
+        "zip_code": null,
+        "country": "Brasil",
+        "contact_person": null,
+        "phone": null,
+        "email": null
+      }
+    ],
+    "mm_material": [
+      {
+        "tenant_id": "LaplataLunaria",
+        "mm_material": "B_175",
+        "mm_comercial": "Símbolo",
+        "mm_desc": "Brinco Argola Cravejado Trevo Resina Preto Misto",
+        "mm_mat_type": "Brinco",
+        "mm_mat_class": "Amuletos",
+        "mm_price_cents": 24453,
+        "barcode": null,
+        "weight_grams": null,
+        "status": "active",
+        "mm_pur_link": null,
+        "mm_vendor_id": null,
+        "created_at": "2025-09-18T07:23:45.29189+00:00",
+        "commercial_name": null,
+        "unit_of_measure": "unidade",
+        "dimensions": null,
+        "purity": null,
+        "color": null,
+        "finish": null,
+        "min_stock": 0,
+        "max_stock": 1000,
+        "lead_time_days": 20
+      },
+      {
+        "tenant_id": "LaplataLunaria",
+        "mm_material": "B_176",
+        "mm_comercial": "Nauriah",
+        "mm_desc": "Brinco Círculo Cravejado Olho Grego de Prata",
+        "mm_mat_type": "Brinco",
+        "mm_mat_class": "Amuletos",
+        "mm_price_cents": 19653,
+        "barcode": null,
+        "weight_grams": null,
+        "status": "active",
+        "mm_pur_link": null,
+        "mm_vendor_id": null,
+        "created_at": "2025-09-18T07:23:45.29189+00:00",
+        "commercial_name": null,
+        "unit_of_measure": "unidade",
+        "dimensions": null,
+        "purity": null,
+        "color": null,
+        "finish": null,
+        "min_stock": 0,
+        "max_stock": 1000,
+        "lead_time_days": 20
+      },
+      {
+        "tenant_id": "LaplataLunaria",
+        "mm_material": "B_177",
+        "mm_comercial": "Nyra",
+        "mm_desc": "Brinco Estrelas Liso de Prata",
+        "mm_mat_type": "Brinco",
+        "mm_mat_class": "Elementar",
+        "mm_price_cents": 10853,
+        "barcode": null,
+        "weight_grams": null,
+        "status": "active",
+        "mm_pur_link": null,
+        "mm_vendor_id": null,
+        "created_at": "2025-09-18T07:23:45.29189+00:00",
+        "commercial_name": null,
+        "unit_of_measure": "unidade",
+        "dimensions": null,
+        "purity": null,
+        "color": null,
+        "finish": null,
+        "min_stock": 0,
+        "max_stock": 1000,
+        "lead_time_days": 20
+      },
+      {
+        "tenant_id": "LaplataLunaria",
+        "mm_material": "B_178",
+        "mm_comercial": "Senara",
+        "mm_desc": "Brinco Infinito Cravejado com Borda de Prata",
+        "mm_mat_type": "Brinco",
+        "mm_mat_class": "Ciclos",
+        "mm_price_cents": 24453,
+        "barcode": null,
+        "weight_grams": null,
+        "status": "active",
+        "mm_pur_link": null,
+        "mm_vendor_id": null,
+        "created_at": "2025-09-18T07:23:45.29189+00:00",
+        "commercial_name": null,
+        "unit_of_measure": "unidade",
+        "dimensions": null,
+        "purity": null,
+        "color": null,
+        "finish": null,
+        "min_stock": 0,
+        "max_stock": 1000,
+        "lead_time_days": 20
+      },
+      {
+        "tenant_id": "LaplataLunaria",
+        "mm_material": "B_179",
+        "mm_comercial": "Selune",
+        "mm_desc": "Brinco Lua Cravejado Médio",
+        "mm_mat_type": "Brinco",
+        "mm_mat_class": "Elementar",
+        "mm_price_cents": 20453,
+        "barcode": null,
+        "weight_grams": null,
+        "status": "active",
+        "mm_pur_link": null,
+        "mm_vendor_id": null,
+        "created_at": "2025-09-18T07:23:45.29189+00:00",
+        "commercial_name": null,
+        "unit_of_measure": "unidade",
+        "dimensions": null,
+        "purity": null,
+        "color": null,
+        "finish": null,
+        "min_stock": 0,
+        "max_stock": 1000,
+        "lead_time_days": 20
+      }
+    ],
+    "mm_purchase_order": [
+      {
+        "tenant_id": "LaplataLunaria",
+        "mm_order": "PO-2025-001",
+        "vendor_id": "SUP_00001",
+        "status": "received",
+        "po_date": "2025-09-18",
+        "expected_delivery": "2025-09-25",
+        "notes": "Carga inicial",
+        "created_at": "2025-09-18T07:23:45.29189+00:00",
+        "total_amount": 1068920,
+        "currency": "BRL"
+      }
+    ],
+    "co_kpi_definition": [
+      {
+        "tenant_id": "LaplataLunaria",
+        "kpi_key": "SALES_TODAY",
+        "name": "Vendas Hoje",
+        "unit": "BRL",
+        "description": "Total de vendas do dia",
+        "created_at": "2025-09-18T06:25:50.843452+00:00"
+      },
+      {
+        "tenant_id": "LaplataLunaria",
+        "kpi_key": "ORDERS_OPEN",
+        "name": "Pedidos Abertos",
+        "unit": "Qtd",
+        "description": "Número de pedidos em aberto",
+        "created_at": "2025-09-18T06:25:50.843452+00:00"
+      },
+      {
+        "tenant_id": "LaplataLunaria",
+        "kpi_key": "INVENTORY_VALUE",
+        "name": "Valor do Estoque",
+        "unit": "BRL",
+        "description": "Valor total dos materiais em estoque",
+        "created_at": "2025-09-18T06:25:50.843452+00:00"
+      }
+    ],
+    "co_dashboard_tile": [
+      {
+        "tenant_id": "LaplataLunaria",
+        "tile_id": "TILE01",
+        "kpi_key": "SALES_TODAY",
+        "title": "Vendas Hoje",
+        "subtitle": "Resumo diário",
+        "order_index": 1,
+        "color": "#4CAF50",
+        "is_active": true,
+        "created_at": "2025-09-18T06:25:50.843452+00:00"
+      },
+      {
+        "tenant_id": "LaplataLunaria",
+        "tile_id": "TILE02",
+        "kpi_key": "ORDERS_OPEN",
+        "title": "Pedidos Abertos",
+        "subtitle": "Situação comercial",
+        "order_index": 2,
+        "color": "#2196F3",
+        "is_active": true,
+        "created_at": "2025-09-18T06:25:50.843452+00:00"
+      },
+      {
+        "tenant_id": "LaplataLunaria",
+        "tile_id": "TILE03",
+        "kpi_key": "INVENTORY_VALUE",
+        "title": "Valor do Estoque",
+        "subtitle": "Resumo logístico",
+        "order_index": 3,
+        "color": "#FFC107",
+        "is_active": true,
+        "created_at": "2025-09-18T06:25:50.843452+00:00"
+      }
+    ]
+  },
+  "statistics": {
+    "total_records": 150,
+    "by_module": {
+      "mm": {
+        "vendors": 1,
+        "materials": 35,
+        "purchase_orders": 1,
+        "purchase_order_items": 35,
+        "receivings": 35
+      },
+      "wh": {
+        "warehouses": 1,
+        "inventory_balance": 35,
+        "inventory_ledger": 0
+      },
+      "co": {
+        "kpi_definitions": 3,
+        "dashboard_tiles": 3,
+        "kpi_snapshots": 0
+      },
+      "sd": {
+        "customers": 0,
+        "sales_orders": 0,
+        "sales_order_items": 0,
+        "shipments": 0,
+        "payments": 0
+      },
+      "crm": {
+        "leads": 0,
+        "opportunities": 0,
+        "interactions": 0
+      },
+      "fi": {
+        "accounts": 0,
+        "invoices": 0,
+        "payments": 0,
+        "transactions": 0
+      }
+    },
+    "business_metrics": {
+      "total_inventory_value_cents": 1068920,
+      "total_inventory_value_brl": 10689.20,
+      "total_skus": 35,
+      "total_quantity_in_stock": 350,
+      "average_price_cents": 3054,
+      "suppliers_count": 1,
+      "warehouses_count": 1,
+      "purchase_orders_count": 1
+    }
+  },
+  "empty_tables": [
+    "user_profile",
+    "role_permission", 
+    "app_setting",
+    "doc_numbering",
+    "audit_log",
+    "wh_inventory_ledger",
+    "crm_customer",
+    "sd_sales_order",
+    "sd_sales_order_item",
+    "sd_shipment",
+    "sd_payment",
+    "crm_lead",
+    "crm_opportunity",
+    "crm_interaction",
+    "fi_account",
+    "fi_invoice",
+    "fi_payment",
+    "fi_transaction",
+    "co_cost_center",
+    "co_fiscal_period",
+    "co_kpi_snapshot"
+  ]
+}

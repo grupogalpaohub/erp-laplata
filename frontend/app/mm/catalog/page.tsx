@@ -1,71 +1,75 @@
-import { supabaseServer } from '@/lib/supabase/server'
+import { supabaseServer } from "@/lib/supabase/server";
 
-type Material = {
-  tenant_id: string | null
-  mm_material: string | null
-  mm_comercial: string | null
-  mm_desc: string | null
-  mm_mat_type: string | null
-  mm_mat_class: string | null
-  mm_price_cents: number | null
-  status: string | null
-}
+type Row = {
+  tenant_id: string;
+  sku: string | null;
+  mm_comercial: string | null;
+  mm_mat_type: string | null;
+  mm_mat_class: string | null;
+  sales_price_cents: number | null;
+  avg_unit_cost_cents: number | null;
+};
 
-export const revalidate = 0 // sempre dados recentes (somente leitura)
+export const dynamic = "force-dynamic"; // evita cache agressivo em produção
 
-export default async function Page() {
-  const sb = supabaseServer()
+export default async function CatalogPage() {
+  const sb = supabaseServer();
+
+  // Use a VIEW (security definer) já existente no seu projeto:
   const { data, error } = await sb
-    .from('mm_material')
-    .select('tenant_id, mm_material, mm_comercial, mm_desc, mm_mat_type, mm_mat_class, mm_price_cents, status')
-    .order('mm_material', { ascending: true })
-    .limit(300)
+    .from("v_material_overview")
+    .select("tenant_id, sku, mm_comercial, mm_mat_type, mm_mat_class, sales_price_cents, avg_unit_cost_cents")
+    .order("sku", { ascending: true })
+    .limit(200);
 
   if (error) {
+    // não quebrar o render: mostrar msg amigável
     return (
-      <div>
-        <h1>Catálogo</h1>
-        <p style={{color:'crimson'}}>Erro ao carregar materiais: {error.message}</p>
-      </div>
-    )
+      <main style={{padding:"24px"}}>
+        <h1>Catálogo de Materiais</h1>
+        <p style={{color:"#b00"}}>Erro ao consultar catálogo: {error.message}</p>
+        <p>Diagnóstico rápido: acesse <code>/api/diag/supabase</code> para ver env/permissões.</p>
+      </main>
+    );
   }
 
-  const rows = (data ?? []) as Material[]
+  const rows = (data ?? []) as Row[];
+
   return (
-    <div>
+    <main style={{padding:"24px"}}>
       <h1>Catálogo de Materiais</h1>
       {rows.length === 0 ? (
         <p>Nenhum material encontrado.</p>
       ) : (
-        <table style={{width:'100%', borderCollapse:'collapse'}}>
+        <table style={{borderCollapse:"collapse",minWidth:900,marginTop:12}}>
           <thead>
             <tr>
-              <th style={{textAlign:'left', borderBottom:'1px solid #ddd', padding:'8px'}}>Material</th>
-              <th style={{textAlign:'left', borderBottom:'1px solid #ddd', padding:'8px'}}>Comercial</th>
-              <th style={{textAlign:'left', borderBottom:'1px solid #ddd', padding:'8px'}}>Descrição</th>
-              <th style={{textAlign:'left', borderBottom:'1px solid #ddd', padding:'8px'}}>Tipo</th>
-              <th style={{textAlign:'left', borderBottom:'1px solid #ddd', padding:'8px'}}>Classe</th>
-              <th style={{textAlign:'right', borderBottom:'1px solid #ddd', padding:'8px'}}>Preço</th>
-              <th style={{textAlign:'left', borderBottom:'1px solid #ddd', padding:'8px'}}>Status</th>
+              <th style={{textAlign:"left",borderBottom:"1px solid #ddd",padding:"8px"}}>SKU</th>
+              <th style={{textAlign:"left",borderBottom:"1px solid #ddd",padding:"8px"}}>Nome Comercial</th>
+              <th style={{textAlign:"left",borderBottom:"1px solid #ddd",padding:"8px"}}>Tipo</th>
+              <th style={{textAlign:"left",borderBottom:"1px solid #ddd",padding:"8px"}}>Classe</th>
+              <th style={{textAlign:"right",borderBottom:"1px solid #ddd",padding:"8px"}}>Preço (R$)</th>
+              <th style={{textAlign:"right",borderBottom:"1px solid #ddd",padding:"8px"}}>Custo (R$)</th>
             </tr>
           </thead>
           <tbody>
             {rows.map((r, i) => (
               <tr key={i}>
-                <td style={{borderBottom:'1px solid #eee', padding:'8px'}}>{r.mm_material}</td>
-                <td style={{borderBottom:'1px solid #eee', padding:'8px'}}>{r.mm_comercial}</td>
-                <td style={{borderBottom:'1px solid #eee', padding:'8px'}}>{r.mm_desc}</td>
-                <td style={{borderBottom:'1px solid #eee', padding:'8px'}}>{r.mm_mat_type}</td>
-                <td style={{borderBottom:'1px solid #eee', padding:'8px'}}>{r.mm_mat_class}</td>
-                <td style={{borderBottom:'1px solid #eee', padding:'8px', textAlign:'right'}}>
-                  {typeof r.mm_price_cents === 'number' ? (r.mm_price_cents/100).toLocaleString('pt-BR',{style:'currency', currency:'BRL'}) : '—'}
+                <td style={{padding:"8px",borderBottom:"1px solid #f0f0f0"}}>{r.sku ?? "-"}</td>
+                <td style={{padding:"8px",borderBottom:"1px solid #f0f0f0"}}>{r.mm_comercial ?? "-"}</td>
+                <td style={{padding:"8px",borderBottom:"1px solid #f0f0f0"}}>{r.mm_mat_type ?? "-"}</td>
+                <td style={{padding:"8px",borderBottom:"1px solid #f0f0f0"}}>{r.mm_mat_class ?? "-"}</td>
+                <td style={{padding:"8px",textAlign:"right",borderBottom:"1px solid #f0f0f0"}}>
+                  {r.sales_price_cents != null ? (r.sales_price_cents/100).toFixed(2) : "-"}
                 </td>
-                <td style={{borderBottom:'1px solid #eee', padding:'8px'}}>{r.status}</td>
+                <td style={{padding:"8px",textAlign:"right",borderBottom:"1px solid #f0f0f0"}}>
+                  {r.avg_unit_cost_cents != null ? (r.avg_unit_cost_cents/100).toFixed(2) : "-"}
+                </td>
               </tr>
             ))}
           </tbody>
         </table>
       )}
-    </div>
-  )
+    </main>
+  );
 }

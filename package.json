@@ -11,5 +11,8 @@
     "start": "cd frontend && npm run start",
     "lint": "cd frontend && npm run lint",
     "type-check": "cd frontend && npm run type-check"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.57.4"
   }
 }

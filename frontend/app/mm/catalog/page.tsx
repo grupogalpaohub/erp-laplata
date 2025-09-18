@@ -16,7 +16,7 @@ export const dynamic = 'force-dynamic'
 export default async function Page(){
   const sb = supabaseServer()
   const { data, error } = await sb
-    .from<Row>('mm_material')
+    .from('mm_material')
     .select('tenant_id, mm_material, mm_comercial, mm_desc, mm_mat_type, mm_mat_class, mm_price_cents, status')
     .order('mm_material', { ascending: true })
     .limit(300)

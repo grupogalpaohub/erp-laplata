@@ -1,7 +1,7 @@
 import "./globals.css";
 import Link from "next/link";
 import { ReactNode } from "react";
-import { supabaseServer } from "@/lib/supabase/server";
+import Header from "@/components/Header";
 
 const modules = [
   { href: "/co",   label: "Controle" },
@@ -13,10 +13,7 @@ const modules = [
   { href: "/analytics", label: "Analytics" },
 ];
 
-export default async function RootLayout({ children }: { children: ReactNode }) {
-  const supabase = supabaseServer();
-  const { data: { session } } = await supabase.auth.getSession();
-
+export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <html lang="pt-BR">
       <body className="bg-[#F5F6F8] text-slate-900">
@@ -35,23 +32,7 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
 
           {/* Main */}
           <main className="flex-1">
-            {/* Topbar */}
-            <header className="sticky top-0 z-10 bg-white border-b">
-              <div className="mx-auto max-w-6xl flex items-center justify-between p-3">
-                <div className="md:hidden font-bold text-[#0A6ED1]">ERP LaPlata</div>
-                <div className="flex items-center gap-4">
-                  <div className="text-sm text-slate-500">Tenant: LaplataLunaria</div>
-                  <div className="ml-auto">
-                    {!session ? (
-                      <Link href="/login" className="text-blue-600 hover:underline">Login</Link>
-                    ) : (
-                      <span className="text-slate-600">Olá, {session.user.email}</span>
-                    )}
-                  </div>
-                </div>
-              </div>
-            </header>
-
+            <Header />
             <div className="mx-auto max-w-6xl p-4">{children}</div>
           </main>
         </div>

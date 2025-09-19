@@ -1,59 +1,61 @@
-import { NextResponse, type NextRequest } from 'next/server';
-import { createServerClient } from '@supabase/ssr';
+import { NextResponse } from 'next/server'
+import type { NextRequest } from 'next/server'
+import { createServerClient } from '@supabase/ssr'
 
-const PUBLIC_PATHS = [
+const PUBLIC_ROUTES = new Set<string>([
   '/login',
   '/auth/callback',
   '/favicon.ico',
   '/robots.txt',
-  '/sitemap.xml',
-];
+])
 
 export async function middleware(req: NextRequest) {
-  const url = new URL(req.url);
-  const isPublic = PUBLIC_PATHS.some((p) => url.pathname.startsWith(p));
-  const res = NextResponse.next();
+  const url = req.nextUrl
+  const path = url.pathname
 
+  // permitir estáticos e as rotas públicas
+  if (
+    path.startsWith('/_next') ||
+    path.startsWith('/assets') ||
+    path.startsWith('/public') ||
+    PUBLIC_ROUTES.has(path)
+  ) {
+    return NextResponse.next()
+  }
+
+  // cria cliente com cookies do request
+  const res = NextResponse.next()
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
     {
       cookies: {
-        get(name) {
-          return req.cookies.get(name)?.value;
+        get: (name) => req.cookies.get(name)?.value,
+        set: (name, value, options) => {
+          res.cookies.set({ name, value, ...options })
         },
-        set(name, value, options) {
-          res.cookies.set({ name, value, ...options });
-        },
-        remove(name, options) {
-          res.cookies.set({ name, value: '', ...options });
+        remove: (name, options) => {
+          res.cookies.set({ name, value: '', ...options })
         },
       },
     }
-  );
+  )
 
-  const {
-    data: { session },
-  } = await supabase.auth.getSession();
+  const { data } = await supabase.auth.getSession()
+  const session = data.session
 
-  // Desloga não-autenticado para páginas privadas
-  if (!session && !isPublic) {
-    const nextParam = encodeURIComponent(url.pathname + url.search);
-    return NextResponse.redirect(new URL(`/login?next=${nextParam}`, url.origin));
+  if (!session) {
+    const login = new URL('/login', url.origin)
+    login.searchParams.set('next', path || '/')
+    return NextResponse.redirect(login)
   }
 
-  // Usuário logado tentando ir ao /login → manda para home (ou para ?next)
-  if (session && url.pathname.startsWith('/login')) {
-    const to = url.searchParams.get('next') || '/';
-    return NextResponse.redirect(new URL(to, url.origin));
-  }
-
-  return res;
+  return res
 }
 
 export const config = {
   matcher: [
-    // protege todo app, exceto assets
-    '/((?!_next/static|_next/image|assets|public).*)',
+    // protege tudo, exceto arquivos estáticos e as rotas definidas acima
+    '/((?!_next|assets|public).*)',
   ],
-};
+}

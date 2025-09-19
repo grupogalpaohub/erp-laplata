@@ -5,6 +5,17 @@ Cursor Rules — ERP LaPlata (v3, Vercel + Supabase)
 Objetivo: garantir que o ERP rode em produção no Vercel com Supabase real,
 impedindo simplificações erradas (SAFE MODE, static export, mocks locais).
 
+⚠️ IMPORTANTE:
+- NÃO execute `npm install`, `npm ci`, `npm run build` ou qualquer comando de shell que envolva `&&`.
+- Quando precisar rodar comandos, apenas escreva o comando isolado, por exemplo:
+  cd frontend
+  npm run build
+- Quem executa `build` e `deploy` é o Vercel, não o Cursor.
+- Seu trabalho é apenas editar arquivos no repositório, salvar e fazer:
+  git add -A
+  git commit -m "<mensagem>"
+  git push origin erp-git
+
 ==========================
 Database Rules
 ==========================

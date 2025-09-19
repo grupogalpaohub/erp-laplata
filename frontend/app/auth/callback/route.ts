@@ -2,24 +2,22 @@ import { NextResponse } from 'next/server'
 import { supabaseServer } from '@/lib/supabase/server'
 
 export async function GET(request: Request) {
-  const url = new URL(request.url)
-  const code = url.searchParams.get('code')
-  const next = url.searchParams.get('next') || '/'
-
-  const origin =
-    process.env.NEXT_PUBLIC_SITE_URL ||
-    `${url.protocol}//${url.host}`
+  const { searchParams } = new URL(request.url)
+  const code = searchParams.get('code')
+  const next = searchParams.get('next') || '/'
 
   if (!code) {
-    return NextResponse.redirect(`${origin}/login?error=missing_code`)
+    // também cobre quando o provedor retorna tokens no fragmento (#)
+    return NextResponse.redirect(new URL(`/login?next=${encodeURIComponent(next)}`, request.url))
   }
 
   const supabase = supabaseServer()
   const { error } = await supabase.auth.exchangeCodeForSession(code)
+
   if (error) {
-    return NextResponse.redirect(`${origin}/login?error=${encodeURIComponent(error.message)}`)
+    console.error('OAuth exchange error:', error.message)
+    return NextResponse.redirect(new URL(`/login?error=oauth_exchange&next=${encodeURIComponent(next)}`, request.url))
   }
 
-  // cookie de sessão foi setado pelo helper acima
-  return NextResponse.redirect(`${origin}${next}`)
+  return NextResponse.redirect(new URL(next, request.url))
 }

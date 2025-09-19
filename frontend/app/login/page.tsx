@@ -1,30 +1,27 @@
-'use client'
-import { useSearchParams } from 'next/navigation'
-import { supabaseBrowser } from '@/lib/supabase/client'
+import Link from 'next/link'
+import { redirect } from 'next/navigation'
+import { supabaseServer } from '@/lib/supabase/server'
 
-export default function LoginPage() {
-  const params = useSearchParams()
-  const next = params.get('next') || '/'
+export default async function LoginPage({ searchParams }: { searchParams: { next?: string } }) {
+  const next = searchParams?.next || '/'
+  const supabase = supabaseServer()
+  const { data: { user } } = await supabase.auth.getUser()
 
-  async function loginGoogle() {
-    const site = process.env.NEXT_PUBLIC_SITE_URL || window.location.origin
-    const redirectTo = `${site}/auth/callback?next=${encodeURIComponent(next)}`
-    const supabase = supabaseBrowser()
-    // PKCE é padrão no supabase-js v2; NÃO usar implicit
-    await supabase.auth.signInWithOAuth({
-      provider: 'google',
-      options: {
-        redirectTo,
-        queryParams: { prompt: 'select_account' },
-      },
-    })
-  }
+  if (user) redirect(next)
+
+  const siteURL = process.env.NEXT_PUBLIC_SITE_URL || ''
+
+  // Supabase gera link oauth code flow
+  const googleUrl = `${process.env.NEXT_PUBLIC_SUPABASE_URL}/auth/v1/authorize?provider=google&redirect_to=${encodeURIComponent(`${siteURL}/auth/callback?next=${encodeURIComponent(next)}`)}`
 
   return (
-    <main style={{ maxWidth: 960, margin: '2rem auto' }}>
+    <main style={{ padding: '2rem' }}>
       <h1>Entrar</h1>
       <p>Tenant: LaplataLunaria</p>
-      <button onClick={loginGoogle}>Continuar com Google</button>
+      <a href={googleUrl}>Continuar com Google</a>
+      <p style={{ marginTop: 12 }}>
+        <Link href="/">Voltar</Link>
+      </p>
     </main>
   )
 }

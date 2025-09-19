@@ -1,61 +1,38 @@
 import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
-import { createServerClient } from '@supabase/ssr'
+import { supabaseServer } from '@/lib/supabase/server'
 
-const PUBLIC_ROUTES = new Set<string>([
-  '/login',
-  '/auth/callback',
-  '/favicon.ico',
-  '/robots.txt',
-])
+const PUBLIC_PATHS = [
+  '/', '/login', '/auth/callback',
+  '/favicon.ico'
+]
 
 export async function middleware(req: NextRequest) {
-  const url = req.nextUrl
-  const path = url.pathname
+  const { pathname } = req.nextUrl
+  const isPublic =
+    PUBLIC_PATHS.includes(pathname) ||
+    pathname.startsWith('/_next/') ||
+    pathname.startsWith('/public/') ||
+    pathname.startsWith('/assets/')
 
-  // permitir estáticos e as rotas públicas
-  if (
-    path.startsWith('/_next') ||
-    path.startsWith('/assets') ||
-    path.startsWith('/public') ||
-    PUBLIC_ROUTES.has(path)
-  ) {
-    return NextResponse.next()
+  if (isPublic) return NextResponse.next()
+
+  // Protege módulos do ERP
+  const supabase = supabaseServer()
+  const { data } = await supabase.auth.getUser()
+
+  if (!data.user) {
+    const url = req.nextUrl.clone()
+    url.pathname = '/login'
+    url.searchParams.set('next', pathname || '/')
+    return NextResponse.redirect(url)
   }
 
-  // cria cliente com cookies do request
-  const res = NextResponse.next()
-  const supabase = createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    {
-      cookies: {
-        get: (name) => req.cookies.get(name)?.value,
-        set: (name, value, options) => {
-          res.cookies.set({ name, value, ...options })
-        },
-        remove: (name, options) => {
-          res.cookies.set({ name, value: '', ...options })
-        },
-      },
-    }
-  )
-
-  const { data } = await supabase.auth.getSession()
-  const session = data.session
-
-  if (!session) {
-    const login = new URL('/login', url.origin)
-    login.searchParams.set('next', path || '/')
-    return NextResponse.redirect(login)
-  }
-
-  return res
+  return NextResponse.next()
 }
 
 export const config = {
   matcher: [
-    // protege tudo, exceto arquivos estáticos e as rotas definidas acima
-    '/((?!_next|assets|public).*)',
+    '/((?!_next/static|_next/image|favicon.ico|public|assets).*)',
   ],
 }

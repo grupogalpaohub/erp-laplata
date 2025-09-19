@@ -1,5 +1,5 @@
 // lib/supabase/server.ts
-import { cookies, headers } from "next/headers";
+import { cookies } from "next/headers";
 import { createServerClient } from "@supabase/ssr";
 
 export function supabaseServer() {
@@ -10,8 +10,9 @@ export function supabaseServer() {
     {
       cookies: {
         get(name: string) { return cookieStore.get(name)?.value; },
+        set() {},
+        remove() {},
       },
-      headers: { get(key: string) { return headers().get(key) ?? undefined; } },
     }
   );
 }

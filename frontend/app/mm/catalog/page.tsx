@@ -1,5 +1,4 @@
-// src/app/mm/catalog/page.tsx
-import { supabaseServer } from '@/lib/supabase/server'
+import { supabaseServer } from '@/src/lib/supabase/server'
 
 type Row = {
   tenant_id: string
@@ -11,13 +10,11 @@ type Row = {
   avg_unit_cost_cents?: number | null
 }
 
-export const revalidate = 0 // sem cache enquanto estabiliza auth
+export const revalidate = 0
 
 export default async function CatalogPage() {
   const sb = supabaseServer()
-
   const { data: { user } } = await sb.auth.getUser()
-  // opcional: se quiser permitir catálogo público, remova o guard abaixo
   if (!user) {
     return (
       <main style={{ padding: '2rem' }}>

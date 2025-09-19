@@ -1,24 +1,22 @@
 import { NextResponse, type NextRequest } from 'next/server'
 import { createServerClient } from '@supabase/ssr'
 
-const PUBLIC_PATHS = new Set([
-  '/', '/login', '/auth/callback', '/favicon.ico'
-])
+const PUBLIC_PATHS = new Set(['/', '/login', '/auth/callback', '/favicon.ico'])
 
 export async function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl
-  const isPublic =
+
+  if (
     PUBLIC_PATHS.has(pathname) ||
     pathname.startsWith('/_next/') ||
     pathname.startsWith('/public/') ||
     pathname.startsWith('/assets/')
+  ) {
+    return NextResponse.next()
+  }
 
-  // Prepare a mutable response to allow cookie writes by Supabase
   const res = NextResponse.next()
 
-  if (isPublic) return res
-
-  // Edge-safe Supabase client (usa cookies de req/res)
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
@@ -38,11 +36,9 @@ export async function middleware(req: NextRequest) {
   )
 
   const { data, error } = await supabase.auth.getUser()
-
   if (error) {
-    console.error('middleware:getUser error:', error.message)
+    console.error('[MIDDLEWARE] getUser error:', error.message)
   }
-
   if (!data?.user) {
     const url = req.nextUrl.clone()
     url.pathname = '/login'

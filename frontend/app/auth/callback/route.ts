@@ -1,21 +1,22 @@
 import { NextResponse } from 'next/server'
-import { supabaseServer } from '@/lib/supabase/server'
+import { supabaseServer } from '@/src/lib/supabase/server'
 
 export async function GET(request: Request) {
-  const { searchParams } = new URL(request.url)
-  const code = searchParams.get('code')
-  const next = searchParams.get('next') || '/'
+  const url = new URL(request.url)
+  const code = url.searchParams.get('code')
+  const next = url.searchParams.get('next') || '/'
 
   if (!code) {
-    // também cobre quando o provedor retorna tokens no fragmento (#)
     return NextResponse.redirect(new URL(`/login?next=${encodeURIComponent(next)}`, request.url))
   }
 
   const supabase = supabaseServer()
   const { error } = await supabase.auth.exchangeCodeForSession(code)
-
   if (error) {
-    console.error('OAuth exchange error:', error.message)
+    console.error('[AUTH] exchangeCodeForSession FAILED:', {
+      message: error.message,
+      NEXT_PUBLIC_SUPABASE_URL: process.env.NEXT_PUBLIC_SUPABASE_URL
+    })
     return NextResponse.redirect(new URL(`/login?error=oauth_exchange&next=${encodeURIComponent(next)}`, request.url))
   }
 

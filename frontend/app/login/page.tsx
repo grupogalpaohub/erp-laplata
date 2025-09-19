@@ -1,6 +1,6 @@
 import Link from 'next/link'
 import { redirect } from 'next/navigation'
-import { supabaseServer } from '@/lib/supabase/server'
+import { supabaseServer } from '@/src/lib/supabase/server'
 
 export default async function LoginPage({ searchParams }: { searchParams: { next?: string } }) {
   const next = searchParams?.next || '/'
@@ -10,8 +10,6 @@ export default async function LoginPage({ searchParams }: { searchParams: { next
   if (user) redirect(next)
 
   const siteURL = process.env.NEXT_PUBLIC_SITE_URL || ''
-
-  // Supabase gera link oauth code flow
   const googleUrl = `${process.env.NEXT_PUBLIC_SUPABASE_URL}/auth/v1/authorize?provider=google&redirect_to=${encodeURIComponent(`${siteURL}/auth/callback?next=${encodeURIComponent(next)}`)}`
 
   return (

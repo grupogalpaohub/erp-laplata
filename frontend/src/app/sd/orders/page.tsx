@@ -5,7 +5,7 @@ import { DataTable } from '@/src/components/DataTable'
 export const revalidate = 0
 
 export default async function OrdersList() {
-  const sb = supabaseServer()
+  const sb = await supabaseServer()
 
   // Pedidos
   const { data: orders, error } = await sb

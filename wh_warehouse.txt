@@ -1,2 +1,0 @@
-tenant_id,plant_id,name,is_default
-LaplataLunaria,WH-001,Depósito Principal,TRUE

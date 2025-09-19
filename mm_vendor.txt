@@ -1,2 +1,0 @@
-tenant_id,vendor_id,vendor_name,email,telefone,cidade,estado,vendor_rating
-LaplataLunaria,SUP_00001,Silvercrown,sac.silvercrown@gmail.com,"(44) 9184-4337",Paranavai,PR,A

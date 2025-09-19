@@ -1,7 +1,8 @@
-// app/layout.tsx
+// src/app/layout.tsx
 import "./globals.css";
 import Link from "next/link";
 import { ReactNode } from "react";
+import { supabaseServer } from "@/lib/supabase/server";
 
 const modules = [
   { href: "/co",   label: "Controle" },
@@ -13,7 +14,10 @@ const modules = [
   { href: "/analytics", label: "Analytics" },
 ];
 
-export default function RootLayout({ children }: { children: ReactNode }) {
+export default async function RootLayout({ children }: { children: ReactNode }) {
+  const { data } = await supabaseServer().auth.getSession();
+  const logged = !!data.session;
+
   return (
     <html lang="pt-BR">
       <body className="bg-[#F5F6F8] text-slate-900">
@@ -27,9 +31,6 @@ export default function RootLayout({ children }: { children: ReactNode }) {
                   {m.label}
                 </Link>
               ))}
-              <Link href="/login" className="mt-4 block rounded px-3 py-2 text-slate-600 hover:bg-slate-50">
-                Login
-              </Link>
             </nav>
           </aside>
 
@@ -39,7 +40,18 @@ export default function RootLayout({ children }: { children: ReactNode }) {
             <header className="sticky top-0 z-10 bg-white border-b">
               <div className="mx-auto max-w-6xl flex items-center justify-between p-3">
                 <div className="md:hidden font-bold text-[#0A6ED1]">ERP LaPlata</div>
-                <div className="text-sm text-slate-500">Tenant: LaplataLunaria</div>
+                <div className="flex items-center gap-4">
+                  <div className="text-sm text-slate-500">Tenant: LaplataLunaria</div>
+                  <div className="ml-auto">
+                    {!logged ? (
+                      <Link href="/login" className="text-blue-600 hover:underline">Login</Link>
+                    ) : (
+                      <form action="/logout" method="post">
+                        <button className="text-slate-600 hover:underline">Sair</button>
+                      </form>
+                    )}
+                  </div>
+                </div>
               </div>
             </header>
 

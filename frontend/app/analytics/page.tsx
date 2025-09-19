@@ -1,4 +1,4 @@
-// app/analytics/page.tsx
+// src/app/analytics/page.tsx
 export default function Analytics() {
-  return <div className="rounded-xl border bg-white p-6">Analytics — Em construção.</div>;
+  return <div className="rounded-xl border bg-white p-6">Analytics — em desenvolvimento</div>;
 }

@@ -10,7 +10,7 @@ export async function generateMetadata() {
 
 export default async function LoginPage({ searchParams }: { searchParams?: { next?: string } }) {
   const next = searchParams?.next || '/'
-  const supabase = supabaseServer()
+  const supabase = await supabaseServer()
   const { data: { user } } = await supabase.auth.getUser()
 
   if (user) {

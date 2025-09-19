@@ -1,0 +1,108 @@
+# Prompt completo — UI ERP/CRM estilo Fiori
+
+Quero atualizar o frontend do ERP/CRM para um **visual Fiori-like moderno**, com KPIs comparativos no topo e módulos organizados em tiles.
+
+Use **React + Tailwind + Radix UI + Lucide icons** (mantendo a stack atual).
+
+---
+
+## **1. Estrutura Geral**
+
+- **Sidebar fixa à esquerda**:
+    - Ícones + labels (CO, MM, SD, WH, CRM, FI, Analytics).
+    - Deve recolher para apenas ícones em telas menores.
+- **Header/topbar fixo**:
+    - Logo + nome do ERP.
+    - Nome da empresa/tenant atual.
+    - Campo de **busca global** (abre modal tipo “command palette”).
+    - Atalhos para notificações, perfil do usuário e ajuda.
+- **Área principal**:
+    - **Linha inicial com 4 KPIs** (detalhados abaixo).
+    - **Grid de módulos em tiles/cards** (um para cada módulo do ERP).
+
+---
+
+## **2. KPIs no Topo**
+
+Cada KPI deve exibir **valor principal em destaque** e **comparativo/contexto em letras menores**.
+
+1. **📦 Pedidos Hoje**
+    - Valor grande: `X pedidos hoje`
+    - Letra menor: `Média diária do mês: Y`
+2. **💰 Receita do Mês**
+    - Valor grande: `R$ X` (acumulado até hoje)
+    - Letra menor: `Média mensal histórica: R$ Y`
+3. **📈 Leads Ativos (Comercial/CRM)**
+    - Valor grande: `X leads ativos` (essa semana)
+    - Letra menor: `Média mensal: Y`
+4. **🚨 Estoque Crítico (Logística/WH)**
+    - Valor grande: `X itens em risco`
+    - Letra menor:
+        - `Part numbers críticos: PN123, PN456, PN789`
+        - `Tendência de consumo: alta`
+
+**Estilo visual dos KPIs**:
+
+- Valor grande em bold, 24–32px, cor contextual (verde para positivo, vermelho para alerta, azul neutro).
+- Comparativo em fonte menor (12–14px), cor cinza/neutral.
+- Ícone no canto esquerdo de cada card.
+- Badge opcional (+/- %) se houver variação em relação ao mês anterior.
+
+---
+
+## **3. Tiles / Cards dos Módulos**
+
+Cada módulo (CO, MM, SD, WH, CRM, FI, Analytics) deve ter um **tile retangular estilo Fiori**:
+
+- Fundo branco, sombra leve, bordas arredondadas (8–12px).
+- **Ícone + título** no topo esquerdo.
+- **Links internos** listados dentro do card (ex.: Dashboard, Setup, Criar Pedido…).
+- **Badges dinâmicos** quando houver status (ex.: nº de pedidos pendentes).
+- **Hover:** leve aumento de sombra + animação de zoom.
+
+**Cores por módulo (identidade visual):**
+
+- CO – Azul
+- MM – Roxo
+- SD – Verde
+- WH – Laranja
+- CRM – Rosa
+- FI – Azul claro
+- Analytics – Verde água
+
+---
+
+## **4. Estilo Visual**
+
+- Paleta base inspirada no **SAP Fiori**:
+    - Branco / Cinza claro (#F5F6F8).
+    - Azul principal (#0A6ED1).
+    - Acentos coloridos por módulo (cores definidas acima).
+- Tipografia: **Inter ou Ubuntu**.
+- Layout espaçado, clean, enterprise.
+
+---
+
+## **5. Interações**
+
+- **Breadcrumbs** no topo de cada módulo (navegação hierárquica).
+- **Responsividade**: sidebar recolhe, tiles viram cards empilhados em mobile.
+- **Busca global**: acessível no header, abre modal de pesquisa universal.
+
+---
+
+## **Resumo**
+
+- Sidebar fixa estilo Fiori.
+- Header corporativo com busca global e tenant.
+- **KPIs comparativos no topo** (Pedidos, Receita, Leads, Estoque).
+- Tiles coloridos para cada módulo, clean e responsivos.
+- Visual minimalista, moderno e pronto para uso enterprise.
+
+---
+
+👉 **Tarefa**:
+
+Recriar a UI do ERP Laplata com esse design system.
+
+KPIs e Tiles devem ser implementados como **componentes reutilizáveis** (`<KpiCard />`, `<ModuleTile />`) com props para `value`, `comparisonText`, `trend` e `highlightColor`.

@@ -2,43 +2,41 @@ import { supabaseServer } from '@/src/lib/supabase/server'
 import { DataTable } from '@/src/components/DataTable'
 
 type Row = {
+  mm_order: string
   plant_id: string | null
   mm_material: string | null
-  on_hand_qty: number | null
-  reserved_qty: number | null
-  last_count_date: string | null
-  status: string | null
+  qty_received: number | null
+  received_at: string | null
 }
 
 export const revalidate = 0
 
-export default async function InventoryBalancePage() {
+export default async function ReceivingPage() {
   const sb = supabaseServer()
   const { data, error } = await sb
-    .from('wh_inventory_balance' as any)
-    .select('plant_id,mm_material,on_hand_qty,reserved_qty,last_count_date,status')
-    .order('mm_material', { ascending: true })
-    .limit(1000)
+    .from('mm_receiving' as any)
+    .select('mm_order,plant_id,mm_material,qty_received,received_at')
+    .order('received_at', { ascending: false })
+    .limit(500)
 
   if (error) {
     return <main style={{ padding: '1.25rem' }}>
-      <h2>Inventário</h2>
+      <h2>Recebimentos</h2>
       <pre style={{ color:'crimson' }}>{error.message}</pre>
     </main>
   }
 
   const cols = [
+    { key: 'received_at', header: 'Recebido em' },
+    { key: 'mm_order', header: 'Pedido' },
     { key: 'plant_id', header: 'Depósito' },
     { key: 'mm_material', header: 'Material' },
-    { key: 'on_hand_qty', header: 'Em mãos' },
-    { key: 'reserved_qty', header: 'Reservado' },
-    { key: 'last_count_date', header: 'Último inventário' },
-    { key: 'status', header: 'Status' },
+    { key: 'qty_received', header: 'Qtde' },
   ] as const
 
   return (
     <main style={{ padding: '1.25rem' }}>
-      <h2>Inventário</h2>
+      <h2>Recebimentos</h2>
       <DataTable<Row> columns={cols as any} rows={(data || []) as any} />
     </main>
   )

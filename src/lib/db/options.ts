@@ -1,4 +1,4 @@
-import { supabaseServer } from '@/src/lib/supabase/server'
+import { supabaseServer } from '@/lib/supabase/server'
 
 export async function getTenantId(): Promise<string> {
   const sb = await supabaseServer()

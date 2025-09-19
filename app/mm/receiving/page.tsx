@@ -1,5 +1,5 @@
-import { supabaseServer } from '@/src/lib/supabase/server'
-import { DataTable } from '@/src/components/DataTable'
+import { supabaseServer } from '@/lib/supabase/server'
+import { DataTable } from '@/components/DataTable'
 
 type Row = {
   mm_order: string

@@ -1,7 +1,7 @@
 import { supabaseServer } from '@/lib/supabase/server'
 import { getTenantId } from '@/lib/auth'
-import KpiCard from '@/src/components/KpiCard'
-import ModuleTile from '@/src/components/ModuleTile'
+import KpiCard from '@/components/KpiCard'
+import ModuleTile from '@/components/ModuleTile'
 import { Package, ShoppingCart, Warehouse, Plus, TrendingUp, AlertTriangle, Users, BarChart3, DollarSign } from 'lucide-react'
 
 async function getKPIs() {

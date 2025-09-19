@@ -1,4 +1,4 @@
-import { supabaseServer } from '@/src/lib/supabase/server'
+import { supabaseServer } from '@/lib/supabase/server'
 import { getTenantId } from '@/lib/auth'
 
 type Row = {

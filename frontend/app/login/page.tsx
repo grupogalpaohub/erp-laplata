@@ -1,25 +1,26 @@
 import Link from 'next/link'
-import { redirect } from 'next/navigation'
 import { supabaseServer } from '@/src/lib/supabase/server'
+import LoginClient from './LoginClient'
 
-export default async function LoginPage({ searchParams }: { searchParams: { next?: string } }) {
+export const dynamic = 'force-dynamic'
+
+export async function generateMetadata() { 
+  return { title: 'Login' } 
+}
+
+export default async function LoginPage({ searchParams }: { searchParams?: { next?: string } }) {
   const next = searchParams?.next || '/'
   const supabase = supabaseServer()
   const { data: { user } } = await supabase.auth.getUser()
 
-  if (user) redirect(next)
+  if (user) {
+    return (
+      <main style={{ padding: '2rem' }}>
+        <h1>Já logado</h1>
+        <p>Você já está logado. <Link href={next}>Continuar</Link></p>
+      </main>
+    )
+  }
 
-  const siteURL = process.env.NEXT_PUBLIC_SITE_URL || ''
-  const googleUrl = `${process.env.NEXT_PUBLIC_SUPABASE_URL}/auth/v1/authorize?provider=google&redirect_to=${encodeURIComponent(`${siteURL}/auth/callback?next=${encodeURIComponent(next)}`)}`
-
-  return (
-    <main style={{ padding: '2rem' }}>
-      <h1>Entrar</h1>
-      <p>Tenant: LaplataLunaria</p>
-      <a href={googleUrl}>Continuar com Google</a>
-      <p style={{ marginTop: 12 }}>
-        <Link href="/">Voltar</Link>
-      </p>
-    </main>
-  )
+  return <LoginClient next={next} />
 }

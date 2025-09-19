@@ -1,4 +1,3 @@
-// src/app/layout.tsx
 import "./globals.css";
 import Link from "next/link";
 import { ReactNode } from "react";
@@ -15,8 +14,8 @@ const modules = [
 ];
 
 export default async function RootLayout({ children }: { children: ReactNode }) {
-  const { data } = await supabaseServer().auth.getSession();
-  const logged = !!data.session;
+  const supabase = supabaseServer();
+  const { data: { session } } = await supabase.auth.getSession();
 
   return (
     <html lang="pt-BR">
@@ -43,12 +42,10 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
                 <div className="flex items-center gap-4">
                   <div className="text-sm text-slate-500">Tenant: LaplataLunaria</div>
                   <div className="ml-auto">
-                    {!logged ? (
+                    {!session ? (
                       <Link href="/login" className="text-blue-600 hover:underline">Login</Link>
                     ) : (
-                      <form action="/logout" method="post">
-                        <button className="text-slate-600 hover:underline">Sair</button>
-                      </form>
+                      <span className="text-slate-600">Olá, {session.user.email}</span>
                     )}
                   </div>
                 </div>

@@ -1,38 +1,28 @@
-// src/app/login/page.tsx
-import { redirect } from "next/navigation";
-import { supabaseServer } from "@/lib/supabase/server";
+'use client';
 
-export default async function LoginPage({
-  searchParams,
-}: {
-  searchParams: { next?: string };
-}) {
-  const supabase = supabaseServer();
-  const { data } = await supabase.auth.getSession();
+import { useSearchParams } from 'next/navigation';
+import { supabaseBrowser } from '@/lib/supabase/client';
 
-  // já logado? manda pro next ou home
-  if (data.session) {
-    redirect(searchParams?.next || "/");
-  }
+export default function LoginPage() {
+  const params = useSearchParams();
+  const next = params.get('next') || '/';
 
-  const site = process.env.NEXT_PUBLIC_SITE_URL!;
-  const supa = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-  const next = encodeURIComponent(searchParams?.next || "/");
-
-  const authUrl =
-    `${supa}/auth/v1/authorize` +
-    `?provider=google&redirect_to=${encodeURIComponent(`${site}/auth/callback?next=${next}`)}`;
+  const signin = async () => {
+    const supabase = supabaseBrowser();
+    await supabase.auth.signInWithOAuth({
+      provider: 'google',
+      options: {
+        redirectTo: `${process.env.NEXT_PUBLIC_SITE_URL}/auth/callback?next=${encodeURIComponent(next)}`,
+        queryParams: { prompt: 'select_account' },
+      },
+    });
+  };
 
   return (
-    <main style={{ maxWidth: 720, margin: "2rem auto" }}>
+    <main style={{ padding: '2rem' }}>
       <h1>Entrar</h1>
       <p>Tenant: LaplataLunaria</p>
-      <a
-        href={authUrl}
-        className="inline-block rounded bg-blue-600 px-3 py-2 text-white"
-      >
-        Continuar com Google
-      </a>
+      <button onClick={signin}>Continuar com Google</button>
     </main>
   );
 }

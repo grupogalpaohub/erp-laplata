@@ -1,21 +1,17 @@
-// src/middleware.ts
-import { NextResponse, type NextRequest } from "next/server";
-import { createServerClient } from "@supabase/ssr";
+import { NextResponse, type NextRequest } from 'next/server';
+import { createServerClient } from '@supabase/ssr';
 
-const PUBLIC_ROUTES = [
-  "/login",
-  "/auth/callback",
-  "/favicon.ico",
-  "/robots.txt",
-  "/sitemap.xml",
-  "/_next",        // assets
-  "/public",       // se existir
+const PUBLIC_PATHS = [
+  '/login',
+  '/auth/callback',
+  '/favicon.ico',
+  '/robots.txt',
+  '/sitemap.xml',
 ];
 
-const PROTECTED_PREFIXES = ["/co", "/mm", "/sd", "/wh", "/crm", "/fi", "/analytics", "/"];
-
 export async function middleware(req: NextRequest) {
-  const { nextUrl, cookies: ck } = req;
+  const url = new URL(req.url);
+  const isPublic = PUBLIC_PATHS.some((p) => url.pathname.startsWith(p));
   const res = NextResponse.next();
 
   const supabase = createServerClient(
@@ -23,43 +19,33 @@ export async function middleware(req: NextRequest) {
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
     {
       cookies: {
-        get(name: string) {
-          return ck.get(name)?.value;
+        get(name) {
+          return req.cookies.get(name)?.value;
         },
-        set(name: string, value: string, options: any) {
-          res.cookies.set(name, value, options);
+        set(name, value, options) {
+          res.cookies.set({ name, value, ...options });
         },
-        remove(name: string, options: any) {
-          res.cookies.set(name, "", { ...options, maxAge: 0 });
+        remove(name, options) {
+          res.cookies.set({ name, value: '', ...options });
         },
       },
     }
   );
 
-  const pathname = nextUrl.pathname;
+  const {
+    data: { session },
+  } = await supabase.auth.getSession();
 
-  // rota pública?
-  const isPublic = PUBLIC_ROUTES.some((p) => pathname.startsWith(p));
-  if (isPublic) return res;
-
-  // rota protegida?
-  const isProtected = PROTECTED_PREFIXES.some((p) => pathname === p || pathname.startsWith(p));
-  if (!isProtected) return res;
-
-  const { data } = await supabase.auth.getSession();
-  const session = data.session;
-
-  // se não logado → empurra pro /login?next=
-  if (!session) {
-    const url = new URL("/login", nextUrl.origin);
-    url.searchParams.set("next", pathname + (nextUrl.search || ""));
-    return NextResponse.redirect(url);
+  // Desloga não-autenticado para páginas privadas
+  if (!session && !isPublic) {
+    const nextParam = encodeURIComponent(url.pathname + url.search);
+    return NextResponse.redirect(new URL(`/login?next=${nextParam}`, url.origin));
   }
 
-  // se logado tentando ver /login → volta pro next ou home
-  if (pathname === "/login") {
-    const next = nextUrl.searchParams.get("next") || "/";
-    return NextResponse.redirect(new URL(next, nextUrl.origin));
+  // Usuário logado tentando ir ao /login → manda para home (ou para ?next)
+  if (session && url.pathname.startsWith('/login')) {
+    const to = url.searchParams.get('next') || '/';
+    return NextResponse.redirect(new URL(to, url.origin));
   }
 
   return res;
@@ -67,6 +53,7 @@ export async function middleware(req: NextRequest) {
 
 export const config = {
   matcher: [
-    "/((?!_next/static|_next/image|.*\\.png$|.*\\.jpg$|.*\\.svg$).*)",
+    // protege todo app, exceto assets
+    '/((?!_next/static|_next/image|assets|public).*)',
   ],
 };

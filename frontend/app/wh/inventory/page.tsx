@@ -39,7 +39,7 @@ export default async function InventoryBalancePage() {
   return (
     <main style={{ padding: '1.25rem' }}>
       <h2>Inventário</h2>
-      <DataTable<Row> columns={cols as any} rows={(data || []) as any} />
+      <DataTable columns={cols as any} rows={(data || []) as any} />
     </main>
   )
 }

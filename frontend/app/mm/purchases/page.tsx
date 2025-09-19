@@ -78,7 +78,7 @@ export default async function PurchaseOrdersPage() {
   return (
     <main style={{ padding: '1.25rem' }}>
       <h2>Pedidos de Compra</h2>
-      <DataTable<PO> columns={cols as any} rows={rows as any} />
+      <DataTable columns={cols as any} rows={rows as any} />
     </main>
   )
 }

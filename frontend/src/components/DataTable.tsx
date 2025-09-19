@@ -1,32 +1,37 @@
-type Col<T> = { key: keyof T; header: string; width?: string }
-export function DataTable<T extends Record<string, any>>({
-  columns, rows, emptyText = 'Nenhum registro encontrado.'
-}: { columns: Col<T>[]; rows: T[]; emptyText?: string }) {
-  if (!rows || rows.length === 0) {
-    return <p style={{ padding: 8, color: '#666' }}>{emptyText}</p>
-  }
+'use client'
+import * as React from 'react'
+
+type Props = {
+  rows: Record<string, any>[]
+  columns?: string[] // opcional: forçar ordem
+  emptyLabel?: string
+}
+export function DataTable({ rows, columns, emptyLabel }: Props) {
+  if (!rows || rows.length === 0) return <p>{emptyLabel ?? 'Nenhum registro encontrado.'}</p>
+  const cols = columns && columns.length ? columns : Array.from(new Set(rows.flatMap(r => Object.keys(r))))
   return (
-    <div style={{ overflowX: 'auto' }}>
-      <table cellPadding={6} style={{ borderCollapse:'collapse', width:'100%', minWidth:720 }}>
+    <div style={{ overflowX:'auto' }}>
+      <table cellPadding={8} style={{ borderCollapse:'collapse', width:'100%', minWidth: 960 }}>
         <thead>
           <tr>
-            {columns.map((c,i)=>(
-              <th key={i} style={{ textAlign:'left', borderBottom:'1px solid #eee', whiteSpace:'nowrap', width:c.width }}>{c.header}</th>
-            ))}
+            {cols.map(c => <th key={c} style={{ textAlign:'left', borderBottom:'1px solid #eee', fontWeight:600 }}>{c}</th>)}
           </tr>
         </thead>
         <tbody>
-          {rows.map((r,i)=>(
-            <tr key={i} style={{ borderBottom:'1px solid #f2f2f2' }}>
-              {columns.map((c,j)=>(
-                <td key={j} style={{ whiteSpace:'nowrap' }}>
-                  {r[c.key] as any}
-                </td>
-              ))}
+          {rows.map((r, i) => (
+            <tr key={i} style={{ borderBottom:'1px solid #f6f6f6' }}>
+              {cols.map(c => <td key={c} style={{ verticalAlign:'top' }}>{formatCell(r[c])}</td>)}
             </tr>
           ))}
         </tbody>
       </table>
     </div>
   )
+}
+
+function formatCell(v: any) {
+  if (v === null || v === undefined) return ''
+  if (typeof v === 'number') return v
+  if (typeof v === 'object') return JSON.stringify(v)
+  return String(v)
 }

@@ -41,7 +41,7 @@ export default async function VendorsPage() {
   return (
     <main style={{ padding: '1.25rem' }}>
       <h2>Fornecedores</h2>
-      <DataTable<Row> columns={cols as any} rows={(data || []) as any} />
+      <DataTable columns={cols as any} rows={(data || []) as any} />
     </main>
   )
 }

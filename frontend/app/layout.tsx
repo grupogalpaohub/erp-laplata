@@ -1,5 +1,5 @@
 import type { Metadata } from 'next'
-import FioriShell from '@/src/components/FioriShell'
+import FioriShell from '../src/components/FioriShell'
 import './globals.css'
 
 export const metadata: Metadata = {

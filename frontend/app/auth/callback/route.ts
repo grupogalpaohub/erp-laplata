@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server'
-import { supabaseServer } from '@/src/lib/supabase/server'
+import { supabaseServer } from '../src/lib/supabase/server'
 
 export async function GET(request: Request) {
   const url = new URL(request.url)
@@ -7,7 +7,7 @@ export async function GET(request: Request) {
   const next = url.searchParams.get('next') || '/'
   if (!code) return NextResponse.redirect(new URL(`/login?next=${encodeURIComponent(next)}`, request.url))
 
-  const supabase = supabaseServer()
+  const supabase = await supabaseServer()
   const { error } = await supabase.auth.exchangeCodeForSession(code)
   if (error) {
     console.error('[AUTH] exchangeCodeForSession FAILED:', { message: error.message, url: process.env.NEXT_PUBLIC_SUPABASE_URL })

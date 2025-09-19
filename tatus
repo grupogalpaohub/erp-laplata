@@ -1,0 +1,22 @@
+[1mdiff --git a/cursorrules.txt b/cursorrules.txt[m
+[1mindex 734f80f..ab30bb9 100644[m
+[1m--- a/cursorrules.txt[m
+[1m+++ b/cursorrules.txt[m
+[36m@@ -5,6 +5,17 @@[m [mCursor Rules — ERP LaPlata (v3, Vercel + Supabase)[m
+ Objetivo: garantir que o ERP rode em produção no Vercel com Supabase real,[m
+ impedindo simplificações erradas (SAFE MODE, static export, mocks locais).[m
+ [m
+[32m+[m[32m⚠️ IMPORTANTE:[m[41m[m
+[32m+[m[32m- NÃO execute `npm install`, `npm ci`, `npm run build` ou qualquer comando de shell que envolva `&&`.[m[41m[m
+[32m+[m[32m- Quando precisar rodar comandos, apenas escreva o comando isolado, por exemplo:[m[41m[m
+[32m+[m[32m  cd frontend[m[41m[m
+[32m+[m[32m  npm run build[m[41m[m
+[32m+[m[32m- Quem executa `build` e `deploy` é o Vercel, não o Cursor.[m[41m[m
+[32m+[m[32m- Seu trabalho é apenas editar arquivos no repositório, salvar e fazer:[m[41m[m
+[32m+[m[32m  git add -A[m[41m[m
+[32m+[m[32m  git commit -m "<mensagem>"[m[41m[m
+[32m+[m[32m  git push origin erp-git[m[41m[m
+[32m+[m[41m[m
+ ==========================[m
+ Database Rules[m
+ ==========================[m

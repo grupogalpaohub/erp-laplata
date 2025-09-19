@@ -1,62 +1,16 @@
 import { supabaseServer } from '@/lib/supabase/server'
+import { getTenantId } from '@/lib/auth'
+import { getCustomers, getMaterials } from '@/lib/data'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import { ArrowLeft } from 'lucide-react'
 import AddItemButton from './AddItemButton'
 
-async function getCustomers() {
-  const supabase = supabaseServer()
-  const tenantId = 'LaplataLunaria'
-
-  try {
-    const { data, error } = await supabase
-      .from('crm_customer')
-      .select('customer_id, name, email')
-      .eq('tenant_id', tenantId)
-      .eq('status', 'active')
-      .order('name')
-
-    if (error) {
-      console.error('Error fetching customers:', error)
-      return []
-    }
-
-    return data || []
-  } catch (error) {
-    console.error('Error fetching customers:', error)
-    return []
-  }
-}
-
-async function getMaterials() {
-  const supabase = supabaseServer()
-  const tenantId = 'LaplataLunaria'
-
-  try {
-    const { data, error } = await supabase
-      .from('mm_material')
-      .select('mm_material, mm_comercial, mm_desc, mm_price_cents')
-      .eq('tenant_id', tenantId)
-      .eq('status', 'active')
-      .order('mm_material')
-
-    if (error) {
-      console.error('Error fetching materials:', error)
-      return []
-    }
-
-    return data || []
-  } catch (error) {
-    console.error('Error fetching materials:', error)
-    return []
-  }
-}
-
 async function createSalesOrder(formData: FormData) {
   'use server'
   
   const supabase = supabaseServer()
-  const tenantId = 'LaplataLunaria'
+  const tenantId = await getTenantId()
 
   try {
     // Gerar número do pedido

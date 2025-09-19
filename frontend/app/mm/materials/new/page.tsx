@@ -1,11 +1,13 @@
 import { supabaseServer } from '@/lib/supabase/server'
+import { getTenantId } from '@/lib/auth'
+import { getMaterialTypes, getMaterialClassifications, getVendors } from '@/lib/data'
 import { redirect } from 'next/navigation'
 
 async function createMaterial(formData: FormData) {
   'use server'
   
   const supabase = supabaseServer()
-  const tenantId = 'LaplataLunaria'
+  const tenantId = await getTenantId()
 
   const materialData = {
     tenant_id: tenantId,
@@ -36,7 +38,13 @@ async function createMaterial(formData: FormData) {
   }
 }
 
-export default function NewMaterialPage() {
+export default async function NewMaterialPage() {
+  const [materialTypes, materialClassifications, vendors] = await Promise.all([
+    getMaterialTypes(),
+    getMaterialClassifications(),
+    getVendors()
+  ])
+
   return (
     <div className="p-6">
       <div className="max-w-2xl mx-auto">
@@ -98,10 +106,11 @@ export default function NewMaterialPage() {
                     className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
                   >
                     <option value="">Selecione...</option>
-                    <option value="raw_material">Matéria Prima</option>
-                    <option value="finished_good">Produto Acabado</option>
-                    <option value="component">Componente</option>
-                    <option value="service">Serviço</option>
+                    {materialTypes.map((type) => (
+                      <option key={type.category} value={type.category}>
+                        {type.category}
+                      </option>
+                    ))}
                   </select>
                 </div>
 
@@ -116,10 +125,11 @@ export default function NewMaterialPage() {
                     className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
                   >
                     <option value="">Selecione...</option>
-                    <option value="prata">Prata</option>
-                    <option value="ouro">Ouro</option>
-                    <option value="acabamento">Acabamento</option>
-                    <option value="embalagem">Embalagem</option>
+                    {materialClassifications.map((classification) => (
+                      <option key={classification.classification} value={classification.classification}>
+                        {classification.classification}
+                      </option>
+                    ))}
                   </select>
                 </div>
               </div>

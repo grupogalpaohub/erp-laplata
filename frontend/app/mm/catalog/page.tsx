@@ -1,4 +1,5 @@
 import { supabaseServer } from '@/src/lib/supabase/server'
+import { getTenantId } from '@/lib/auth'
 
 type Row = {
   tenant_id: string
@@ -25,10 +26,12 @@ export default async function CatalogPage() {
     )
   }
 
+  const tenantId = await getTenantId()
+  
   const { data, error } = await sb
     .from('v_material_overview' as any)
     .select('tenant_id, sku, mm_comercial, mm_mat_type, mm_mat_class, sales_price_cents, avg_unit_cost_cents, on_hand_qty')
-    .eq('tenant_id', 'LaplataLunaria')
+    .eq('tenant_id', tenantId)
     .order('sku', { ascending: true })
     .limit(300)
 

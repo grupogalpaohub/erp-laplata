@@ -1,10 +1,12 @@
 import { supabaseServer } from '@/lib/supabase/server'
-import Link from 'next/link'
-import { Package, ShoppingCart, Warehouse, Plus, TrendingUp, AlertTriangle, Users } from 'lucide-react'
+import { getTenantId } from '@/lib/auth'
+import KpiCard from '@/src/components/KpiCard'
+import ModuleTile from '@/src/components/ModuleTile'
+import { Package, ShoppingCart, Warehouse, Plus, TrendingUp, AlertTriangle, Users, BarChart3, DollarSign } from 'lucide-react'
 
 async function getKPIs() {
   const supabase = supabaseServer()
-  const tenantId = 'LaplataLunaria'
+  const tenantId = await getTenantId()
 
   try {
     // KPI 1: Pedidos Hoje
@@ -24,7 +26,7 @@ async function getKPIs() {
       .gte('order_date', startOfMonth)
       .eq('status', 'delivered')
 
-    const monthRevenue = revenueData?.reduce((sum, order) => sum + (order.total_cents || 0), 0) || 0
+    const monthRevenue = revenueData?.reduce((sum: number, order: any) => sum + (order.total_cents || 0), 0) || 0
 
     // KPI 3: Leads Ativos (essa semana)
     const startOfWeek = new Date()
@@ -67,152 +69,114 @@ export default async function Home() {
     <div className="p-6">
       {/* KPIs */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-        <div className="bg-white rounded-lg shadow p-6">
-          <div className="flex items-center">
-            <div className="flex-shrink-0">
-              <ShoppingCart className="h-8 w-8 text-blue-600" />
-            </div>
-            <div className="ml-4">
-              <p className="text-sm font-medium text-gray-500">Pedidos Hoje</p>
-              <p className="text-2xl font-semibold text-gray-900">{kpis.ordersToday}</p>
-              <p className="text-xs text-gray-400">Média diária do mês: {Math.round(kpis.ordersToday * 1.2)}</p>
-            </div>
-          </div>
-        </div>
+        <KpiCard
+          title="Pedidos Hoje"
+          value={kpis.ordersToday}
+          comparisonText={`Média diária do mês: ${Math.round(kpis.ordersToday * 1.2)}`}
+          icon={ShoppingCart}
+          color="blue"
+        />
 
-        <div className="bg-white rounded-lg shadow p-6">
-          <div className="flex items-center">
-            <div className="flex-shrink-0">
-              <TrendingUp className="h-8 w-8 text-green-600" />
-            </div>
-            <div className="ml-4">
-              <p className="text-sm font-medium text-gray-500">Receita do Mês</p>
-              <p className="text-2xl font-semibold text-gray-900">R$ {(kpis.monthRevenue / 100).toFixed(2)}</p>
-              <p className="text-xs text-gray-400">Média mensal histórica: R$ {((kpis.monthRevenue * 0.8) / 100).toFixed(2)}</p>
-            </div>
-          </div>
-        </div>
+        <KpiCard
+          title="Receita do Mês"
+          value={`R$ ${(kpis.monthRevenue / 100).toFixed(2)}`}
+          comparisonText={`Média mensal histórica: R$ ${((kpis.monthRevenue * 0.8) / 100).toFixed(2)}`}
+          icon={TrendingUp}
+          color="green"
+        />
 
-        <div className="bg-white rounded-lg shadow p-6">
-          <div className="flex items-center">
-            <div className="flex-shrink-0">
-              <Users className="h-8 w-8 text-purple-600" />
-            </div>
-            <div className="ml-4">
-              <p className="text-sm font-medium text-gray-500">Leads Ativos</p>
-              <p className="text-2xl font-semibold text-gray-900">{kpis.activeLeads}</p>
-              <p className="text-xs text-gray-400">Média mensal: {Math.round(kpis.activeLeads * 4.2)}</p>
-            </div>
-          </div>
-        </div>
+        <KpiCard
+          title="Leads Ativos"
+          value={kpis.activeLeads}
+          comparisonText={`Média mensal: ${Math.round(kpis.activeLeads * 4.2)}`}
+          icon={Users}
+          color="purple"
+        />
 
-        <div className="bg-white rounded-lg shadow p-6">
-          <div className="flex items-center">
-            <div className="flex-shrink-0">
-              <AlertTriangle className="h-8 w-8 text-red-600" />
-            </div>
-            <div className="ml-4">
-              <p className="text-sm font-medium text-gray-500">Estoque Crítico</p>
-              <p className="text-2xl font-semibold text-gray-900">{kpis.criticalStock}</p>
-              <p className="text-xs text-gray-400">PNs críticos: {kpis.criticalStock > 0 ? 'Verificar' : 'OK'}</p>
-            </div>
-          </div>
-        </div>
+        <KpiCard
+          title="Estoque Crítico"
+          value={kpis.criticalStock}
+          comparisonText={`PNs críticos: ${kpis.criticalStock > 0 ? 'Verificar' : 'OK'}`}
+          icon={AlertTriangle}
+          color="red"
+        />
       </div>
 
       {/* Módulos */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {/* CO - Controle */}
-        <div className="bg-white rounded-lg shadow p-6 hover:shadow-lg transition-all duration-200 hover:scale-105">
-          <div className="flex items-center mb-4">
-            <div className="p-2 bg-blue-100 rounded-lg">
-              <TrendingUp className="h-6 w-6 text-blue-600" />
-            </div>
-            <h3 className="text-lg font-semibold text-gray-900 ml-3">Controle</h3>
-          </div>
-          <div className="space-y-2">
-            <Link href="/co/dashboard" className="block text-sm text-gray-600 hover:text-blue-600">Dashboard</Link>
-            <Link href="/co/reports" className="block text-sm text-gray-600 hover:text-blue-600">Relatórios</Link>
-            <Link href="/co/costs" className="block text-sm text-gray-600 hover:text-blue-600">Custos</Link>
-          </div>
-        </div>
+        <ModuleTile
+          title="Controle"
+          icon={BarChart3}
+          color="blue"
+          description="Dashboards e relatórios gerenciais"
+          links={[
+            { href: "/co/dashboard", label: "Dashboard" },
+            { href: "/co/reports", label: "Relatórios" },
+            { href: "/co/costs", label: "Custos" }
+          ]}
+        />
 
-        {/* MM - Materiais */}
-        <div className="bg-white rounded-lg shadow p-6 hover:shadow-lg transition-all duration-200 hover:scale-105">
-          <div className="flex items-center mb-4">
-            <div className="p-2 bg-purple-100 rounded-lg">
-              <Package className="h-6 w-6 text-purple-600" />
-            </div>
-            <h3 className="text-lg font-semibold text-gray-900 ml-3">Materiais</h3>
-          </div>
-          <div className="space-y-2">
-            <Link href="/mm/catalog" className="block text-sm text-gray-600 hover:text-purple-600">Catálogo</Link>
-            <Link href="/mm/materials/new" className="block text-sm text-gray-600 hover:text-purple-600">Novo Material</Link>
-            <Link href="/mm/purchases" className="block text-sm text-gray-600 hover:text-purple-600">Compras</Link>
-            <Link href="/mm/vendors" className="block text-sm text-gray-600 hover:text-purple-600">Fornecedores</Link>
-          </div>
-        </div>
+        <ModuleTile
+          title="Materiais"
+          icon={Package}
+          color="purple"
+          description="Gestão de materiais e fornecedores"
+          links={[
+            { href: "/mm/catalog", label: "Catálogo" },
+            { href: "/mm/materials/new", label: "Novo Material" },
+            { href: "/mm/purchases", label: "Compras" },
+            { href: "/mm/vendors", label: "Fornecedores" }
+          ]}
+        />
 
-        {/* SD - Vendas */}
-        <div className="bg-white rounded-lg shadow p-6 hover:shadow-lg transition-all duration-200 hover:scale-105">
-          <div className="flex items-center mb-4">
-            <div className="p-2 bg-green-100 rounded-lg">
-              <ShoppingCart className="h-6 w-6 text-green-600" />
-            </div>
-            <h3 className="text-lg font-semibold text-gray-900 ml-3">Vendas</h3>
-          </div>
-          <div className="space-y-2">
-            <Link href="/sd/orders" className="block text-sm text-gray-600 hover:text-green-600">Pedidos</Link>
-            <Link href="/sd/orders/new" className="block text-sm text-gray-600 hover:text-green-600">Nova Venda</Link>
-            <Link href="/sd/customers" className="block text-sm text-gray-600 hover:text-green-600">Clientes</Link>
-            <Link href="/sd/invoices" className="block text-sm text-gray-600 hover:text-green-600">Faturas</Link>
-          </div>
-        </div>
+        <ModuleTile
+          title="Vendas"
+          icon={ShoppingCart}
+          color="green"
+          description="Gestão de vendas e clientes"
+          links={[
+            { href: "/sd/orders", label: "Pedidos" },
+            { href: "/sd/orders/new", label: "Nova Venda" },
+            { href: "/sd/customers", label: "Clientes" },
+            { href: "/sd/invoices", label: "Faturas" }
+          ]}
+        />
 
-        {/* WH - Estoque */}
-        <div className="bg-white rounded-lg shadow p-6 hover:shadow-lg transition-all duration-200 hover:scale-105">
-          <div className="flex items-center mb-4">
-            <div className="p-2 bg-orange-100 rounded-lg">
-              <Warehouse className="h-6 w-6 text-orange-600" />
-            </div>
-            <h3 className="text-lg font-semibold text-gray-900 ml-3">Estoque</h3>
-          </div>
-          <div className="space-y-2">
-            <Link href="/wh/inventory" className="block text-sm text-gray-600 hover:text-orange-600">Inventário</Link>
-            <Link href="/wh/movements" className="block text-sm text-gray-600 hover:text-orange-600">Movimentações</Link>
-            <Link href="/wh/reports" className="block text-sm text-gray-600 hover:text-orange-600">Relatórios</Link>
-          </div>
-        </div>
+        <ModuleTile
+          title="Estoque"
+          icon={Warehouse}
+          color="orange"
+          description="Controle de inventário"
+          links={[
+            { href: "/wh/inventory", label: "Inventário" },
+            { href: "/wh/movements", label: "Movimentações" },
+            { href: "/wh/reports", label: "Relatórios" }
+          ]}
+        />
 
-        {/* CRM */}
-        <div className="bg-white rounded-lg shadow p-6 hover:shadow-lg transition-all duration-200 hover:scale-105">
-          <div className="flex items-center mb-4">
-            <div className="p-2 bg-pink-100 rounded-lg">
-              <Users className="h-6 w-6 text-pink-600" />
-            </div>
-            <h3 className="text-lg font-semibold text-gray-900 ml-3">CRM</h3>
-          </div>
-          <div className="space-y-2">
-            <Link href="/crm/leads" className="block text-sm text-gray-600 hover:text-pink-600">Leads</Link>
-            <Link href="/crm/opportunities" className="block text-sm text-gray-600 hover:text-pink-600">Oportunidades</Link>
-            <Link href="/crm/activities" className="block text-sm text-gray-600 hover:text-pink-600">Atividades</Link>
-          </div>
-        </div>
+        <ModuleTile
+          title="CRM"
+          icon={Users}
+          color="pink"
+          description="Gestão de relacionamento"
+          links={[
+            { href: "/crm/leads", label: "Leads" },
+            { href: "/crm/opportunities", label: "Oportunidades" },
+            { href: "/crm/activities", label: "Atividades" }
+          ]}
+        />
 
-        {/* FI - Financeiro */}
-        <div className="bg-white rounded-lg shadow p-6 hover:shadow-lg transition-all duration-200 hover:scale-105">
-          <div className="flex items-center mb-4">
-            <div className="p-2 bg-cyan-100 rounded-lg">
-              <TrendingUp className="h-6 w-6 text-cyan-600" />
-            </div>
-            <h3 className="text-lg font-semibold text-gray-900 ml-3">Financeiro</h3>
-          </div>
-          <div className="space-y-2">
-            <Link href="/fi/payables" className="block text-sm text-gray-600 hover:text-cyan-600">Contas a Pagar</Link>
-            <Link href="/fi/receivables" className="block text-sm text-gray-600 hover:text-cyan-600">Contas a Receber</Link>
-            <Link href="/fi/cashflow" className="block text-sm text-gray-600 hover:text-cyan-600">Fluxo de Caixa</Link>
-          </div>
-        </div>
+        <ModuleTile
+          title="Financeiro"
+          icon={DollarSign}
+          color="cyan"
+          description="Gestão financeira"
+          links={[
+            { href: "/fi/payables", label: "Contas a Pagar" },
+            { href: "/fi/receivables", label: "Contas a Receber" },
+            { href: "/fi/cashflow", label: "Fluxo de Caixa" }
+          ]}
+        />
       </div>
     </div>
   )

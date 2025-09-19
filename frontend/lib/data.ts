@@ -5,7 +5,7 @@ import { getTenantId } from './auth'
  * Obtém tipos de material do customizing
  */
 export async function getMaterialTypes() {
-  const supabase = supabaseServer()
+  const supabase = await supabaseServer()
   const tenantId = await getTenantId()
 
   try {
@@ -32,7 +32,7 @@ export async function getMaterialTypes() {
  * Obtém classificações de material do customizing
  */
 export async function getMaterialClassifications() {
-  const supabase = supabaseServer()
+  const supabase = await supabaseServer()
   const tenantId = await getTenantId()
 
   try {
@@ -59,7 +59,7 @@ export async function getMaterialClassifications() {
  * Obtém fornecedores ativos
  */
 export async function getVendors() {
-  const supabase = supabaseServer()
+  const supabase = await supabaseServer()
   const tenantId = await getTenantId()
 
   try {
@@ -86,7 +86,7 @@ export async function getVendors() {
  * Obtém clientes ativos
  */
 export async function getCustomers() {
-  const supabase = supabaseServer()
+  const supabase = await supabaseServer()
   const tenantId = await getTenantId()
 
   try {
@@ -113,7 +113,7 @@ export async function getCustomers() {
  * Obtém materiais ativos
  */
 export async function getMaterials() {
-  const supabase = supabaseServer()
+  const supabase = await supabaseServer()
   const tenantId = await getTenantId()
 
   try {
@@ -140,7 +140,7 @@ export async function getMaterials() {
  * Obtém depósitos/plantas ativas
  */
 export async function getWarehouses() {
-  const supabase = supabaseServer()
+  const supabase = await supabaseServer()
   const tenantId = await getTenantId()
 
   try {
@@ -166,7 +166,7 @@ export async function getWarehouses() {
  * Obtém status de pedidos do customizing
  */
 export async function getOrderStatuses() {
-  const supabase = supabaseServer()
+  const supabase = await supabaseServer()
   const tenantId = await getTenantId()
 
   try {
@@ -192,7 +192,7 @@ export async function getOrderStatuses() {
  * Obtém métodos de pagamento do customizing
  */
 export async function getPaymentMethods() {
-  const supabase = supabaseServer()
+  const supabase = await supabaseServer()
   const tenantId = await getTenantId()
 
   try {

@@ -8,6 +8,7 @@ type Row = {
   mm_mat_class?: string | null
   sales_price_cents?: number | null
   avg_unit_cost_cents?: number | null
+  on_hand_qty?: number | null
 }
 
 export const revalidate = 0
@@ -26,7 +27,8 @@ export default async function CatalogPage() {
 
   const { data, error } = await sb
     .from('v_material_overview' as any)
-    .select('tenant_id, sku, mm_comercial, mm_mat_type, mm_mat_class, sales_price_cents, avg_unit_cost_cents')
+    .select('tenant_id, sku, mm_comercial, mm_mat_type, mm_mat_class, sales_price_cents, avg_unit_cost_cents, on_hand_qty')
+    .eq('tenant_id', 'LaplataLunaria')
     .order('sku', { ascending: true })
     .limit(300)
 
@@ -58,8 +60,9 @@ export default async function CatalogPage() {
             <th>Comercial</th>
             <th>Tipo</th>
             <th>Classe</th>
-            <th>Preço (centavos)</th>
-            <th>Custo Médio (centavos)</th>
+            <th>Preço (R$)</th>
+            <th>Custo Médio (R$)</th>
+            <th>Estoque</th>
           </tr>
         </thead>
         <tbody>
@@ -69,8 +72,9 @@ export default async function CatalogPage() {
               <td>{r.mm_comercial}</td>
               <td>{r.mm_mat_type}</td>
               <td>{r.mm_mat_class}</td>
-              <td>{r.sales_price_cents ?? ''}</td>
-              <td>{r.avg_unit_cost_cents ?? ''}</td>
+              <td>{r.sales_price_cents ? `R$ ${(r.sales_price_cents / 100).toFixed(2)}` : '-'}</td>
+              <td>{r.avg_unit_cost_cents ? `R$ ${(r.avg_unit_cost_cents / 100).toFixed(2)}` : '-'}</td>
+              <td>{r.on_hand_qty ?? 0}</td>
             </tr>
           ))}
         </tbody>

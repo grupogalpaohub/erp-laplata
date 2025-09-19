@@ -1,52 +1,29 @@
 import { supabaseServer } from '@/src/lib/supabase/server'
 
-export const revalidate = 0
-
-async function kpiCount(sb: ReturnType<typeof supabaseServer>, table: string) {
-  const { count } = await sb.from(table as any).select('*', { count: 'exact', head: true })
-  return count ?? 0
-}
-
-export default async function Home() {
-  const sb = supabaseServer()
-  const [materials, stockItems, salesOrders] = await Promise.all([
-    kpiCount(sb, 'v_material_overview'),
-    kpiCount(sb, 'wh_inventory_balance'),
-    kpiCount(sb, 'sd_sales_order'),
+async function loadKpis(){
+  const sb = await supabaseServer()
+  const [mat, inv, po] = await Promise.all([
+    sb.from('mm_material').select('mm_material', { count:'exact', head:true }),
+    sb.from('wh_inventory_balance').select('mm_material', { count:'exact', head:true }),
+    sb.from('mm_purchase_order').select('mm_order', { count:'exact', head:true }),
   ])
-
-  return (
-    <>
-      <h2>Controle</h2>
-      <div style={{ display:'grid', gridTemplateColumns:'repeat(4, minmax(180px, 1fr))', gap:12, margin:'12px 0 24px' }}>
-        <KPI title="Materiais" value={materials} hint="v_material_overview" />
-        <KPI title="Itens com estoque" value={stockItems} hint="wh_inventory_balance" />
-        <KPI title="Pedidos de venda" value={salesOrders} hint="sd_sales_order" />
-      </div>
-
-      <div style={{ display:'grid', gridTemplateColumns:'repeat(3, minmax(220px, 1fr))', gap:12 }}>
-        <Tile href="/mm/catalog" title="Catálogo de Materiais" subtitle="Lista e preços" />
-        <Tile href="/wh/inventory" title="Inventário" subtitle="Saldos por SKU" />
-        <Tile href="/sd/orders" title="Pedidos de Venda" subtitle="Lista e detalhe" />
-      </div>
-    </>
-  )
+  return {
+    materiais: (mat.count ?? 0),
+    skusComSaldo: (inv.count ?? 0),
+    pedidosCompra: (po.count ?? 0),
+  }
 }
 
-function KPI({ title, value, hint }: { title:string, value:number|string, hint?:string }) {
+export default async function Home(){
+  const k = await loadKpis()
   return (
-    <div style={{ border:'1px solid #eee', borderRadius:12, padding:'14px' }}>
-      <div style={{ fontSize:12, color:'#666' }}>{title}</div>
-      <div style={{ fontSize:28, fontWeight:700, lineHeight:'32px' }}>{value}</div>
-      {hint ? <div style={{ fontSize:12, color:'#999' }}>{hint}</div> : null}
+    <div>
+      <h1 className="text-2xl font-bold mb-4">Controle</h1>
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="border rounded p-4"><div className="text-xs text-gray-500">Materiais</div><div className="text-2xl font-bold">{k.materiais}</div></div>
+        <div className="border rounded p-4"><div className="text-xs text-gray-500">SKUs com saldo</div><div className="text-2xl font-bold">{k.skusComSaldo}</div></div>
+        <div className="border rounded p-4"><div className="text-xs text-gray-500">Pedidos de Compra</div><div className="text-2xl font-bold">{k.pedidosCompra}</div></div>
+      </div>
     </div>
-  )
-}
-function Tile({ href, title, subtitle }: { href:string, title:string, subtitle?:string }) {
-  return (
-    <a href={href} style={{ display:'block', border:'1px solid #eee', borderRadius:16, padding:'16px', textDecoration:'none' }}>
-      <div style={{ fontWeight:600 }}>{title}</div>
-      {subtitle && <div style={{ color:'#666', fontSize:12 }}>{subtitle}</div>}
-    </a>
   )
 }

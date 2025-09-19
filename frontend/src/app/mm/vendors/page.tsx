@@ -1,16 +1,24 @@
-import { supabaseServer } from '@/src/lib/supabase/server'
-import { DataTable } from '@/src/components/DataTable'
+import { getVendors } from "@/src/lib/db/options";
 
 export const revalidate = 0
 
-export default async function VendorsPage() {
-  const sb = supabaseServer()
-  const { data, error } = await sb.from('mm_vendor' as any).select('*').order('name', { ascending: true }).limit(500)
-  if (error) return <main><h2>Fornecedores</h2><pre style={{ color:'crimson' }}>{error.message}</pre></main>
+export default async function Vendors(){
+  const data = await getVendors()
   return (
-    <main>
-      <h2>Fornecedores</h2>
-      <DataTable rows={(data ?? []) as any[]} />
-    </main>
+    <div>
+      <h1 className="text-2xl font-bold mb-4">Fornecedores</h1>
+      {(!data || data.length===0) ? <div>Nenhum registro encontrado.</div> : (
+        <table className="min-w-full">
+          <thead className="bg-gray-50"><tr>
+            <th className="px-2 py-1 text-left">Fornecedor</th>
+          </tr></thead>
+          <tbody>
+            {data.map(v=>(
+              <tr key={v.vendor_id} className="border-t"><td className="px-2 py-1">{v.vendor_name}</td></tr>
+            ))}
+          </tbody>
+        </table>
+      )}
+    </div>
   )
 }

@@ -1,5 +1,5 @@
-import { supabaseServer } from '../../../lib/supabase/server'
-import { getTenantId } from '../../../lib/auth'
+import { supabaseServer } from '@/lib/supabase/server'
+import { getTenantId } from '@/lib/auth'
 import { getMaterialTypes, getMaterialClassifications, getVendors } from '@/lib/data'
 import { redirect } from 'next/navigation'
 

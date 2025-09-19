@@ -1,5 +1,5 @@
 import Link from 'next/link'
-import { supabaseServer } from '@/src/lib/supabase/server'
+import { supabaseServer } from '@/lib/supabase/server'
 import LoginClient from './LoginClient'
 
 export const dynamic = 'force-dynamic'

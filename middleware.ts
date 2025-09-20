@@ -7,12 +7,14 @@ export async function middleware(req: NextRequest) {
   const publicRoutes = [
     '/login',
     '/auth/callback',
+    '/landing',
     '/_next/static',
     '/_next/image',
     '/favicon.ico',
     '/robots.txt',
     '/sitemap.xml',
-    '/api/_debug'
+    '/api/_debug',
+    '/api/test-middleware'
   ];
 
   // Verificar se é uma rota pública
@@ -21,49 +23,46 @@ export async function middleware(req: NextRequest) {
   );
 
   if (isPublicRoute) {
+    console.log('[middleware] public route, allowing:', pathname);
     return NextResponse.next();
   }
 
-  // Verificar cookies de sessão do Supabase
+  // Verificar cookies de sessão do Supabase - abordagem mais simples
   const cookies = req.cookies.getAll();
-  console.log('[middleware] all cookies:', cookies.map(c => ({ name: c.name, value: c.value?.substring(0, 20) + '...' })));
+  console.log('[middleware] checking cookies for pathname:', pathname);
+  console.log('[middleware] total cookies found:', cookies.length);
   
-  const hasSupabaseSession = cookies.some(cookie => {
+  // Procurar por qualquer cookie do Supabase com valor válido
+  let hasValidSession = false;
+  
+  for (const cookie of cookies) {
     const name = cookie.name;
     const value = cookie.value;
     
-    // Verificar cookies de autenticação do Supabase
-    const isSupabaseCookie = (
-      (name.includes('sb-') && name.includes('auth-token')) ||
-      (name.includes('sb-') && name.includes('.0')) ||
-      (name.includes('sb-') && name.includes('.1')) ||
-      (name === 'sb-access-token') ||
-      (name === 'sb-refresh-token')
-    );
-    
-    const hasValidValue = value && 
-      value !== '[]' && 
-      value !== 'null' && 
-      value !== 'undefined' &&
-      value !== '' &&
-      value.length > 10; // Cookies de sessão válidos são longos
-    
-    console.log('[middleware] cookie check:', { name, isSupabaseCookie, hasValidValue, valueLength: value?.length });
-    
-    return isSupabaseCookie && hasValidValue;
-  });
+    // Verificar se é cookie do Supabase
+    if (name.startsWith('sb-') || name.includes('supabase')) {
+      console.log('[middleware] found supabase cookie:', { name, hasValue: !!value, valueLength: value?.length });
+      
+      // Se tem valor e não é vazio/null/undefined
+      if (value && value !== '[]' && value !== 'null' && value !== 'undefined' && value.length > 5) {
+        hasValidSession = true;
+        console.log('[middleware] valid session found in cookie:', name);
+        break;
+      }
+    }
+  }
 
-  console.log('[middleware] pathname:', pathname, 'hasSession:', hasSupabaseSession);
+  console.log('[middleware] final decision - pathname:', pathname, 'hasValidSession:', hasValidSession);
 
-  // Se não tem sessão, redirecionar para login
-  if (!hasSupabaseSession) {
+  // Se não tem sessão válida, redirecionar para login
+  if (!hasValidSession) {
     const loginUrl = new URL("/login", req.url);
     loginUrl.searchParams.set("next", pathname);
-    console.log('[middleware] no session, redirecting to:', loginUrl.toString());
+    console.log('[middleware] REDIRECTING to login:', loginUrl.toString());
     return NextResponse.redirect(loginUrl);
   }
 
-  console.log('[middleware] allowing access to:', pathname);
+  console.log('[middleware] ALLOWING access to:', pathname);
   return NextResponse.next();
 }
 

@@ -19,12 +19,21 @@ export default function LoginPage() {
     try {
       const base = process.env.NEXT_PUBLIC_SITE_URL || window.location.origin
       const redirectTo = `${base}/auth/callback${next ? `?next=${encodeURIComponent(next)}` : ''}`
+      
+      console.log('Login attempt:', { base, redirectTo, next })
+      
       const supabase = supabaseBrowser()
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: { redirectTo },
       })
-      if (error) alert(error.message)
+      
+      if (error) {
+        console.error('OAuth error:', error)
+        alert(`Erro: ${error.message}`)
+      } else {
+        console.log('OAuth redirect initiated')
+      }
     } finally {
       setLoading(false)
     }

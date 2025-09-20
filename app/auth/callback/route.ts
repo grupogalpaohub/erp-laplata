@@ -10,8 +10,11 @@ export async function GET(req: NextRequest) {
   const code = url.searchParams.get('code')
   const next = url.searchParams.get('next') || '/'
 
+  console.log('Auth callback received:', { code: !!code, next, error: url.searchParams.get('error') })
+
   const err = url.searchParams.get('error')
   if (err || !code) {
+    console.log('Auth callback error:', { err, hasCode: !!code })
     const to = new URL('/login', siteUrl())
     if (err) to.searchParams.set('error', err)
     if (!code) to.searchParams.set('error', 'missing_code')
@@ -19,6 +22,7 @@ export async function GET(req: NextRequest) {
   }
 
   const redirectTo = new URL(next.startsWith('/') ? next : '/', siteUrl())
+  console.log('Auth callback redirecting to:', redirectTo.toString())
   const res = NextResponse.redirect(redirectTo, { status: 303 })
 
   const supabase = createServerClient(
@@ -39,10 +43,12 @@ export async function GET(req: NextRequest) {
 
   const { error } = await supabase.auth.exchangeCodeForSession(code)
   if (error) {
+    console.error('Auth exchange error:', error)
     const to = new URL('/login', siteUrl())
     to.searchParams.set('error', 'exchange_failed')
     return NextResponse.redirect(to, { status: 303 })
   }
 
+  console.log('Auth exchange successful, redirecting to:', redirectTo.toString())
   return res
 }

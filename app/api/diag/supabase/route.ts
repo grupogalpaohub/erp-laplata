@@ -1,20 +1,16 @@
 import { NextResponse } from "next/server";
-import { supabaseServer } from "@/src/lib/supabase/server";
 
 export async function GET() {
-  try {
-    const envOK = {
-      url: !!process.env.NEXT_PUBLIC_SUPABASE_URL,
-      anon: !!process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
-    };
-    const sb = supabaseServer();
-    const { count, error } = await sb
-      .from("mm_material")
-      .select("tenant_id", { head: true, count: "exact" })
-      .limit(1);
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
+  const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL
 
-    return NextResponse.json({ envOK, query: { count, error: error?.message ?? null } });
-  } catch (e: any) {
-    return NextResponse.json({ fatal: e?.message ?? String(e) }, { status: 500 });
-  }
+  return NextResponse.json({
+    supabaseUrl: supabaseUrl ? 'SET' : 'MISSING',
+    supabaseAnonKey: supabaseAnonKey ? 'SET' : 'MISSING',
+    siteUrl: siteUrl || 'MISSING',
+    vercelUrl: process.env.NEXT_PUBLIC_VERCEL_URL || 'MISSING',
+    nodeEnv: process.env.NODE_ENV,
+    allEnvKeys: Object.keys(process.env).filter(k => k.includes('SUPABASE') || k.includes('SITE') || k.includes('VERCEL')),
+  })
 }

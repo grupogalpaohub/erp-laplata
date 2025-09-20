@@ -19,6 +19,13 @@ async function createMaterial(formData: FormData) {
     throw new Error('Tipo de material é obrigatório')
   }
 
+  const lead_time_days = formData.get('lead_time_days') as string
+  
+  // Validar lead time obrigatório
+  if (!lead_time_days || parseInt(lead_time_days) < 0) {
+    throw new Error('Lead Time é obrigatório e deve ser maior ou igual a 0')
+  }
+
   const materialData = {
     tenant_id: tenantId,
     // mm_material será gerado automaticamente pelo trigger
@@ -31,7 +38,8 @@ async function createMaterial(formData: FormData) {
     sale_price_cents: Math.round(parseFloat(formData.get('sale_price_cents') as string) * 100),
     barcode: formData.get('barcode') as string,
     weight_grams: formData.get('weight_grams') ? parseInt(formData.get('weight_grams') as string) : null,
-    lead_time_days: formData.get('lead_time_days') ? parseInt(formData.get('lead_time_days') as string) : null,
+    lead_time_days: parseInt(lead_time_days),
+    unit_of_measure: formData.get('unit_of_measure') as string || 'unidade',
     status: 'active'
   }
 
@@ -77,8 +85,8 @@ export default async function NewMaterialPage() {
   ]
 
   // Estilo consistente para campos
-  const fieldStyle = "mt-1 block w-full bg-white border border-gray-300 rounded-lg px-3 py-2 text-gray-900 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-  const labelStyle = "block text-sm font-medium text-gray-700 mb-2"
+  const fieldStyle = "input-fiori"
+  const labelStyle = "label-fiori"
 
   return (
     <div className="mx-auto max-w-4xl px-4 py-6 space-y-6">
@@ -93,7 +101,7 @@ export default async function NewMaterialPage() {
       </div>
         
       <form action={createMaterial} className="space-y-6">
-        <div className="bg-white rounded-xl border border-gray-200 p-6 shadow-lg">
+        <div className="form-fiori">
           <div className="grid grid-cols-1 gap-6">
             <div>
               <label htmlFor="mm_mat_type" className={labelStyle}>
@@ -218,7 +226,7 @@ export default async function NewMaterialPage() {
               </div>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               <div>
                 <label htmlFor="weight_grams" className={labelStyle}>
                   Peso (gramas)
@@ -235,16 +243,36 @@ export default async function NewMaterialPage() {
 
               <div>
                 <label htmlFor="lead_time_days" className={labelStyle}>
-                  Lead Time (dias)
+                  Lead Time (dias) *
                 </label>
                 <input
                   type="number"
                   name="lead_time_days"
                   id="lead_time_days"
                   min="0"
+                  required
                   className={fieldStyle}
-                  placeholder="0"
+                  placeholder="7"
                 />
+              </div>
+
+              <div>
+                <label htmlFor="unit_of_measure" className={labelStyle}>
+                  Unidade de Medida
+                </label>
+                <select
+                  name="unit_of_measure"
+                  id="unit_of_measure"
+                  className={fieldStyle}
+                >
+                  <option value="unidade">Unidade</option>
+                  <option value="kg">Quilograma</option>
+                  <option value="g">Grama</option>
+                  <option value="m">Metro</option>
+                  <option value="cm">Centímetro</option>
+                  <option value="l">Litro</option>
+                  <option value="ml">Mililitro</option>
+                </select>
               </div>
             </div>
 
@@ -266,13 +294,13 @@ export default async function NewMaterialPage() {
         <div className="flex justify-end space-x-3 pt-6 border-t border-gray-200">
           <Link
             href="/mm/catalog"
-            className="px-6 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors"
+            className="btn-fiori-outline"
           >
             Cancelar
           </Link>
           <button
             type="submit"
-            className="px-6 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors"
+            className="btn-fiori-primary"
           >
             Salvar Material
           </button>

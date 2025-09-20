@@ -5,6 +5,7 @@ import { createClient } from '@/src/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
+import PriceDisplay from './PriceDisplay'
 
 async function createPO(formData: FormData) {
   'use server'
@@ -12,16 +13,18 @@ async function createPO(formData: FormData) {
 
   // Header
   const header = {
-    mm_vendor_id: String(formData.get('mm_vendor_id') || ''),
-    order_date: String(formData.get('order_date') || new Date().toISOString().slice(0,10)),
-    status: 'rascunho' as const
+    tenant_id: 'LaplataLunaria',
+    mm_order: `PO-${Date.now()}`, // Gerar ID único
+    vendor_id: String(formData.get('vendor_id') || ''),
+    po_date: String(formData.get('po_date') || new Date().toISOString().slice(0,10)),
+    status: 'draft' as const
   }
-  if (!header.mm_vendor_id) throw new Error('Fornecedor é obrigatório')
+  if (!header.vendor_id) throw new Error('Fornecedor é obrigatório')
 
   const { data: h, error: eH } = await supabase
     .from('mm_purchase_order')
     .insert(header)
-    .select('po_id')
+    .select('mm_order')
     .single()
   if (eH) throw new Error(eH.message)
 
@@ -33,7 +36,15 @@ async function createPO(formData: FormData) {
     const qttStr = String(formData.get(`item_${i}_mm_qtt`) || '')
     const mm_qtt = Number(qttStr)
     if (material && mm_qtt > 0) {
-      items.push({ po_id: h.po_id, mm_material: material, mm_qtt })
+      items.push({ 
+        tenant_id: 'LaplataLunaria',
+        mm_order: h.mm_order, 
+        plant_id: 'DEFAULT', // Usar depósito padrão
+        mm_material: material, 
+        mm_qtt: mm_qtt,
+        unit_cost_cents: 0, // Será preenchido pelo trigger
+        line_total_cents: 0 // Será calculado pelo trigger
+      })
     }
   }
   if (items.length === 0) throw new Error('Adicione ao menos um item com quantidade')
@@ -51,7 +62,7 @@ export default async function NewPOPage() {
   const { data: vendors } = await supabase.from('mm_vendor').select('vendor_id, vendor_name').order('vendor_name')
   const { data: materials } = await supabase
     .from('mm_material')
-    .select('mm_material, mm_comercial, mm_price_cents, mm_vendor_id')
+    .select('mm_material, mm_comercial, mm_desc, purchase_price_cents, sale_price_cents, mm_vendor_id')
     .order('mm_material')
 
   return (
@@ -65,7 +76,7 @@ export default async function NewPOPage() {
         <section className="grid md:grid-cols-3 gap-4">
           <div className="flex flex-col gap-1">
             <label className="text-sm">Fornecedor</label>
-            <select name="mm_vendor_id" className="border p-2 rounded" required>
+            <select name="vendor_id" className="border p-2 rounded" required>
               <option value="">Selecione…</option>
               {(vendors ?? []).map(v => (
                 <option key={v.vendor_id} value={v.vendor_id}>{v.vendor_name || v.vendor_id}</option>
@@ -74,11 +85,11 @@ export default async function NewPOPage() {
           </div>
           <div className="flex flex-col gap-1">
             <label className="text-sm">Data</label>
-            <input type="date" name="order_date" className="border p-2 rounded" defaultValue={new Date().toISOString().slice(0,10)}/>
+            <input type="date" name="po_date" className="border p-2 rounded" defaultValue={new Date().toISOString().slice(0,10)}/>
           </div>
           <div className="flex flex-col gap-1">
             <label className="text-sm">Status</label>
-            <input className="border p-2 rounded bg-gray-50" value="rascunho" readOnly/>
+            <input className="border p-2 rounded bg-gray-50" value="draft" readOnly/>
           </div>
         </section>
 
@@ -112,14 +123,13 @@ function ItemsTable({ materials }: { materials: any[] }) {
                     <option value="">—</option>
                     {materials.map(m => (
                       <option key={m.mm_material} value={m.mm_material}>
-                        {m.mm_material} — {m.mm_comercial ?? ''} (Fornecedor: {m.mm_vendor_id})
+                        {m.mm_material} — {m.mm_comercial ?? m.mm_desc} (Fornecedor: {m.mm_vendor_id})
                       </option>
                     ))}
                   </select>
                 </td>
                 <td className="p-2 border text-right">
-                  {/* Dica visual: mostra preço atual (não enviado), o server congela no trigger */}
-                  {/* Em versão futura podemos renderizar preço atual para preview */}
+                  <PriceDisplay materials={materials} materialIndex={i} />
                 </td>
                 <td className="p-2 border text-right">
                   <input type="number" min="0" step="1" name={`item_${i}_mm_qtt`} className="border p-2 rounded w-32 text-right" />

@@ -2,21 +2,215 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Fiori Design System Colors */
 :root {
-  color-scheme: dark;
+  --fiori-primary: #0070f3;
+  --fiori-primary-hover: #0051a2;
+  --fiori-secondary: #6c757d;
+  --fiori-success: #28a745;
+  --fiori-warning: #ffc107;
+  --fiori-danger: #dc3545;
+  --fiori-info: #17a2b8;
+  
+  --fiori-bg: #ffffff;
+  --fiori-surface: #f8f9fa;
+  --fiori-border: #e9ecef;
+  --fiori-text: #212529;
+  --fiori-text-muted: #6c757d;
+  --fiori-accent: #0070f3;
+  --fiori-accent-hover: #0051a2;
+  --fiori-hover: #f8f9fa;
+  
+  --fiori-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+  --fiori-shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
 }
 
-html, body {
-  background-color: theme('colors.fiori-bg');
-  color: theme('colors.fiori-text');
+/* Fiori Component Classes */
+.fiori-surface {
+  background-color: var(--fiori-surface);
 }
 
-.fiori-tile {
-  @apply bg-fiori-surface rounded-xl2 p-4 shadow-fiori border border-fiori-border transition-transform hover:-translate-y-0.5;
+.fiori-bg {
+  background-color: var(--fiori-bg);
 }
-.fiori-kpi {
-  @apply text-sm text-fiori-muted;
+
+.fiori-border {
+  border-color: var(--fiori-border);
 }
-.fiori-kpi-value {
-  @apply text-2xl font-semibold text-white;
+
+.fiori-text {
+  color: var(--fiori-text);
+}
+
+.fiori-text-muted {
+  color: var(--fiori-text-muted);
+}
+
+.fiori-accent {
+  background-color: var(--fiori-accent);
+}
+
+.fiori-accent:hover {
+  background-color: var(--fiori-accent-hover);
+}
+
+.fiori-hover:hover {
+  background-color: var(--fiori-hover);
+}
+
+.shadow-fiori {
+  box-shadow: var(--fiori-shadow);
+}
+
+/* Fiori Button Styles */
+.btn-fiori {
+  @apply px-4 py-2 rounded-lg font-medium transition-colors duration-200;
+}
+
+.btn-fiori-primary {
+  @apply btn-fiori bg-blue-600 text-white hover:bg-blue-700 focus:ring-2 focus:ring-blue-500;
+}
+
+.btn-fiori-secondary {
+  @apply btn-fiori bg-gray-200 text-gray-800 hover:bg-gray-300 focus:ring-2 focus:ring-gray-500;
+}
+
+.btn-fiori-outline {
+  @apply btn-fiori border border-gray-300 text-gray-700 hover:bg-gray-50 focus:ring-2 focus:ring-blue-500;
+}
+
+/* Fiori Form Styles */
+.form-fiori {
+  @apply bg-white rounded-xl border border-gray-200 p-6 shadow-fiori;
+}
+
+.input-fiori {
+  @apply w-full px-3 py-2 border border-gray-300 rounded-lg text-gray-900 placeholder-gray-500 focus:ring-2 focus:ring-blue-500 focus:border-blue-500;
+}
+
+.select-fiori {
+  @apply w-full px-3 py-2 border border-gray-300 rounded-lg text-gray-900 bg-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500;
+}
+
+.label-fiori {
+  @apply block text-sm font-medium text-gray-700 mb-2;
+}
+
+/* Fiori Card Styles */
+.card-fiori {
+  @apply bg-white rounded-xl border border-gray-200 p-6 shadow-sm;
+}
+
+.card-fiori-header {
+  @apply border-b border-gray-200 pb-4 mb-6;
+}
+
+/* Fiori Table Styles */
+.table-fiori {
+  @apply w-full border-collapse;
+}
+
+.table-fiori th {
+  @apply px-4 py-3 text-left text-sm font-medium text-gray-700 bg-gray-50 border-b border-gray-200;
+}
+
+.table-fiori td {
+  @apply px-4 py-3 text-sm text-gray-900 border-b border-gray-200;
+}
+
+.table-fiori tbody tr:hover {
+  @apply bg-gray-50;
+}
+
+/* Fiori Navigation Styles */
+.nav-fiori {
+  @apply bg-white border-b border-gray-200 shadow-sm;
+}
+
+.nav-fiori-item {
+  @apply px-4 py-2 text-sm font-medium text-gray-700 hover:text-blue-600 hover:bg-gray-50 rounded-md transition-colors;
+}
+
+.nav-fiori-item.active {
+  @apply text-blue-600 bg-blue-50;
+}
+
+/* Fiori Status Badges */
+.badge-fiori {
+  @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium;
+}
+
+.badge-fiori-success {
+  @apply badge-fiori bg-green-100 text-green-800;
+}
+
+.badge-fiori-warning {
+  @apply badge-fiori bg-yellow-100 text-yellow-800;
+}
+
+.badge-fiori-danger {
+  @apply badge-fiori bg-red-100 text-red-800;
+}
+
+.badge-fiori-info {
+  @apply badge-fiori bg-blue-100 text-blue-800;
+}
+
+/* Fiori Tile Styles */
+.tile-fiori {
+  @apply bg-white rounded-xl border border-gray-200 p-6 shadow-fiori hover:shadow-lg transition-shadow duration-200;
+}
+
+.tile-fiori-header {
+  @apply flex items-center justify-between mb-4;
+}
+
+.tile-fiori-title {
+  @apply text-lg font-semibold text-gray-900;
+}
+
+.tile-fiori-subtitle {
+  @apply text-sm text-gray-500 mt-1;
+}
+
+/* Fiori Modal Styles */
+.modal-fiori {
+  @apply fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50;
+}
+
+.modal-fiori-content {
+  @apply bg-white rounded-xl p-6 max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto;
+}
+
+.modal-fiori-header {
+  @apply flex items-center justify-between mb-4 pb-4 border-b border-gray-200;
+}
+
+.modal-fiori-title {
+  @apply text-xl font-semibold text-gray-900;
+}
+
+.modal-fiori-close {
+  @apply text-gray-400 hover:text-gray-600 transition-colors;
+}
+
+/* Fiori Alert Styles */
+.alert-fiori {
+  @apply p-4 rounded-lg border;
+}
+
+.alert-fiori-success {
+  @apply alert-fiori bg-green-50 border-green-200 text-green-800;
+}
+
+.alert-fiori-warning {
+  @apply alert-fiori bg-yellow-50 border-yellow-200 text-yellow-800;
+}
+
+.alert-fiori-danger {
+  @apply alert-fiori bg-red-50 border-red-200 text-red-800;
+}
+
+.alert-fiori-info {
+  @apply alert-fiori bg-blue-50 border-blue-200 text-blue-800;
 }

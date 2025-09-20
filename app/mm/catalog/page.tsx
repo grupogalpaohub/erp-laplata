@@ -2,6 +2,7 @@ export const dynamic = 'force-dynamic'
 export const revalidate = 0
 import { cookies } from 'next/headers'
 import { createServerClient } from '@supabase/ssr'
+import Link from 'next/link'
 
 type Material = {
   mm_material: string
@@ -52,9 +53,12 @@ export default async function CatalogoMateriais() {
 
   if (error) {
     return (
-      <main className="p-6 space-y-4">
-        <h1 className="text-2xl font-bold">Catálogo de Materiais</h1>
-        <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
+      <main className="mx-auto max-w-7xl px-4 py-6 space-y-6">
+        <div>
+          <h1 className="text-2xl font-semibold">Catálogo de Materiais</h1>
+          <p className="text-gray-500 mt-1">Gerencie materiais e fornecedores</p>
+        </div>
+        <div className="alert-fiori-danger">
           Erro ao carregar materiais: {error.message}
         </div>
       </main>
@@ -64,59 +68,70 @@ export default async function CatalogoMateriais() {
   const materiais = (data ?? []) as Material[]
 
   return (
-    <main className="p-6 space-y-4">
-      <h1 className="text-2xl font-bold">Catálogo de Materiais</h1>
+    <main className="mx-auto max-w-7xl px-4 py-6 space-y-6">
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-2xl font-semibold">Catálogo de Materiais</h1>
+          <p className="text-gray-500 mt-1">Gerencie materiais e fornecedores</p>
+        </div>
+        <Link href="/mm/materials/new" className="btn-fiori-primary">Novo Material</Link>
+      </div>
 
       {materiais.length === 0 ? (
-        <div className="text-center py-8 text-gray-500">Nenhum material encontrado.</div>
+        <div className="card-fiori text-center py-12">
+          <div className="text-gray-500 text-lg">Nenhum material encontrado.</div>
+          <Link href="/mm/materials/new" className="btn-fiori-primary mt-4 inline-block">Criar Primeiro Material</Link>
+        </div>
       ) : (
-        <div className="overflow-x-auto">
-          <table className="w-full border-collapse border border-gray-300">
-            <thead>
-              <tr className="bg-gray-100">
-                <th className="border border-gray-300 p-2 text-left">SKU</th>
-                <th className="border border-gray-300 p-2 text-left">Nome Comercial</th>
-                <th className="border border-gray-300 p-2 text-left">Descrição</th>
-                <th className="border border-gray-300 p-2 text-left">Tipo</th>
-                <th className="border border-gray-300 p-2 text-left">Classe</th>
-                <th className="border border-gray-300 p-2 text-left">Preço (R$)</th>
-                <th className="border border-gray-300 p-2 text-left">Fornecedor</th>
-                <th className="border border-gray-300 p-2 text-left">Status</th>
-                <th className="border border-gray-300 p-2 text-left">Lead Time</th>
-              </tr>
-            </thead>
-            <tbody>
-              {materiais.map((material) => (
-                <tr key={material.mm_material} className="hover:bg-gray-50">
-                  <td className="border border-gray-300 p-2 font-mono text-sm">{material.mm_material}</td>
-                  <td className="border border-gray-300 p-2">
-                    {material.mm_comercial || material.commercial_name || "-"}
-                  </td>
-                  <td className="border border-gray-300 p-2 max-w-xs truncate">{material.mm_desc}</td>
-                  <td className="border border-gray-300 p-2">{material.mm_mat_type || "-"}</td>
-                  <td className="border border-gray-300 p-2">{material.mm_mat_class || "-"}</td>
-                  <td className="border border-gray-300 p-2 text-right">
-                    {material.mm_price_cents != null ? `R$ ${(material.mm_price_cents / 100).toFixed(2)}` : "-"}
-                  </td>
-                  <td className="border border-gray-300 p-2">
-                    {(material.mm_vendor?.[0]?.vendor_name ?? material.mm_vendor_id ?? "-")}
-                  </td>
-                  <td className="border border-gray-300 p-2">
-                    <span className={`px-2 py-1 rounded text-xs ${
-                      (material.status ?? 'active') === 'active'
-                        ? 'bg-green-100 text-green-800'
-                        : 'bg-gray-100 text-gray-800'
-                    }`}>
-                      {material.status ?? 'active'}
-                    </span>
-                  </td>
-                  <td className="border border-gray-300 p-2 text-right">
-                    {material.lead_time_days != null ? `${material.lead_time_days} dias` : "-"}
-                  </td>
+        <div className="card-fiori">
+          <div className="overflow-x-auto">
+            <table className="table-fiori">
+              <thead>
+                <tr>
+                  <th>SKU</th>
+                  <th>Nome Comercial</th>
+                  <th>Descrição</th>
+                  <th>Tipo</th>
+                  <th>Classe</th>
+                  <th>Preço (R$)</th>
+                  <th>Fornecedor</th>
+                  <th>Status</th>
+                  <th>Lead Time</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {materiais.map((material) => (
+                  <tr key={material.mm_material}>
+                    <td className="font-mono text-sm font-medium text-blue-600">{material.mm_material}</td>
+                    <td>
+                      {material.mm_comercial || material.commercial_name || "-"}
+                    </td>
+                    <td className="max-w-xs truncate">{material.mm_desc}</td>
+                    <td>{material.mm_mat_type || "-"}</td>
+                    <td>{material.mm_mat_class || "-"}</td>
+                    <td className="text-right font-medium">
+                      {material.mm_price_cents != null ? `R$ ${(material.mm_price_cents / 100).toFixed(2)}` : "-"}
+                    </td>
+                    <td>
+                      {(material.mm_vendor?.[0]?.vendor_name ?? material.mm_vendor_id ?? "-")}
+                    </td>
+                    <td>
+                      <span className={`badge-fiori ${
+                        (material.status ?? 'active') === 'active'
+                          ? 'badge-fiori-success'
+                          : 'badge-fiori-danger'
+                      }`}>
+                        {material.status ?? 'active'}
+                      </span>
+                    </td>
+                    <td className="text-right">
+                      {material.lead_time_days != null ? `${material.lead_time_days} dias` : "-"}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </div>
       )}
     </main>

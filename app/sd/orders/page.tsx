@@ -40,39 +40,43 @@ export default async function OrdersPage() {
   const salesOrders = await getSalesOrders()
 
   return (
-    <div className="p-6">
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold text-gray-900">Pedidos de Venda</h1>
+    <main className="mx-auto max-w-7xl px-4 py-6 space-y-6">
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-2xl font-semibold">Pedidos de Venda</h1>
+          <p className="text-gray-500 mt-1">Gerencie pedidos e clientes</p>
+        </div>
         <Link
           href="/sd/orders/new"
-          className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+          className="btn-fiori-primary flex items-center gap-2"
         >
-          <Plus className="h-4 w-4 mr-2" />
+          <Plus className="h-4 w-4" />
           Novo Pedido
         </Link>
       </div>
 
-      <div className="bg-white shadow overflow-hidden sm:rounded-md">
-        <ul className="divide-y divide-gray-200">
-          {salesOrders.length === 0 ? (
-            <li className="px-6 py-4 text-center text-gray-500">
-              Nenhum pedido de venda encontrado
-            </li>
-          ) : (
-            salesOrders.map((order) => (
-              <li key={order.so_id} className="px-6 py-4">
+      {salesOrders.length === 0 ? (
+        <div className="card-fiori text-center py-12">
+          <div className="text-gray-500 text-lg">Nenhum pedido de venda encontrado</div>
+          <Link href="/sd/orders/new" className="btn-fiori-primary mt-4 inline-block">Criar Primeiro Pedido</Link>
+        </div>
+      ) : (
+        <div className="card-fiori">
+          <div className="space-y-4">
+            {salesOrders.map((order) => (
+              <div key={order.so_id} className="border border-gray-200 rounded-lg p-4 hover:bg-gray-50 transition-colors">
                 <div className="flex items-center justify-between">
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center space-x-3">
                       <p className="text-sm font-medium text-gray-900 truncate">
                         {order.so_id}
                       </p>
-                      <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                        order.status === 'draft' ? 'bg-gray-100 text-gray-800' :
-                        order.status === 'confirmed' ? 'bg-green-100 text-green-800' :
-                        order.status === 'shipped' ? 'bg-blue-100 text-blue-800' :
-                        order.status === 'delivered' ? 'bg-purple-100 text-purple-800' :
-                        'bg-red-100 text-red-800'
+                      <span className={`badge-fiori ${
+                        order.status === 'draft' ? 'badge-fiori-info' :
+                        order.status === 'confirmed' ? 'badge-fiori-success' :
+                        order.status === 'shipped' ? 'badge-fiori-warning' :
+                        order.status === 'delivered' ? 'badge-fiori-success' :
+                        'badge-fiori-danger'
                       }`}>
                         {order.status}
                       </span>
@@ -91,24 +95,24 @@ export default async function OrdersPage() {
                     </span>
                     <Link
                       href={`/sd/orders/${order.so_id}`}
-                      className="text-blue-600 hover:text-blue-900"
+                      className="text-blue-600 hover:text-blue-900 p-1 rounded hover:bg-blue-50"
                     >
                       <Eye className="h-4 w-4" />
                     </Link>
                     <Link
                       href={`/sd/orders/${order.so_id}/print`}
-                      className="text-gray-600 hover:text-gray-900"
+                      className="text-gray-600 hover:text-gray-900 p-1 rounded hover:bg-gray-50"
                       target="_blank"
                     >
                       <Printer className="h-4 w-4" />
                     </Link>
                   </div>
                 </div>
-              </li>
-            ))
-          )}
-        </ul>
-      </div>
-    </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+    </main>
   )
 }

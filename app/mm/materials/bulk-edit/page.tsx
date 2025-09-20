@@ -36,24 +36,24 @@ function ConfirmationModal({ isOpen, changes, onConfirm, onCancel, isProcessing 
   const totalChanges = changes.reduce((sum, change) => sum + Object.keys(change.changes).length, 0)
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div className="bg-white rounded-lg p-6 max-w-4xl max-h-[80vh] overflow-y-auto">
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="text-xl font-semibold">Confirmar Alterações</h2>
-          <button onClick={onCancel} className="text-gray-500 hover:text-gray-700">
+    <div className="modal-fiori">
+      <div className="modal-fiori-content">
+        <div className="modal-fiori-header">
+          <h2 className="modal-fiori-title">Confirmar Alterações</h2>
+          <button onClick={onCancel} className="modal-fiori-close">
             <X className="w-6 h-6" />
           </button>
         </div>
 
-        <div className="mb-4 p-4 bg-blue-50 rounded">
-          <p className="text-sm text-blue-800">
+        <div className="alert-fiori-info mb-4">
+          <p className="text-sm">
             <strong>{changes.length}</strong> materiais serão alterados com <strong>{totalChanges}</strong> mudanças no total.
           </p>
         </div>
 
         <div className="space-y-4 max-h-96 overflow-y-auto">
           {changes.map((change, index) => (
-            <div key={index} className="border rounded p-4">
+            <div key={index} className="card-fiori">
               <h3 className="font-semibold text-sm mb-2">Material: {change.mm_material}</h3>
               <div className="space-y-2">
                 {Object.entries(change.changes).map(([field, values]) => (
@@ -75,14 +75,14 @@ function ConfirmationModal({ isOpen, changes, onConfirm, onCancel, isProcessing 
           <button
             onClick={onCancel}
             disabled={isProcessing}
-            className="px-4 py-2 border rounded hover:bg-gray-50 disabled:opacity-50"
+            className="btn-fiori-outline disabled:opacity-50"
           >
             Cancelar
           </button>
           <button
             onClick={onConfirm}
             disabled={isProcessing}
-            className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 disabled:opacity-50 flex items-center gap-2"
+            className="btn-fiori-primary disabled:opacity-50 flex items-center gap-2"
           >
             {isProcessing ? (
               <>
@@ -207,16 +207,16 @@ export default function BulkEditPage() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-semibold">Edição em Lote de Materiais</h1>
-          <p className="text-fiori-muted mt-1">Edite múltiplos materiais e salve todas as alterações de uma vez</p>
+          <p className="text-gray-500 mt-1">Edite múltiplos materiais e salve todas as alterações de uma vez</p>
         </div>
         <div className="flex gap-3">
-          <Link href="/mm/materials/edit" className="px-3 py-2 rounded border">
+          <Link href="/mm/materials/edit" className="btn-fiori-outline">
             Edição Individual
           </Link>
           <button
             onClick={handleSave}
             disabled={!hasChanges}
-            className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 disabled:opacity-50 flex items-center gap-2"
+            className="btn-fiori-primary disabled:opacity-50 flex items-center gap-2"
           >
             <Save className="w-4 h-4" />
             Salvar Alterações ({calculateChanges().length})
@@ -225,27 +225,27 @@ export default function BulkEditPage() {
       </div>
 
       {message && (
-        <div className={`px-4 py-3 rounded ${
+        <div className={`alert-fiori ${
           message.type === 'success' 
-            ? 'bg-green-100 border border-green-400 text-green-700' 
-            : 'bg-red-100 border border-red-400 text-red-700'
+            ? 'alert-fiori-success' 
+            : 'alert-fiori-danger'
         }`}>
           {message.text}
         </div>
       )}
 
-      <div className="bg-white rounded-lg border overflow-hidden">
+      <div className="card-fiori">
         <div className="overflow-x-auto">
-          <table className="w-full">
-            <thead className="bg-gray-50">
+          <table className="table-fiori">
+            <thead>
               <tr>
-                <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">ID</th>
-                <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">Nome Comercial</th>
-                <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">Descrição</th>
-                <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">Tipo</th>
-                <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">Classe</th>
-                <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">Preço (R$)</th>
-                <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">Status</th>
+                <th>ID</th>
+                <th>Nome Comercial</th>
+                <th>Descrição</th>
+                <th>Tipo</th>
+                <th>Classe</th>
+                <th>Preço (R$)</th>
+                <th>Status</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-200">

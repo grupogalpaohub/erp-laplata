@@ -138,9 +138,31 @@ export default function BulkImportPage() {
   }
 
   const downloadTemplate = () => {
-    const headers = ['mm_comercial', 'mm_desc', 'mm_mat_type', 'mm_mat_class', 'mm_price_cents', 'barcode', 'weight_grams']
-    const csvContent = headers.join(',') + '\n' + 
-      'Exemplo Brinco,Descrição do brinco,brinco,acessorio,2500,123456789,10'
+    const headers = [
+      'mm_comercial', 
+      'mm_desc', 
+      'mm_mat_type', 
+      'mm_mat_class', 
+      'mm_vendor_id', 
+      'purchase_price_cents', 
+      'sale_price_cents', 
+      'barcode', 
+      'weight_grams', 
+      'lead_time_days', 
+      'unit_of_measure'
+    ]
+    const csvContent = [
+      headers.join(','),
+      'Exemplo Brinco,Descrição do brinco,brinco,acessorio,VENDOR001,2500,3500,123456789,10,7,unidade',
+      '',
+      '# Instruções:',
+      '# - Campos obrigatórios: mm_desc, mm_mat_type, mm_mat_class, mm_vendor_id, purchase_price_cents, sale_price_cents, lead_time_days',
+      '# - mm_mat_type: brinco, gargantilha, choker, pulseira, kit',
+      '# - mm_mat_class: acessorio, joia, bijuteria, semi-joia',
+      '# - Preços em centavos (ex: 2500 = R$ 25,00)',
+      '# - lead_time_days: número de dias para entrega',
+      '# - unit_of_measure: unidade, kg, g, m, cm, l, ml'
+    ].join('\n')
     
     const blob = new Blob([csvContent], { type: 'text/csv' })
     const url = window.URL.createObjectURL(blob)
@@ -159,9 +181,9 @@ export default function BulkImportPage() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-semibold">Importação em Massa de Materiais</h1>
-          <p className="text-fiori-muted mt-1">Importe múltiplos materiais via arquivo CSV</p>
+          <p className="text-gray-500 mt-1">Importe múltiplos materiais via arquivo CSV</p>
         </div>
-        <Link href="/mm/materials/edit" className="px-3 py-2 rounded border">
+        <Link href="/mm/materials/edit" className="btn-fiori-outline">
           Voltar para Edição
         </Link>
       </div>

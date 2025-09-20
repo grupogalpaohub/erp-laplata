@@ -38,12 +38,30 @@ export default function LoginPage() {
       process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
     )
     const redirectTo = `${siteUrl()}/auth/callback?next=${encodeURIComponent(next)}`
-    const { error } = await sb.auth.signInWithOAuth({
+    
+    console.log('[login] iniciando OAuth:', {
+      provider: 'google',
+      redirectTo,
+      siteUrl: siteUrl(),
+      next
+    })
+    
+    const { data, error } = await sb.auth.signInWithOAuth({
       provider: 'google',
       options: { redirectTo, queryParams: { prompt: 'select_account' } },
     })
+    
+    console.log('[login] OAuth response:', { data, error })
+    
     if (error) {
       console.error('[login] oauth error:', error.message)
+      alert(`Erro OAuth: ${error.message}`)
+      setLoading(false)
+    } else if (data?.url) {
+      console.log('[login] redirecionando para:', data.url)
+      window.location.href = data.url
+    } else {
+      console.warn('[login] sem URL de redirecionamento')
       setLoading(false)
     }
   }

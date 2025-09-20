@@ -7,7 +7,7 @@ export async function GET() {
       url: !!process.env.NEXT_PUBLIC_SUPABASE_URL,
       anon: !!process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
     };
-    const sb = supabaseServer();
+    const sb = await supabaseServer();
     const { count, error } = await sb
       .from("mm_material")
       .select("tenant_id", { head: true, count: "exact" })

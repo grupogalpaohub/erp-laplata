@@ -76,36 +76,36 @@ export default async function NewPOPage() {
     .order('mm_material')
 
   return (
-    <main className="p-6 space-y-4">
+    <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-semibold">Criar Pedido de Compras</h1>
-        <Link href="/mm/purchases" className="px-3 py-2 rounded border">Voltar</Link>
+        <h1 className="text-2xl font-semibold text-fiori-primary">Criar Pedido de Compras</h1>
+        <Link href="/mm/purchases" className="btn-fiori-outline">Voltar</Link>
       </div>
 
-      <form action={createPO} className="space-y-6">
-        <section className="grid md:grid-cols-3 gap-4">
-          <div className="flex flex-col gap-1">
-            <label className="text-sm">Fornecedor</label>
-            <select name="vendor_id" className="border p-2 rounded" required>
+      <form action={createPO} className="form-fiori">
+        <section className="grid-fiori-3">
+          <div className="form-group">
+            <label className="label-fiori">Fornecedor</label>
+            <select name="vendor_id" className="select-fiori" required>
               <option value="">Selecione…</option>
               {(vendors ?? []).map(v => (
                 <option key={v.vendor_id} value={v.vendor_id}>{v.vendor_name || v.vendor_id}</option>
               ))}
             </select>
           </div>
-          <div className="flex flex-col gap-1">
-            <label className="text-sm">Data</label>
-            <input type="date" name="po_date" className="border p-2 rounded" defaultValue={new Date().toISOString().slice(0,10)}/>
+          <div className="form-group">
+            <label className="label-fiori">Data</label>
+            <input type="date" name="po_date" className="input-fiori" defaultValue={new Date().toISOString().slice(0,10)}/>
           </div>
-          <div className="flex flex-col gap-1">
-            <label className="text-sm">Status</label>
-            <input className="border p-2 rounded bg-gray-50" value="draft" readOnly/>
+          <div className="form-group">
+            <label className="label-fiori">Status</label>
+            <input className="input-fiori bg-fiori-secondary" value="draft" readOnly/>
           </div>
         </section>
 
         <ItemsTable materials={materials ?? []}/>
       </form>
-    </main>
+    </div>
   )
 }
 
@@ -113,23 +113,23 @@ function ItemsTable({ materials }: { materials: any[] }) {
   // Renderiza 5 linhas por padrão; evolutivo para adicionar/remover linhas depois
   const rows = Array.from({length:5}, (_,i)=>i)
   return (
-    <section className="space-y-3">
-      <h2 className="text-lg font-semibold">Itens</h2>
+    <section className="space-y-4">
+      <h2 className="text-lg font-semibold text-fiori-primary">Itens</h2>
       <input type="hidden" name="rows" value={rows.length}/>
       <div className="overflow-x-auto">
-        <table className="w-full border border-gray-300">
-          <thead className="bg-gray-50">
+        <table className="table-fiori">
+          <thead>
             <tr>
-              <th className="p-2 border text-left">Material</th>
-              <th className="p-2 border text-right">Preço atual (R$)</th>
-              <th className="p-2 border text-right">Quantidade</th>
+              <th>Material</th>
+              <th className="text-right">Preço atual (R$)</th>
+              <th className="text-right">Quantidade</th>
             </tr>
           </thead>
           <tbody>
             {rows.map(i => (
               <tr key={i}>
-                <td className="p-2 border">
-                  <select name={`item_${i}_mm_material`} className="border p-2 rounded w-full">
+                <td>
+                  <select name={`item_${i}_mm_material`} className="select-fiori w-full">
                     <option value="">—</option>
                     {materials.map(m => (
                       <option key={m.mm_material} value={m.mm_material}>
@@ -138,11 +138,11 @@ function ItemsTable({ materials }: { materials: any[] }) {
                     ))}
                   </select>
                 </td>
-                <td className="p-2 border text-right">
+                <td className="text-right">
                   <PriceDisplay materials={materials} materialIndex={i} />
                 </td>
-                <td className="p-2 border text-right">
-                  <input type="number" min="0" step="1" name={`item_${i}_mm_qtt`} className="border p-2 rounded w-32 text-right" />
+                <td className="text-right">
+                  <input type="number" min="0" step="1" name={`item_${i}_mm_qtt`} className="input-fiori w-32 text-right" />
                 </td>
               </tr>
             ))}
@@ -150,7 +150,7 @@ function ItemsTable({ materials }: { materials: any[] }) {
         </table>
       </div>
 
-      <button className="px-3 py-2 rounded bg-[#062238] text-white">Salvar Pedido</button>
+      <button type="submit" className="btn-fiori-primary">Salvar Pedido</button>
     </section>
   )
 }

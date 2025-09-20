@@ -2,109 +2,107 @@
 @tailwind components;
 @tailwind utilities;
 
-/* ===== SAP FIORI DESIGN SYSTEM ===== */
+/* ===== SAP FIORI DESIGN SYSTEM - EXATO ===== */
 
-/* === CORES FIORI === */
+/* === CORES SAP FIORI OFICIAIS === */
 :root {
-  /* Cores Primárias */
-  --fiori-primary: #0070f3;
-  --fiori-primary-hover: #0056b3;
-  --fiori-primary-active: #004085;
+  /* SAP Fiori Dark Theme Colors */
+  --fiori-bg-primary: #1a1a1a;
+  --fiori-bg-secondary: #2d2d2d;
+  --fiori-bg-tertiary: #3a3a3a;
+  --fiori-bg-surface: #2d2d2d;
+  --fiori-bg-elevated: #3a3a3a;
   
-  /* Cores de Fundo */
-  --fiori-bg-primary: #f8f9fa;
-  --fiori-bg-secondary: #ffffff;
-  --fiori-bg-tertiary: #f1f3f4;
-  --fiori-bg-surface: #ffffff;
-  --fiori-bg-elevated: #ffffff;
+  /* SAP Fiori Text Colors */
+  --fiori-text-primary: #ffffff;
+  --fiori-text-secondary: #e5e5e5;
+  --fiori-text-muted: #b3b3b3;
+  --fiori-text-inverse: #000000;
   
-  /* Cores de Texto */
-  --fiori-text-primary: #212529;
-  --fiori-text-secondary: #6c757d;
-  --fiori-text-muted: #adb5bd;
-  --fiori-text-inverse: #ffffff;
+  /* SAP Fiori Accent Colors */
+  --fiori-accent-blue: #0070f3;
+  --fiori-accent-blue-hover: #0056b3;
   
-  /* Cores de Status */
-  --fiori-success: #28a745;
-  --fiori-warning: #ffc107;
-  --fiori-danger: #dc3545;
-  --fiori-info: #17a2b8;
+  /* SAP Fiori Status Colors */
+  --fiori-success: #00a86b;
+  --fiori-warning: #ffb75d;
+  --fiori-danger: #e9730c;
+  --fiori-info: #0070f3;
   
-  /* Cores de Borda */
-  --fiori-border: #dee2e6;
-  --fiori-border-light: #e9ecef;
-  --fiori-border-dark: #ced4da;
+  /* SAP Fiori Border Colors */
+  --fiori-border: #4a4a4a;
+  --fiori-border-light: #3a3a3a;
+  --fiori-border-dark: #5a5a5a;
   
-  /* Sombras */
-  --fiori-shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.1);
-  --fiori-shadow-md: 0 4px 6px rgba(0, 0, 0, 0.1);
-  --fiori-shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.1);
-  --fiori-shadow-xl: 0 20px 25px rgba(0, 0, 0, 0.1);
-  
-  /* Espaçamentos */
-  --fiori-spacing-xs: 0.25rem;
-  --fiori-spacing-sm: 0.5rem;
-  --fiori-spacing-md: 1rem;
-  --fiori-spacing-lg: 1.5rem;
-  --fiori-spacing-xl: 2rem;
-  --fiori-spacing-2xl: 3rem;
-  
-  /* Bordas */
-  --fiori-radius-sm: 0.25rem;
-  --fiori-radius-md: 0.375rem;
-  --fiori-radius-lg: 0.5rem;
-  --fiori-radius-xl: 0.75rem;
-  
-  /* Transições */
-  --fiori-transition: all 0.2s ease-in-out;
+  /* SAP Fiori Shadows */
+  --fiori-shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.3);
+  --fiori-shadow-md: 0 4px 6px rgba(0, 0, 0, 0.3);
+  --fiori-shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.3);
 }
 
-/* === TIPOGRAFIA FIORI === */
+/* === TIPOGRAFIA SAP FIORI === */
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
 
 body {
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   background-color: var(--fiori-bg-primary);
   color: var(--fiori-text-primary);
-  line-height: 1.6;
+  line-height: 1.5;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
 
-/* === COMPONENTES FIORI === */
+/* === COMPONENTES SAP FIORI === */
 
 /* --- BOTÕES --- */
 .btn-fiori {
-  @apply inline-flex items-center justify-center px-4 py-2 text-sm font-medium rounded-md transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed;
+  @apply inline-flex items-center justify-center px-4 py-2 text-sm font-medium transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed;
+  border-radius: 0;
+  border: 1px solid var(--fiori-border);
 }
 
 .btn-fiori-primary {
-  @apply btn-fiori bg-blue-600 text-white hover:bg-blue-700 focus:ring-blue-500 shadow-sm;
+  @apply btn-fiori;
+  background-color: var(--fiori-accent-blue);
+  color: var(--fiori-text-primary);
+  border-color: var(--fiori-accent-blue);
+}
+
+.btn-fiori-primary:hover {
+  background-color: var(--fiori-accent-blue-hover);
+  border-color: var(--fiori-accent-blue-hover);
 }
 
 .btn-fiori-secondary {
-  @apply btn-fiori bg-gray-100 text-gray-700 hover:bg-gray-200 focus:ring-gray-500 border border-gray-300;
+  @apply btn-fiori;
+  background-color: var(--fiori-bg-secondary);
+  color: var(--fiori-text-primary);
+  border-color: var(--fiori-border);
+}
+
+.btn-fiori-secondary:hover {
+  background-color: var(--fiori-bg-tertiary);
 }
 
 .btn-fiori-outline {
-  @apply btn-fiori bg-transparent text-blue-600 hover:bg-blue-50 focus:ring-blue-500 border border-blue-600;
+  @apply btn-fiori;
+  background-color: transparent;
+  color: var(--fiori-accent-blue);
+  border-color: var(--fiori-accent-blue);
 }
 
-.btn-fiori-ghost {
-  @apply btn-fiori bg-transparent text-gray-600 hover:bg-gray-100 focus:ring-gray-500;
-}
-
-.btn-fiori-danger {
-  @apply btn-fiori bg-red-600 text-white hover:bg-red-700 focus:ring-red-500;
-}
-
-.btn-fiori-success {
-  @apply btn-fiori bg-green-600 text-white hover:bg-green-700 focus:ring-green-500;
+.btn-fiori-outline:hover {
+  background-color: var(--fiori-accent-blue);
+  color: var(--fiori-text-primary);
 }
 
 /* --- FORMULÁRIOS --- */
 .form-fiori {
   @apply space-y-6;
+  background-color: var(--fiori-bg-surface);
+  border: 1px solid var(--fiori-border);
+  border-radius: 0;
+  padding: 2rem;
 }
 
 .form-group {
@@ -112,36 +110,83 @@ body {
 }
 
 .label-fiori {
-  @apply block text-sm font-medium text-gray-700;
+  @apply block text-sm font-medium;
+  color: var(--fiori-text-primary);
 }
 
 .input-fiori {
-  @apply block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors;
+  @apply block w-full px-3 py-2 transition-colors;
+  background-color: var(--fiori-bg-primary);
+  border: 1px solid var(--fiori-border);
+  color: var(--fiori-text-primary);
+  border-radius: 0;
+}
+
+.input-fiori:focus {
+  outline: none;
+  border-color: var(--fiori-accent-blue);
+  box-shadow: 0 0 0 2px rgba(0, 112, 243, 0.2);
+}
+
+.input-fiori::placeholder {
+  color: var(--fiori-text-muted);
 }
 
 .select-fiori {
-  @apply block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors;
+  @apply block w-full px-3 py-2 transition-colors;
+  background-color: var(--fiori-bg-primary);
+  border: 1px solid var(--fiori-border);
+  color: var(--fiori-text-primary);
+  border-radius: 0;
+}
+
+.select-fiori:focus {
+  outline: none;
+  border-color: var(--fiori-accent-blue);
+  box-shadow: 0 0 0 2px rgba(0, 112, 243, 0.2);
 }
 
 .textarea-fiori {
-  @apply block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors resize-y;
+  @apply block w-full px-3 py-2 transition-colors resize-y;
+  background-color: var(--fiori-bg-primary);
+  border: 1px solid var(--fiori-border);
+  color: var(--fiori-text-primary);
+  border-radius: 0;
+}
+
+.textarea-fiori:focus {
+  outline: none;
+  border-color: var(--fiori-accent-blue);
+  box-shadow: 0 0 0 2px rgba(0, 112, 243, 0.2);
+}
+
+.textarea-fiori::placeholder {
+  color: var(--fiori-text-muted);
 }
 
 /* --- CARDS --- */
 .card-fiori {
-  @apply bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden;
+  background-color: var(--fiori-bg-surface);
+  border: 1px solid var(--fiori-border);
+  border-radius: 0;
+  overflow: hidden;
+  box-shadow: var(--fiori-shadow-sm);
 }
 
 .card-fiori-header {
-  @apply px-6 py-4 border-b border-gray-200 bg-gray-50;
+  @apply px-6 py-4 border-b;
+  background-color: var(--fiori-bg-elevated);
+  border-bottom-color: var(--fiori-border);
 }
 
 .card-fiori-title {
-  @apply text-lg font-semibold text-gray-900;
+  @apply text-lg font-semibold;
+  color: var(--fiori-text-primary);
 }
 
 .card-fiori-subtitle {
-  @apply text-sm text-gray-600;
+  @apply text-sm;
+  color: var(--fiori-text-secondary);
 }
 
 .card-fiori-body {
@@ -149,129 +194,228 @@ body {
 }
 
 .card-fiori-footer {
-  @apply px-6 py-4 border-t border-gray-200 bg-gray-50;
+  @apply px-6 py-4 border-t;
+  background-color: var(--fiori-bg-elevated);
+  border-top-color: var(--fiori-border);
 }
 
-/* --- TILES --- */
+/* --- TILES SAP FIORI - EXATOS --- */
 .tile-fiori {
-  @apply bg-white rounded-lg shadow-sm border border-gray-200 p-6 hover:shadow-md transition-shadow duration-200 cursor-pointer;
+  background-color: var(--fiori-bg-surface);
+  border: 1px solid var(--fiori-border);
+  border-radius: 0;
+  padding: 1.5rem;
+  transition: all 0.2s ease;
+  cursor: pointer;
+  box-shadow: var(--fiori-shadow-sm);
+}
+
+.tile-fiori:hover {
+  background-color: var(--fiori-bg-elevated);
+  box-shadow: var(--fiori-shadow-md);
+  transform: translateY(-1px);
 }
 
 .tile-fiori-title {
-  @apply text-lg font-semibold text-gray-900 mb-2;
+  @apply text-lg font-semibold mb-2;
+  color: var(--fiori-text-primary);
 }
 
 .tile-fiori-subtitle {
-  @apply text-sm text-gray-600 mb-4;
+  @apply text-sm mb-4;
+  color: var(--fiori-text-secondary);
 }
 
 .tile-fiori-icon {
-  @apply w-8 h-8 text-blue-600 mb-4;
+  @apply w-12 h-12 mb-4;
+  color: var(--fiori-accent-blue);
 }
 
 .tile-fiori-metric {
-  @apply text-2xl font-bold text-gray-900;
+  @apply text-2xl font-bold;
+  color: var(--fiori-text-primary);
 }
 
 .tile-fiori-metric-label {
-  @apply text-sm text-gray-600;
+  @apply text-sm;
+  color: var(--fiori-text-secondary);
 }
 
-/* --- TABELAS --- */
+/* --- KPIs COM CORES SAP FIORI --- */
+.kpi-fiori {
+  @apply text-2xl font-bold;
+}
+
+.kpi-fiori-success {
+  color: var(--fiori-success);
+}
+
+.kpi-fiori-warning {
+  color: var(--fiori-warning);
+}
+
+.kpi-fiori-danger {
+  color: var(--fiori-danger);
+}
+
+.kpi-fiori-info {
+  color: var(--fiori-info);
+}
+
+.kpi-fiori-neutral {
+  color: var(--fiori-text-primary);
+}
+
+/* --- TABELAS SAP FIORI --- */
 .table-fiori {
-  @apply w-full bg-white border border-gray-200 rounded-lg overflow-hidden;
+  @apply w-full;
+  background-color: var(--fiori-bg-surface);
+  border: 1px solid var(--fiori-border);
+  border-radius: 0;
+  overflow: hidden;
+  box-shadow: var(--fiori-shadow-sm);
 }
 
 .table-fiori th {
-  @apply px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider bg-gray-50 border-b border-gray-200;
+  @apply px-6 py-4 text-left text-xs font-medium uppercase tracking-wider;
+  background-color: var(--fiori-bg-elevated);
+  color: var(--fiori-text-primary);
+  border-bottom: 1px solid var(--fiori-border);
 }
 
 .table-fiori td {
-  @apply px-6 py-4 whitespace-nowrap text-sm text-gray-900 border-b border-gray-200;
+  @apply px-6 py-4 whitespace-nowrap text-sm;
+  color: var(--fiori-text-primary);
+  border-bottom: 1px solid var(--fiori-border);
+  background-color: var(--fiori-bg-surface);
 }
 
 .table-fiori tbody tr:hover {
-  @apply bg-gray-50;
+  background-color: var(--fiori-bg-elevated);
 }
 
 .table-fiori tbody tr:last-child td {
-  @apply border-b-0;
+  border-bottom: none;
 }
 
-/* --- NAVEGAÇÃO --- */
+/* --- NAVEGAÇÃO SAP FIORI --- */
 .nav-fiori {
-  @apply bg-white border-b border-gray-200 shadow-sm;
+  background-color: var(--fiori-bg-elevated);
+  border-bottom: 1px solid var(--fiori-border);
+  box-shadow: var(--fiori-shadow-sm);
 }
 
 .nav-fiori-item {
-  @apply px-4 py-2 text-sm font-medium text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded-md transition-colors;
+  @apply px-4 py-2 text-sm font-medium transition-colors;
+  color: var(--fiori-text-secondary);
+  border-radius: 0;
+}
+
+.nav-fiori-item:hover {
+  color: var(--fiori-accent-blue);
+  background-color: var(--fiori-bg-tertiary);
 }
 
 .nav-fiori-item.active {
-  @apply text-blue-600 bg-blue-50;
+  color: var(--fiori-accent-blue);
+  background-color: var(--fiori-bg-tertiary);
+  border-bottom: 2px solid var(--fiori-accent-blue);
 }
 
-/* --- ALERTAS --- */
+/* --- ALERTAS SAP FIORI --- */
 .alert-fiori {
-  @apply p-4 rounded-md border;
+  @apply p-4;
+  border: 1px solid;
+  border-radius: 0;
 }
 
 .alert-fiori-success {
-  @apply alert-fiori bg-green-50 border-green-200 text-green-800;
+  @apply alert-fiori;
+  background-color: rgba(0, 168, 107, 0.1);
+  border-color: var(--fiori-success);
+  color: var(--fiori-success);
 }
 
 .alert-fiori-warning {
-  @apply alert-fiori bg-yellow-50 border-yellow-200 text-yellow-800;
+  @apply alert-fiori;
+  background-color: rgba(255, 183, 93, 0.1);
+  border-color: var(--fiori-warning);
+  color: var(--fiori-warning);
 }
 
 .alert-fiori-danger {
-  @apply alert-fiori bg-red-50 border-red-200 text-red-800;
+  @apply alert-fiori;
+  background-color: rgba(233, 115, 12, 0.1);
+  border-color: var(--fiori-danger);
+  color: var(--fiori-danger);
 }
 
 .alert-fiori-info {
-  @apply alert-fiori bg-blue-50 border-blue-200 text-blue-800;
+  @apply alert-fiori;
+  background-color: rgba(0, 112, 243, 0.1);
+  border-color: var(--fiori-info);
+  color: var(--fiori-info);
 }
 
-/* --- BADGES --- */
+/* --- BADGES SAP FIORI --- */
 .badge-fiori {
-  @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium;
+  @apply inline-flex items-center px-2.5 py-0.5 text-xs font-medium;
+  border-radius: 0;
 }
 
 .badge-fiori-success {
-  @apply badge-fiori bg-green-100 text-green-800;
+  @apply badge-fiori;
+  background-color: rgba(0, 168, 107, 0.2);
+  color: var(--fiori-success);
+  border: 1px solid var(--fiori-success);
 }
 
 .badge-fiori-warning {
-  @apply badge-fiori bg-yellow-100 text-yellow-800;
+  @apply badge-fiori;
+  background-color: rgba(255, 183, 93, 0.2);
+  color: var(--fiori-warning);
+  border: 1px solid var(--fiori-warning);
 }
 
 .badge-fiori-danger {
-  @apply badge-fiori bg-red-100 text-red-800;
+  @apply badge-fiori;
+  background-color: rgba(233, 115, 12, 0.2);
+  color: var(--fiori-danger);
+  border: 1px solid var(--fiori-danger);
 }
 
 .badge-fiori-info {
-  @apply badge-fiori bg-blue-100 text-blue-800;
+  @apply badge-fiori;
+  background-color: rgba(0, 112, 243, 0.2);
+  color: var(--fiori-info);
+  border: 1px solid var(--fiori-info);
 }
 
-.badge-fiori-gray {
-  @apply badge-fiori bg-gray-100 text-gray-800;
-}
-
-/* --- MODAIS --- */
+/* --- MODAIS SAP FIORI --- */
 .modal-fiori-overlay {
-  @apply fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50;
+  @apply fixed inset-0 flex items-center justify-center p-4 z-50;
+  background-color: rgba(0, 0, 0, 0.7);
 }
 
 .modal-fiori-content {
-  @apply bg-white rounded-lg shadow-xl max-w-md w-full max-h-screen overflow-y-auto;
+  background-color: var(--fiori-bg-surface);
+  border: 1px solid var(--fiori-border);
+  border-radius: 0;
+  box-shadow: var(--fiori-shadow-lg);
+  max-width: 28rem;
+  width: 100%;
+  max-height: 90vh;
+  overflow-y: auto;
 }
 
 .modal-fiori-header {
-  @apply px-6 py-4 border-b border-gray-200;
+  @apply px-6 py-4 border-b;
+  border-bottom-color: var(--fiori-border);
 }
 
 .modal-fiori-title {
-  @apply text-lg font-semibold text-gray-900;
+  @apply text-lg font-semibold;
+  color: var(--fiori-text-primary);
 }
 
 .modal-fiori-body {
@@ -279,19 +423,11 @@ body {
 }
 
 .modal-fiori-footer {
-  @apply px-6 py-4 border-t border-gray-200 flex justify-end space-x-3;
+  @apply px-6 py-4 border-t flex justify-end space-x-3;
+  border-top-color: var(--fiori-border);
 }
 
-/* --- LOADING --- */
-.loading-fiori {
-  @apply inline-flex items-center justify-center;
-}
-
-.spinner-fiori {
-  @apply animate-spin rounded-full h-4 w-4 border-2 border-gray-300 border-t-blue-600;
-}
-
-/* --- LAYOUT --- */
+/* --- LAYOUT SAP FIORI --- */
 .container-fiori {
   @apply max-w-7xl mx-auto px-4 sm:px-6 lg:px-8;
 }
@@ -316,37 +452,45 @@ body {
   @apply grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6;
 }
 
-/* --- UTILITÁRIOS --- */
+.grid-fiori-6 {
+  @apply grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-6;
+}
+
+/* --- UTILITÁRIOS SAP FIORI --- */
 .text-fiori-primary {
-  @apply text-gray-900;
+  color: var(--fiori-text-primary);
 }
 
 .text-fiori-secondary {
-  @apply text-gray-600;
+  color: var(--fiori-text-secondary);
 }
 
 .text-fiori-muted {
-  @apply text-gray-500;
+  color: var(--fiori-text-muted);
 }
 
 .bg-fiori-primary {
-  @apply bg-white;
+  background-color: var(--fiori-bg-primary);
 }
 
 .bg-fiori-secondary {
-  @apply bg-gray-50;
+  background-color: var(--fiori-bg-secondary);
+}
+
+.bg-fiori-surface {
+  background-color: var(--fiori-bg-surface);
 }
 
 .border-fiori {
-  @apply border-gray-200;
+  border-color: var(--fiori-border);
 }
 
 .shadow-fiori {
-  @apply shadow-sm;
+  box-shadow: var(--fiori-shadow-sm);
 }
 
 .shadow-fiori-lg {
-  @apply shadow-lg;
+  box-shadow: var(--fiori-shadow-lg);
 }
 
 /* === RESPONSIVIDADE === */
@@ -365,9 +509,13 @@ body {
   .table-fiori td {
     @apply px-4 py-3;
   }
+  
+  .tile-fiori {
+    @apply p-4;
+  }
 }
 
-/* === ANIMAÇÕES === */
+/* === ANIMAÇÕES SAP FIORI === */
 @keyframes fadeIn {
   from { opacity: 0; transform: translateY(10px); }
   to { opacity: 1; transform: translateY(0); }
@@ -386,17 +534,23 @@ body {
   animation: slideIn 0.3s ease-out;
 }
 
-/* === ESTADOS DE FOCO === */
+/* === ESTADOS DE FOCO SAP FIORI === */
 .focus-fiori {
-  @apply focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2;
+  @apply focus:outline-none;
+  box-shadow: 0 0 0 2px rgba(0, 112, 243, 0.2);
 }
 
-/* === ESTADOS DE HOVER === */
+/* === ESTADOS DE HOVER SAP FIORI === */
 .hover-fiori {
-  @apply hover:shadow-md transition-shadow duration-200;
+  transition: all 0.2s ease;
 }
 
-/* === ESTADOS DE DISABLED === */
+.hover-fiori:hover {
+  transform: translateY(-1px);
+  box-shadow: var(--fiori-shadow-md);
+}
+
+/* === ESTADOS DE DISABLED SAP FIORI === */
 .disabled-fiori {
   @apply opacity-50 cursor-not-allowed;
 }

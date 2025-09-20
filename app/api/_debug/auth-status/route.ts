@@ -1,4 +1,3 @@
-// frontend/src/app/api/_debug/auth-status/route.ts
 import { NextResponse } from 'next/server'
 import { createServerClient } from '@supabase/ssr'
 import type { NextRequest } from 'next/server'
@@ -16,8 +15,5 @@ export async function GET(req: NextRequest) {
     }
   )
   const { data: { session } } = await supabase.auth.getSession()
-  return NextResponse.json({
-    hasSession: !!session,
-    userId: session?.user.id ?? null,
-  })
+  return NextResponse.json({ hasSession: !!session, userId: session?.user.id ?? null })
 }

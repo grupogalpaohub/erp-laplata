@@ -40,35 +40,29 @@ function hasValidSupabaseSession(req: NextRequest): boolean {
 
 export async function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl
-  
+
   if (
     PUBLIC.has(pathname) ||
     pathname.startsWith('/_next/') ||
     pathname.startsWith('/assets') ||
     pathname.startsWith('/public') ||
     pathname.startsWith('/api/_debug')
-  ) return NextResponse.next()
+  ) {
+    return NextResponse.next()
+  }
 
-  // Verifica se tem sessão válida do Supabase
   const hasSession = hasValidSupabaseSession(req)
-  const allCookies = req.cookies.getAll()
-  const supabaseCookies = allCookies.filter(c => c.name.includes('sb-') || c.name.includes('auth'))
-  
-  console.log('[Middleware] Session check:', { 
-    pathname, 
-    hasSession, 
-    totalCookies: allCookies.length,
-    supabaseCookies: supabaseCookies.map(c => ({ name: c.name, hasValue: !!c.value, length: c.value?.length || 0 }))
-  })
-  
+
   if (hasSession) {
-    console.log('[Middleware] Session found, allowing access to:', pathname)
+    // log mínimo pra sanity check (vai pro Vercel)
+    console.log('[mw] ok path=', pathname)
     return NextResponse.next()
   }
 
   const url = req.nextUrl.clone()
   url.pathname = '/login'
   url.search = `?next=${encodeURIComponent(pathname + (req.nextUrl.search || ''))}`
+  console.log('[mw] sem sessão -> redirecionando para', url.toString())
   return NextResponse.redirect(url)
 }
 

@@ -1,6 +1,6 @@
 'use client'
 
-export const dynamic = 'force-dynamic'  // evita cache/otimização
+export const dynamic = 'force-dynamic' // evita cache/otimização
 
 import { useCallback, useMemo, useState } from 'react'
 import { supabaseBrowser } from '@/src/lib/supabase/client'
@@ -18,22 +18,35 @@ export default function LoginPage() {
     setLoading(true)
     try {
       const base = process.env.NEXT_PUBLIC_SITE_URL || window.location.origin
-      const redirectTo = `${base}/auth/callback${next ? `?next=${encodeURIComponent(next)}` : ''}`
-      
-      console.log('Login attempt:', { base, redirectTo, next })
-      
+      const redirectTo = `${base}/auth/callback${
+        next ? `?next=${encodeURIComponent(next)}` : ''
+      }`
+
       const supabase = supabaseBrowser()
-      const { error } = await supabase.auth.signInWithOAuth({
+
+      // Algumas versões NÃO redirecionam automaticamente:
+      // usamos fallback para forçar a navegação se vier a URL.
+      const { data, error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
-        options: { redirectTo },
+        options: {
+          redirectTo,
+          // melhora DX em múltiplas contas
+          queryParams: { prompt: 'select_account' },
+        },
       })
-      
+
       if (error) {
-        console.error('OAuth error:', error)
-        alert(`Erro: ${error.message}`)
-      } else {
-        console.log('OAuth redirect initiated')
+        console.error('[OAuth] signInWithOAuth error:', error)
+        alert(error.message)
+        return
       }
+
+      // Fallback universal de redirecionamento
+      const target = data?.url
+      if (target) {
+        window.location.assign(target)
+      }
+      // Se o SDK fizer o redirect automático, este trecho nem roda.
     } finally {
       setLoading(false)
     }
@@ -43,6 +56,7 @@ export default function LoginPage() {
     <main className="mx-auto max-w-md min-h-[60vh] flex flex-col items-center justify-center gap-4 p-6">
       <h1 className="text-2xl font-semibold">Entrar</h1>
       <button
+        type="button"
         onClick={handleGoogle}
         disabled={loading}
         className="rounded-md border px-4 py-2 bg-fiori-accent text-white disabled:opacity-60"

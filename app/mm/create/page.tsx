@@ -16,12 +16,13 @@ export default async function CreateMaterialPage() {
   )
 
   // opcional: carrega vendors para o select; se tabela não existir, segue vazio
-  let vendors: Array<{ mm_vendor_id: string, name?: string | null }> = []
+  let vendors: Array<{ vendor_id: string, vendor_name?: string | null }> = []
   try {
     const { data } = await supabase
       .from('mm_vendor')
-      .select('mm_vendor_id, name')
-      .order('name', { ascending: true })
+      .select('vendor_id, vendor_name')
+      .eq('tenant_id', 'LaplataLunaria')
+      .order('vendor_name', { ascending: true })
     vendors = (data ?? []) as any
   } catch {}
 

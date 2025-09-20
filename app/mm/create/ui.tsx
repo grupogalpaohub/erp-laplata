@@ -2,7 +2,7 @@
 import { useFormState, useFormStatus } from 'react-dom'
 import { createMaterial } from './actions'
 
-type Vendor = { mm_vendor_id: string, name?: string | null }
+type Vendor = { vendor_id: string, vendor_name?: string | null }
 
 function SubmitBtn() {
   const { pending } = useFormStatus()
@@ -55,10 +55,11 @@ export default function FormCadastro({ vendors }: { vendors: Vendor[] }) {
           <label className="text-sm font-medium">Tipo (mm_mat_type)</label>
           <select name="mm_mat_type" className="border rounded p-2">
             <option value="">—</option>
-            <option value="raw_material">Matéria Prima</option>
-            <option value="finished_good">Produto Acabado</option>
-            <option value="component">Componente</option>
-            <option value="service">Serviço</option>
+            <option value="Brinco">Brinco</option>
+            <option value="Choker">Choker</option>
+            <option value="Kit">Kit</option>
+            <option value="Gargantilha">Gargantilha</option>
+            <option value="Pulseira">Pulseira</option>
           </select>
         </div>
 
@@ -66,10 +67,10 @@ export default function FormCadastro({ vendors }: { vendors: Vendor[] }) {
           <label className="text-sm font-medium">Classe (mm_mat_class)</label>
           <select name="mm_mat_class" className="border rounded p-2">
             <option value="">—</option>
-            <option value="prata">Prata</option>
-            <option value="ouro">Ouro</option>
-            <option value="acabamento">Acabamento</option>
-            <option value="embalagem">Embalagem</option>
+            <option value="Amuletos">Amuletos</option>
+            <option value="Elementar">Elementar</option>
+            <option value="Ciclos">Ciclos</option>
+            <option value="Ancestral">Ancestral</option>
           </select>
         </div>
 
@@ -88,8 +89,8 @@ export default function FormCadastro({ vendors }: { vendors: Vendor[] }) {
           <select name="mm_vendor_id" className="border rounded p-2">
             <option value="">—</option>
             {vendors.map(v => (
-              <option key={v.mm_vendor_id} value={v.mm_vendor_id}>
-                {v.name ?? v.mm_vendor_id}
+              <option key={v.vendor_id} value={v.vendor_id}>
+                {v.vendor_name ?? v.vendor_id}
               </option>
             ))}
           </select>

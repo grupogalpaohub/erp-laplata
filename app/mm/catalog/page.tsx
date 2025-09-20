@@ -30,6 +30,7 @@ export default async function CatalogoMateriais() {
   const { data, error } = await supabase
     .from('mm_material')
     .select('mm_material, mm_comercial, mm_desc, mm_mat_type, mm_mat_class, mm_price_cents, commercial_name, lead_time_days, mm_vendor_id, status')
+    .eq('tenant_id', 'LaplataLunaria')
     .order('mm_material', { ascending: true })
 
   if (error) {

@@ -31,13 +31,16 @@ export function middleware(req: NextRequest) {
   }
 
   // Check leve por cookies (Edge-safe; sem Supabase/Node)
-  // Verificar cookies do Supabase Auth
+  // Verificar cookies do Supabase Auth - verificar todos os possíveis nomes
   const hasSession =
     req.cookies.has('sb-access-token') ||
     req.cookies.has('sb-refresh-token') ||
     req.cookies.has('sb-provider-token') ||
     req.cookies.has('supabase-auth-token') ||
-    req.cookies.has('supabase.auth.token')
+    req.cookies.has('supabase.auth.token') ||
+    req.cookies.has('sb:token') ||
+    req.cookies.has('supabase.auth.refresh_token') ||
+    req.cookies.has('supabase.auth.access_token')
 
   if (!hasSession) {
     const loginUrl = new URL('/login', req.url)

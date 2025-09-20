@@ -7,8 +7,14 @@ const PUBLIC = new Set<string>(['/', '/login', '/auth/callback', '/favicon.ico']
 function hasValidSupabaseSession(req: NextRequest): boolean {
   const cookies = req.cookies.getAll()
   
-  // Verifica cookies conhecidos do Supabase
-  const knownCookies = [
+  // Supabase v2 usa cookies com formato: sb-<project-ref>-auth-token
+  // O project ref é: gpjcfwjssfvqhppxdudp
+  const projectRef = 'gpjcfwjssfvqhppxdudp'
+  
+  // Cookies específicos do Supabase v2
+  const supabaseCookies = [
+    `sb-${projectRef}-auth-token`,
+    `sb-${projectRef}-refresh-token`,
     'sb-access-token',
     'sb-refresh-token', 
     'sb:token',
@@ -16,8 +22,8 @@ function hasValidSupabaseSession(req: NextRequest): boolean {
   ]
   
   for (const cookie of cookies) {
-    // Cookies explícitos conhecidos
-    if (knownCookies.includes(cookie.name) && cookie.value && cookie.value !== '[]') {
+    // Verifica cookies específicos
+    if (supabaseCookies.includes(cookie.name) && cookie.value && cookie.value !== '[]') {
       return true
     }
     
@@ -26,8 +32,8 @@ function hasValidSupabaseSession(req: NextRequest): boolean {
       return true
     }
     
-    // Formato dinâmico: sb-<project-ref>-access-token
-    if (/^sb-[a-z0-9]{10,}-access-token$/i.test(cookie.name) && cookie.value && cookie.value !== '[]') {
+    // Formato dinâmico: sb-<project-ref>-refresh-token  
+    if (/^sb-[a-z0-9]{10,}-refresh-token$/i.test(cookie.name) && cookie.value && cookie.value !== '[]') {
       return true
     }
   }

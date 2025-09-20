@@ -32,10 +32,27 @@ export async function GET(req: NextRequest) {
       cookies: {
         get: (name: string) => req.cookies.get(name)?.value,
         set: (name: string, value: string, options: any) => {
-          res.cookies.set({ name, value, ...options })
+          // Configurações específicas para cookies do Supabase
+          const cookieOptions = {
+            ...options,
+            httpOnly: true,
+            secure: process.env.NODE_ENV === 'production',
+            sameSite: 'lax' as const,
+            path: '/'
+          }
+          res.cookies.set({ name, value, ...cookieOptions })
         },
         remove: (name: string, options: any) => {
-          res.cookies.set({ name, value: '', ...options, maxAge: 0 })
+          res.cookies.set({ 
+            name, 
+            value: '', 
+            ...options, 
+            maxAge: 0,
+            httpOnly: true,
+            secure: process.env.NODE_ENV === 'production',
+            sameSite: 'lax' as const,
+            path: '/'
+          })
         },
       },
     }

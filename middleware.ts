@@ -3,6 +3,12 @@ import { createServerClient } from "@supabase/ssr";
 
 export async function middleware(req: NextRequest) {
   const res = NextResponse.next();
+  const pathname = req.nextUrl.pathname;
+
+  console.log('[middleware] START:', { 
+    pathname, 
+    cookies: req.cookies.getAll().map(c => ({ name: c.name, hasValue: !!c.value }))
+  });
 
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -28,20 +34,30 @@ export async function middleware(req: NextRequest) {
 
   const {
     data: { user },
+    error: userError
   } = await supabase.auth.getUser();
 
-  const isAuthPage = req.nextUrl.pathname.startsWith("/login");
+  console.log('[middleware] getUser result:', { 
+    hasUser: !!user, 
+    userId: user?.id,
+    error: userError?.message 
+  });
+
+  const isAuthPage = pathname.startsWith("/login");
 
   if (!user && !isAuthPage) {
     const loginUrl = new URL("/login", req.url);
-    loginUrl.searchParams.set("next", req.nextUrl.pathname);
+    loginUrl.searchParams.set("next", pathname);
+    console.log('[middleware] no user, redirecting to:', loginUrl.toString());
     return NextResponse.redirect(loginUrl);
   }
 
   if (user && isAuthPage) {
+    console.log('[middleware] user logged in, redirecting to home');
     return NextResponse.redirect(new URL("/", req.url));
   }
 
+  console.log('[middleware] allowing access to:', pathname);
   return res;
 }
 

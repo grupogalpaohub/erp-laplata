@@ -1,32 +1,38 @@
-import Link from 'next/link'
-import { supabaseServer } from '@/src/lib/supabase/server'
-import { hasSession } from '@/src/lib/auth'
-import LoginClient from './LoginClient'
+// app/login/page.tsx
+'use client'
 
-export const dynamic = 'force-dynamic'
+import { useCallback, useState } from 'react'
+import { supabaseBrowser } from '@/src/lib/supabase/client'
 
-export async function generateMetadata() { 
-  return { title: 'Login' } 
-}
+export default function LoginPage() {
+  const [loading, setLoading] = useState(false)
 
-export default async function LoginPage({ searchParams }: { searchParams?: { next?: string } }) {
-  const next = searchParams?.next || '/'
-  
-  if (!hasSession()) {
-    return <LoginClient next={next} />
-  }
+  const handleGoogle = useCallback(async () => {
+    try {
+      setLoading(true)
+      const redirectTo =
+        (process.env.NEXT_PUBLIC_SITE_URL || window.location.origin) + '/auth/callback'
+      const supabase = supabaseBrowser()
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: { redirectTo },
+      })
+      if (error) alert(error.message)
+    } finally {
+      setLoading(false)
+    }
+  }, [])
 
-  const supabase = supabaseServer()
-  const { data: { user } } = await supabase.auth.getUser()
-
-  if (user) {
-    return (
-      <main style={{ padding: '2rem' }}>
-        <h1>Já logado</h1>
-        <p>Você já está logado. <Link href={next}>Continuar</Link></p>
-      </main>
-    )
-  }
-
-  return <LoginClient next={next} />
+  return (
+    <main className="mx-auto max-w-md py-12 px-4">
+      <h1 className="text-2xl font-semibold mb-6">Entrar</h1>
+      <button
+        onClick={handleGoogle}
+        disabled={loading}
+        className="rounded-md border px-4 py-2"
+      >
+        {loading ? 'Redirecionando…' : 'Entrar com Google'}
+      </button>
+    </main>
+  )
 }

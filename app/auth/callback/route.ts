@@ -1,17 +1,38 @@
-import { NextResponse } from 'next/server'
-import { supabaseServer } from '@/src/lib/supabase/server'
+// app/auth/callback/route.ts
+export const runtime = 'nodejs'
 
-export async function GET(request: Request) {
-  const url = new URL(request.url)
+import { NextResponse, type NextRequest } from 'next/server'
+import { supabaseServer } from '@/src/lib/supabase/server'
+import { siteUrl } from '@/src/lib/env'
+
+export async function GET(req: NextRequest) {
+  const url = new URL(req.url)
   const code = url.searchParams.get('code')
   const next = url.searchParams.get('next') || '/'
-  if (!code) return NextResponse.redirect(new URL(`/login?next=${encodeURIComponent(next)}`, request.url))
 
+  // se vier erro do provider, manda pra login com erro
+  const err = url.searchParams.get('error')
+  if (err) {
+    const to = new URL('/login', siteUrl())
+    to.searchParams.set('error', err)
+    return NextResponse.redirect(to, { status: 303 })
+  }
+
+  if (!code) {
+    const to = new URL('/login', siteUrl())
+    to.searchParams.set('error', 'missing_code')
+    return NextResponse.redirect(to, { status: 303 })
+  }
+
+  // troca o code por sessão e seta cookies httpOnly
   const supabase = supabaseServer()
   const { error } = await supabase.auth.exchangeCodeForSession(code)
   if (error) {
-    console.error('[AUTH] exchangeCodeForSession FAILED:', { message: error.message, url: process.env.NEXT_PUBLIC_SUPABASE_URL })
-    return NextResponse.redirect(new URL(`/login?error=oauth_exchange&next=${encodeURIComponent(next)}`, request.url))
+    const to = new URL('/login', siteUrl())
+    to.searchParams.set('error', 'exchange_failed')
+    return NextResponse.redirect(to, { status: 303 })
   }
-  return NextResponse.redirect(new URL(next, request.url))
+
+  const to = new URL(next.startsWith('/') ? next : '/', siteUrl())
+  return NextResponse.redirect(to, { status: 303 })
 }

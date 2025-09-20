@@ -1,70 +1,45 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createServerClient } from "@supabase/ssr";
 
 export async function middleware(req: NextRequest) {
-  const res = NextResponse.next();
   const pathname = req.nextUrl.pathname;
 
   // Pular middleware para rotas de API
   if (pathname.startsWith('/api/')) {
-    console.log('[middleware] skipping API route:', pathname);
-    return res;
+    return NextResponse.next();
   }
 
-  console.log('[middleware] START:', { 
-    pathname, 
-    cookies: req.cookies.getAll().map(c => ({ name: c.name, hasValue: !!c.value }))
-  });
+  // Pular middleware para assets
+  if (pathname.startsWith('/_next/') || pathname.startsWith('/favicon.ico')) {
+    return NextResponse.next();
+  }
 
-  const supabase = createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    {
-      cookies: {
-        getAll: () => req.cookies.getAll(),
-        setAll: (cookies) => {
-          cookies.forEach(({ name, value }) =>
-            res.cookies.set({
-              name,
-              value,
-              httpOnly: true,
-              secure: process.env.NODE_ENV === 'production',
-              sameSite: "lax",
-              path: "/",
-            })
-          );
-        },
-      },
-    }
+  // Verificar se há cookies de sessão do Supabase
+  const cookies = req.cookies.getAll();
+  const hasSupabaseSession = cookies.some(cookie => 
+    cookie.name.includes('sb-') && 
+    cookie.name.includes('auth-token') && 
+    cookie.value && 
+    cookie.value !== '[]'
   );
 
-  const {
-    data: { user },
-    error: userError
-  } = await supabase.auth.getUser();
-
-  console.log('[middleware] getUser result:', { 
-    hasUser: !!user, 
-    userId: user?.id,
-    error: userError?.message 
-  });
+  console.log('[middleware] pathname:', pathname, 'hasSession:', hasSupabaseSession);
 
   const isAuthPage = pathname.startsWith("/login");
 
-  if (!user && !isAuthPage) {
+  if (!hasSupabaseSession && !isAuthPage) {
     const loginUrl = new URL("/login", req.url);
     loginUrl.searchParams.set("next", pathname);
-    console.log('[middleware] no user, redirecting to:', loginUrl.toString());
+    console.log('[middleware] no session, redirecting to:', loginUrl.toString());
     return NextResponse.redirect(loginUrl);
   }
 
-  if (user && isAuthPage) {
-    console.log('[middleware] user logged in, redirecting to home');
+  if (hasSupabaseSession && isAuthPage) {
+    console.log('[middleware] has session, redirecting to home');
     return NextResponse.redirect(new URL("/", req.url));
   }
 
   console.log('[middleware] allowing access to:', pathname);
-  return res;
+  return NextResponse.next();
 }
 
 export const config = {

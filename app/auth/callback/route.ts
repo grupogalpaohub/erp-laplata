@@ -26,12 +26,16 @@ export async function GET(req: NextRequest) {
 
   // troca o code por sessão e seta cookies httpOnly
   const supabase = supabaseServer()
-  const { error } = await supabase.auth.exchangeCodeForSession(code)
+  const { data, error } = await supabase.auth.exchangeCodeForSession(code)
+  
   if (error) {
+    console.error('Auth callback error:', error)
     const to = new URL('/login', siteUrl())
     to.searchParams.set('error', 'exchange_failed')
     return NextResponse.redirect(to, { status: 303 })
   }
+
+  console.log('Auth callback success:', { user: data.user?.id, session: !!data.session })
 
   const to = new URL(next.startsWith('/') ? next : '/', siteUrl())
   return NextResponse.redirect(to, { status: 303 })

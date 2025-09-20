@@ -31,13 +31,18 @@ export function middleware(req: NextRequest) {
   }
 
   // Check leve por cookies (Edge-safe; sem Supabase/Node)
+  // Verificar cookies do Supabase Auth
   const hasSession =
     req.cookies.has('sb-access-token') ||
-    req.cookies.has('sb:token') ||
-    req.cookies.has('supabase-auth-token')
+    req.cookies.has('sb-refresh-token') ||
+    req.cookies.has('sb-provider-token') ||
+    req.cookies.has('supabase-auth-token') ||
+    req.cookies.has('supabase.auth.token')
 
   if (!hasSession) {
-    return NextResponse.redirect(new URL('/login', req.url))
+    const loginUrl = new URL('/login', req.url)
+    loginUrl.searchParams.set('next', pathname)
+    return NextResponse.redirect(loginUrl)
   }
 
   return NextResponse.next()

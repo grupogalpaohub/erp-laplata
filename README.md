@@ -1,255 +1,167 @@
-# ERP LaPlata
+# ERP Laplata - Frontend
 
-Sistema ERP modular desenvolvido com Next.js 14, Supabase e Vercel, seguindo o padrão Fiori-like.
+Sistema de gestão empresarial (ERP) desenvolvido com Next.js 15, TypeScript, Tailwind CSS e Supabase.
 
-## 🏗️ Arquitetura
+## 🚀 Tecnologias
 
-- **Frontend:** Next.js 14 (App Router) + TypeScript + Tailwind CSS
-- **Backend:** Supabase (PostgreSQL + Auth + Edge Functions)
-- **Deploy:** Vercel (Preview + Production)
-- **Banco:** PostgreSQL com RLS (Row Level Security)
+- **Next.js 15** - Framework React com App Router
+- **TypeScript** - Tipagem estática
+- **Tailwind CSS** - Framework CSS utilitário
+- **Supabase** - Backend como serviço (PostgreSQL + Auth)
+- **Cloudflare Pages** - Hospedagem e Edge Functions
+- **@cloudflare/next-on-pages** - Adapter para Cloudflare Pages
 
 ## 📁 Estrutura do Projeto
 
 ```
-erp-laplata/
-├── frontend/                 # Next.js 14 App
-│   ├── app/                  # App Router pages
-│   │   ├── (auth)/           # Auth pages
-│   │   ├── api/              # API routes
-│   │   ├── mm/               # Módulo Materiais
-│   │   ├── sd/               # Módulo Vendas
-│   │   ├── wh/               # Módulo Estoque
-│   │   ├── crm/              # Módulo CRM
-│   │   ├── fi/               # Módulo Financeiro
-│   │   ├── co/               # Módulo Controle
-│   │   └── analytics/        # Analytics
-│   ├── components/           # UI Components
-│   ├── lib/                  # Utilities & Supabase clients
-│   │   ├── supabase/         # Server & Browser clients
-│   │   └── data/             # Data layer
-│   └── middleware.ts         # Auth middleware
-├── scripts/                  # Build & deployment scripts
-├── .githooks/               # Git hooks (pre-commit, pre-push)
-└── README.md
+src/
+├── app/                    # App Router (Next.js 15)
+│   ├── (auth)/            # Rotas de autenticação
+│   ├── co/                # Módulo Controlling
+│   ├── mm/                # Módulo Material Management
+│   ├── sd/                # Módulo Sales & Distribution
+│   ├── wh/                # Módulo Warehouse
+│   ├── crm/               # Módulo Customer Relationship
+│   ├── fi/                # Módulo Financial
+│   ├── analytics/         # Analytics
+│   └── setup/             # Configurações
+├── components/            # Componentes React
+│   ├── ui/               # Componentes base (shadcn/ui)
+│   ├── layout/           # Layout components
+│   └── dashboard/        # Dashboard components
+├── lib/                  # Utilitários e configurações
+│   ├── supabase/         # Cliente Supabase
+│   └── auth.ts           # Autenticação
+└── contexts/             # React Contexts
 ```
 
-## 🚀 Instalação e Configuração
+## 🔧 Variáveis de Ambiente
 
-### Pré-requisitos
-
-- Node.js 18+ ou 20
-- npm ou yarn
-- Conta no Supabase
-- Conta no Vercel
-
-### 1. Configurar Supabase
-
-```bash
-# Instalar CLI
-npm install -g supabase
-
-# Login
-supabase login
-
-# Linkar projeto remoto
-supabase link --project-ref gpjcfwjssfvqhppxdudp
-
-# Aplicar migrations
-supabase db push
-
-# Executar seeds
-supabase db seed
-```
-
-### 2. Configurar Frontend
-
-```bash
-cd frontend
-
-# Instalar dependências
-npm install
-
-# Copiar variáveis
-cp .env.example .env.local
-```
-
-Configurar `.env.local`:
+Crie um arquivo `.env.local` na raiz do projeto:
 
 ```env
-NEXT_PUBLIC_SUPABASE_URL=https://gpjcfwjssfvqhppxdudp.supabase.co
-NEXT_PUBLIC_SUPABASE_ANON_KEY=<<ANON_KEY>>
-SUPABASE_SERVICE_ROLE_KEY=<<SERVICE_ROLE_KEY>>
-NEXT_PUBLIC_SITE_URL=https://erp-laplata.vercel.app
+NEXT_PUBLIC_SUPABASE_URL=https://your-supabase-url.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your-supabase-anon-key
 ```
 
-Rodar em dev:
+### Cloudflare Pages
+
+Configure as mesmas variáveis no dashboard do Cloudflare Pages:
+- **Settings** → **Environment Variables**
+- Adicione para **Production** e **Preview**
+
+## 🛠️ Scripts Disponíveis
 
 ```bash
+# Desenvolvimento
 npm run dev
+
+# Build para produção
+npm run build
+
+# Build para Cloudflare Pages
+npm run pages:build
+
+# Preview local com Cloudflare
+npm run preview:cf
+
+# Linting
+npm run lint
+
+# Type checking
+npm run type-check
 ```
 
-### 3. Deploy no Vercel
+## 🚀 Deploy
 
-1. Conectar o repositório GitHub (`grupogalpaohub/erp-laplata`)
-2. Branch de produção: `erp-git`
-3. Configurar Root Directory: `frontend`
-4. Build Command: `npm run build`
-5. Output Directory: `.next`
+### Cloudflare Pages
 
-**Variáveis de ambiente (Production + Preview):**
-- `NEXT_PUBLIC_SUPABASE_URL`
-- `NEXT_PUBLIC_SUPABASE_ANON_KEY`
-- `SUPABASE_SERVICE_ROLE_KEY`
-- `NEXT_PUBLIC_SITE_URL`
+1. **Build local:**
+   ```bash
+   npm run pages:build
+   ```
 
-## 🗄️ Banco de Dados
+2. **Deploy:**
+   ```bash
+   npx wrangler pages deploy .vercel/output
+   ```
 
-### Principais Tabelas
+### Configuração no Dashboard
 
-- `tenant`: Configurações do tenant
-- `user_profile`: Perfis de usuários
-- `mm_*`: Módulo de Materiais (materiais, fornecedores, compras)
-- `sd_*`: Módulo de Vendas (clientes, pedidos, faturas)
-- `wh_*`: Módulo de Depósitos (estoque, movimentações)
-- `crm_*`: Módulo CRM (leads, oportunidades)
-- `fi_*`: Módulo Financeiro (contas, faturas, pagamentos)
-- `co_*`: Controladoria (KPIs, dashboards)
+- **Root directory:** `frontend`
+- **Build command:** `npm run pages:build`
+- **Build output directory:** `.vercel/output/static`
+- **Functions directory:** `.vercel/output/functions`
 
-### Views Importantes
+## 📊 Módulos Disponíveis
 
-- `v_material_overview`: Visão consolidada de materiais com preços e custos
+### MM - Material Management
+- `/mm/catalog` - Catálogo de materiais
+- `/mm/vendors` - Fornecedores
+- `/mm/purchases` - Compras
 
-### Segurança
+### SD - Sales & Distribution
+- `/sd/orders` - Pedidos de venda
+- `/sd/customers` - Clientes
+- `/sd/invoices` - Faturas
 
-- Todas as tabelas com RLS (Row Level Security)
-- Isolamento por `tenant_id`
-- Políticas baseadas em JWT
-- Middleware de autenticação no frontend
+### WH - Warehouse
+- `/wh/inventory` - Estoque
+- `/wh/movements` - Movimentações
+- `/wh/reports` - Relatórios
 
-## 🔧 Edge Functions
+### CRM - Customer Relationship
+- `/crm/leads` - Leads
+- `/crm/opportunities` - Oportunidades
+- `/crm/activities` - Atividades
 
-- `setup-mm`: Configurações de Materiais
-- `po-create`: Criação de pedidos de compra
-- `so-create`: Criação de pedidos de venda
-- `kpi-refresh`: Atualização de KPIs
+### FI - Financial
+- `/fi/payables` - Contas a pagar
+- `/fi/receivables` - Contas a receber
+- `/fi/cashflow` - Fluxo de caixa
 
-## 📊 Módulos
+### CO - Controlling
+- `/co/dashboard` - Dashboard CO
+- `/co/reports` - Relatórios
+- `/co/costs` - Análise de custos
 
-### MM - Materiais
-- Catálogo de materiais (conectado à `v_material_overview`)
-- Fornecedores
-- Compras e pedidos
+### Sistema
+- `/setup` - Configurações
+- `/analytics` - Analytics
 
-### SD - Vendas
-- Clientes
-- Pedidos de venda
-- Faturas
+## 🔒 Autenticação
 
-### WH - Estoque
-- Inventário
-- Movimentações
-- Relatórios de estoque
-
-### CRM - Customer Relationship Management
-- Leads
-- Oportunidades
-- Atividades
-
-### FI - Financeiro
-- Contas a pagar
-- Contas a receber
-- Fluxo de caixa
-
-### CO - Controle
-- Dashboards
-- KPIs
-- Relatórios gerenciais
-
-### Analytics
-- Relatórios em tempo real
-- Dashboards interativos
+O sistema usa Supabase Auth com Google OAuth configurado.
 
 ## 🎨 UI/UX
 
-### Design Fiori-like
-- **Sidebar fixa** com navegação por módulos
-- **Header** com tenant info e responsividade
-- **KPIs** no topo (Pedidos, Receita, Leads, Estoque)
-- **Tiles** dos módulos com hover effects
-- **Cores Fiori** (#0A6ED1, #F5F6F8)
+- **Design System:** Fiori-inspired
+- **Componentes:** shadcn/ui + Radix UI
+- **Estilização:** Tailwind CSS
+- **Ícones:** Lucide React
 
-### Componentes
-- Layout responsivo (mobile-first)
-- Error boundaries globais
-- Loading states consistentes
-- Tabelas com paginação server-side
+## 📱 Responsividade
 
-## 🔐 Autenticação
+- Mobile-first design
+- Sidebar colapsível
+- Tabelas responsivas
+- Navegação otimizada para touch
 
-- **Supabase Auth** com Google OAuth
-- **Middleware** de proteção de rotas
-- **RLS** por `tenant_id`
-- **Redirecionamento** inteligente após login
-- **Gating automático** - usuários não autenticados vão para login
+## 🐛 Troubleshooting
 
-## 📈 Performance
+### Erro de Build
+- Verifique se todas as variáveis de ambiente estão configuradas
+- Execute `npm run type-check` para verificar erros de TypeScript
 
-- **ISR** (Incremental Static Regeneration) no catálogo
-- **Server Components** para dados
-- **Client Components** apenas quando necessário
-- **Middleware** otimizado
-- **Build** otimizado para Vercel
+### Erro de Deploy
+- Verifique se o build local funciona: `npm run pages:build`
+- Confirme as configurações no Cloudflare Pages dashboard
 
-## 🧪 Desenvolvimento
+### Erro de Conexão com Supabase
+- Verifique as variáveis de ambiente
+- Confirme se o projeto Supabase está ativo
+- Verifique as políticas RLS no Supabase
 
-### Frontend
-```bash
-cd frontend
-npm run dev
-```
+## 📄 Licença
 
-### Supabase local (opcional)
-```bash
-supabase start
-supabase db reset
-```
-
-### Git Hooks
-O projeto inclui hooks de Git para garantir qualidade:
-- **pre-commit**: Verifica static artifacts, package.json, next.config.js
-- **pre-push**: Validações adicionais antes do push
-
-## 🔧 Scripts Disponíveis
-
-```bash
-# Frontend
-npm run dev          # Desenvolvimento
-npm run build        # Build de produção
-npm run start        # Servidor de produção
-npm run lint         # Linting
-
-# Supabase
-supabase start       # Ambiente local
-supabase db push     # Aplicar migrations
-supabase db seed     # Executar seeds
-```
-
-## 📝 Licença
-
-Projeto proprietário da La Plata Lunaria.
-
-## 🤝 Suporte
-
-Entre em contato com a equipe de desenvolvimento.
-
----
-
-**⚡ Atualizado para refletir:**
-- Deploy no Vercel (não Cloudflare)
-- Estrutura com `frontend/`
-- Uso de `.next` como output
-- Autenticação Google OAuth já integrada
-- Middleware de proteção
-- Layout Fiori implementado
-- Catálogo conectado ao Supabase
+Proprietário - Grupo Galpão Hub

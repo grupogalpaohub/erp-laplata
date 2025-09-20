@@ -1,10 +1,4 @@
-export default function SDHome() {
-  return (
-    <main>
-      <h2>Vendas</h2>
-      <ul>
-        <li><a href="/sd/orders">Pedidos de Venda</a></li>
-      </ul>
-    </main>
-  )
+// src/app/sd/page.tsx
+export default function SD() {
+  return <div className="rounded-xl border bg-white p-6">Vendas — em desenvolvimento</div>;
 }

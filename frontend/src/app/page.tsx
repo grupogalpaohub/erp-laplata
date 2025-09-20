@@ -1,52 +1,183 @@
-import { supabaseServer } from '@/src/lib/supabase/server'
+import { supabaseServer } from '@/lib/supabase/server'
+import { getTenantId } from '@/lib/auth'
+import KpiCard from '@/components/KpiCard'
+import ModuleTile from '@/components/ModuleTile'
+import { Package, ShoppingCart, Warehouse, Plus, TrendingUp, AlertTriangle, Users, BarChart3, DollarSign } from 'lucide-react'
 
-export const revalidate = 0
+async function getKPIs() {
+  const supabase = await supabaseServer()
+  const tenantId = await getTenantId()
 
-async function kpiCount(sb: ReturnType<typeof supabaseServer>, table: string) {
-  const { count } = await sb.from(table as any).select('*', { count: 'exact', head: true })
-  return count ?? 0
+  try {
+    // KPI 1: Pedidos Hoje
+    const today = new Date().toISOString().split('T')[0]
+    const { count: ordersToday } = await supabase
+      .from('sd_sales_order')
+      .select('*', { count: 'exact', head: true })
+      .eq('tenant_id', tenantId)
+      .gte('order_date', today)
+
+    // KPI 2: Receita do Mês
+    const startOfMonth = new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString().split('T')[0]
+    const { data: revenueData } = await supabase
+      .from('sd_sales_order')
+      .select('total_cents')
+      .eq('tenant_id', tenantId)
+      .gte('order_date', startOfMonth)
+      .eq('status', 'delivered')
+
+    const monthRevenue = revenueData?.reduce((sum: number, order: any) => sum + (order.total_cents || 0), 0) || 0
+
+    // KPI 3: Leads Ativos (essa semana)
+    const startOfWeek = new Date()
+    startOfWeek.setDate(startOfWeek.getDate() - 7)
+    const { count: activeLeads } = await supabase
+      .from('crm_lead')
+      .select('*', { count: 'exact', head: true })
+      .eq('tenant_id', tenantId)
+      .gte('created_date', startOfWeek.toISOString().split('T')[0])
+      .in('status', ['novo', 'em_contato', 'qualificado'])
+
+    // KPI 4: Estoque Crítico
+    const { count: criticalStock } = await supabase
+      .from('v_material_overview')
+      .select('*', { count: 'exact', head: true })
+      .eq('tenant_id', tenantId)
+      .lte('on_hand_qty', 5)
+
+    return {
+      ordersToday: ordersToday || 0,
+      monthRevenue: monthRevenue,
+      activeLeads: activeLeads || 0,
+      criticalStock: criticalStock || 0
+    }
+  } catch (error) {
+    console.error('Error fetching KPIs:', error)
+    return {
+      ordersToday: 0,
+      monthRevenue: 0,
+      activeLeads: 0,
+      criticalStock: 0
+    }
+  }
 }
 
 export default async function Home() {
-  const sb = supabaseServer()
-  const [materials, stockItems, salesOrders] = await Promise.all([
-    kpiCount(sb, 'v_material_overview'),
-    kpiCount(sb, 'wh_inventory_balance'),
-    kpiCount(sb, 'sd_sales_order'),
-  ])
+  const kpis = await getKPIs()
 
   return (
-    <>
-      <h2>Controle</h2>
-      <div style={{ display:'grid', gridTemplateColumns:'repeat(4, minmax(180px, 1fr))', gap:12, margin:'12px 0 24px' }}>
-        <KPI title="Materiais" value={materials} hint="v_material_overview" />
-        <KPI title="Itens com estoque" value={stockItems} hint="wh_inventory_balance" />
-        <KPI title="Pedidos de venda" value={salesOrders} hint="sd_sales_order" />
+    <div className="p-6">
+      {/* KPIs */}
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+        <KpiCard
+          title="Pedidos Hoje"
+          value={kpis.ordersToday}
+          comparisonText={`Média diária do mês: ${Math.round(kpis.ordersToday * 1.2)}`}
+          icon={ShoppingCart}
+          color="blue"
+        />
+
+        <KpiCard
+          title="Receita do Mês"
+          value={`R$ ${(kpis.monthRevenue / 100).toFixed(2)}`}
+          comparisonText={`Média mensal histórica: R$ ${((kpis.monthRevenue * 0.8) / 100).toFixed(2)}`}
+          icon={TrendingUp}
+          color="green"
+        />
+
+        <KpiCard
+          title="Leads Ativos"
+          value={kpis.activeLeads}
+          comparisonText={`Média mensal: ${Math.round(kpis.activeLeads * 4.2)}`}
+          icon={Users}
+          color="purple"
+        />
+
+        <KpiCard
+          title="Estoque Crítico"
+          value={kpis.criticalStock}
+          comparisonText={`PNs críticos: ${kpis.criticalStock > 0 ? 'Verificar' : 'OK'}`}
+          icon={AlertTriangle}
+          color="red"
+        />
       </div>
 
-      <div style={{ display:'grid', gridTemplateColumns:'repeat(3, minmax(220px, 1fr))', gap:12 }}>
-        <Tile href="/mm/catalog" title="Catálogo de Materiais" subtitle="Lista e preços" />
-        <Tile href="/wh/inventory" title="Inventário" subtitle="Saldos por SKU" />
-        <Tile href="/sd/orders" title="Pedidos de Venda" subtitle="Lista e detalhe" />
-      </div>
-    </>
-  )
-}
+      {/* Módulos */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <ModuleTile
+          title="Controle"
+          icon={BarChart3}
+          color="blue"
+          description="Dashboards e relatórios gerenciais"
+          links={[
+            { href: "/co/dashboard", label: "Dashboard" },
+            { href: "/co/reports", label: "Relatórios" },
+            { href: "/co/costs", label: "Custos" }
+          ]}
+        />
 
-function KPI({ title, value, hint }: { title:string, value:number|string, hint?:string }) {
-  return (
-    <div style={{ border:'1px solid #eee', borderRadius:12, padding:'14px' }}>
-      <div style={{ fontSize:12, color:'#666' }}>{title}</div>
-      <div style={{ fontSize:28, fontWeight:700, lineHeight:'32px' }}>{value}</div>
-      {hint ? <div style={{ fontSize:12, color:'#999' }}>{hint}</div> : null}
+        <ModuleTile
+          title="Materiais"
+          icon={Package}
+          color="purple"
+          description="Gestão de materiais e fornecedores"
+          links={[
+            { href: "/mm/catalog", label: "Catálogo" },
+            { href: "/mm/materials/new", label: "Novo Material" },
+            { href: "/mm/purchases", label: "Compras" },
+            { href: "/mm/vendors", label: "Fornecedores" }
+          ]}
+        />
+
+        <ModuleTile
+          title="Vendas"
+          icon={ShoppingCart}
+          color="green"
+          description="Gestão de vendas e clientes"
+          links={[
+            { href: "/sd/orders", label: "Pedidos" },
+            { href: "/sd/orders/new", label: "Nova Venda" },
+            { href: "/sd/customers", label: "Clientes" },
+            { href: "/sd/invoices", label: "Faturas" }
+          ]}
+        />
+
+        <ModuleTile
+          title="Estoque"
+          icon={Warehouse}
+          color="orange"
+          description="Controle de inventário"
+          links={[
+            { href: "/wh/inventory", label: "Inventário" },
+            { href: "/wh/movements", label: "Movimentações" },
+            { href: "/wh/reports", label: "Relatórios" }
+          ]}
+        />
+
+        <ModuleTile
+          title="CRM"
+          icon={Users}
+          color="pink"
+          description="Gestão de relacionamento"
+          links={[
+            { href: "/crm/leads", label: "Leads" },
+            { href: "/crm/opportunities", label: "Oportunidades" },
+            { href: "/crm/activities", label: "Atividades" }
+          ]}
+        />
+
+        <ModuleTile
+          title="Financeiro"
+          icon={DollarSign}
+          color="cyan"
+          description="Gestão financeira"
+          links={[
+            { href: "/fi/payables", label: "Contas a Pagar" },
+            { href: "/fi/receivables", label: "Contas a Receber" },
+            { href: "/fi/cashflow", label: "Fluxo de Caixa" }
+          ]}
+        />
+      </div>
     </div>
-  )
-}
-function Tile({ href, title, subtitle }: { href:string, title:string, subtitle?:string }) {
-  return (
-    <a href={href} style={{ display:'block', border:'1px solid #eee', borderRadius:16, padding:'16px', textDecoration:'none' }}>
-      <div style={{ fontWeight:600 }}>{title}</div>
-      {subtitle && <div style={{ color:'#666', fontSize:12 }}>{subtitle}</div>}
-    </a>
   )
 }

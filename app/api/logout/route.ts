@@ -1,14 +1,22 @@
+export const runtime = 'nodejs'
+
 import { NextResponse } from 'next/server'
-import { supabaseServer } from '@/src/lib/supabase/server'
+import { cookies } from 'next/headers'
+import { createServerClient } from '@/src/lib/supabase/server'
+import { siteUrl } from '@/src/lib/env'
+
+async function doSignOut() {
+  const supabase = createServerClient({ cookies })
+  try { await supabase.auth.signOut() } catch {}
+}
 
 export async function POST() {
-  try {
-    const sb = supabaseServer()
-    await sb.auth.signOut()
-    
-    return NextResponse.json({ success: true, message: 'Logged out successfully' })
-  } catch (error) {
-    console.error('Logout error:', error)
-    return NextResponse.json({ success: false, error: 'Logout failed' }, { status: 500 })
-  }
+  await doSignOut()
+  const to = new URL('/login', siteUrl())
+  return NextResponse.redirect(to, { status: 303 })
+}
+
+export async function GET() {
+  // Suporte a GET porque o Next pode pré-buscar ou o link pode usar href
+  return POST()
 }

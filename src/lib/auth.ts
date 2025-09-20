@@ -1,4 +1,10 @@
 import { supabaseServer } from './supabase/server'
+import { cookies } from 'next/headers'
+
+export function hasSession() {
+  const c = cookies()
+  return c.has('sb-access-token') || c.has('sb:token') || c.has('supabase-auth-token')
+}
 
 export async function getTenantId(): Promise<string> {
   const supabase = supabaseServer()

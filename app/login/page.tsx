@@ -1,5 +1,6 @@
 import Link from 'next/link'
 import { supabaseServer } from '@/src/lib/supabase/server'
+import { hasSession } from '@/src/lib/auth'
 import LoginClient from './LoginClient'
 
 export const dynamic = 'force-dynamic'
@@ -10,6 +11,11 @@ export async function generateMetadata() {
 
 export default async function LoginPage({ searchParams }: { searchParams?: { next?: string } }) {
   const next = searchParams?.next || '/'
+  
+  if (!hasSession()) {
+    return <LoginClient next={next} />
+  }
+
   const supabase = supabaseServer()
   const { data: { user } } = await supabase.auth.getUser()
 

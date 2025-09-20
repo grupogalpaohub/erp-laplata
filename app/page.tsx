@@ -1,10 +1,19 @@
 import { supabaseServer } from '@/src/lib/supabase/server'
-import { getTenantId } from '@/src/lib/auth'
+import { getTenantId, hasSession } from '@/src/lib/auth'
 import KpiCard from '@/src/components/KpiCard'
 import ModuleTile from '@/src/components/ModuleTile'
 import { Package, ShoppingCart, Warehouse, Plus, TrendingUp, AlertTriangle, Users, BarChart3, DollarSign } from 'lucide-react'
 
 async function getKPIs() {
+  if (!hasSession()) {
+    return {
+      ordersToday: 0,
+      monthRevenue: 0,
+      activeLeads: 0,
+      criticalStock: 0
+    }
+  }
+
   const supabase = supabaseServer()
   const tenantId = await getTenantId()
 

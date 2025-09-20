@@ -1,71 +1,50 @@
-import { NextResponse, type NextRequest } from 'next/server'
-
-const PUBLIC = new Set(['/', '/login', '/auth/callback', '/favicon.ico'])
-
-function hasValidSupabaseSession(req: NextRequest): boolean {
-  const cookies = req.cookies.getAll()
-  
-  // Supabase v2 usa cookies com formato: sb-<project-ref>-auth-token
-  const projectRef = 'gpjcfwjssfvqhppxdudp'
-  
-  // Cookies específicos do Supabase v2
-  const supabaseCookies = [
-    `sb-${projectRef}-auth-token`,
-    `sb-${projectRef}-refresh-token`,
-    'sb-access-token',
-    'sb-refresh-token', 
-    'sb:token',
-    'supabase-auth-token'
-  ]
-  
-  for (const cookie of cookies) {
-    // Verifica cookies específicos
-    if (supabaseCookies.includes(cookie.name) && cookie.value && cookie.value !== '[]') {
-      return true
-    }
-    
-    // Formato dinâmico: sb-<project-ref>-auth-token
-    if (/^sb-[a-z0-9]{10,}-auth-token$/i.test(cookie.name) && cookie.value && cookie.value !== '[]') {
-      return true
-    }
-    
-    // Formato dinâmico: sb-<project-ref>-refresh-token  
-    if (/^sb-[a-z0-9]{10,}-refresh-token$/i.test(cookie.name) && cookie.value && cookie.value !== '[]') {
-      return true
-    }
-  }
-  
-  return false
-}
+import { NextRequest, NextResponse } from "next/server";
+import { createServerClient } from "@supabase/ssr";
 
 export async function middleware(req: NextRequest) {
-  const { pathname } = req.nextUrl
+  const res = NextResponse.next();
 
-  if (
-    PUBLIC.has(pathname) ||
-    pathname.startsWith('/_next/') ||
-    pathname.startsWith('/assets') ||
-    pathname.startsWith('/public') ||
-    pathname.startsWith('/api/_debug')
-  ) {
-    return NextResponse.next()
+  const supabase = createServerClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    {
+      cookies: {
+        getAll: () => req.cookies.getAll(),
+        setAll: (cookies) => {
+          cookies.forEach(({ name, value }) =>
+            res.cookies.set({
+              name,
+              value,
+              httpOnly: true,
+              secure: true,
+              sameSite: "lax",
+              path: "/",
+            })
+          );
+        },
+      },
+    }
+  );
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  const isAuthPage = req.nextUrl.pathname.startsWith("/login");
+
+  if (!user && !isAuthPage) {
+    const loginUrl = new URL("/login", req.url);
+    loginUrl.searchParams.set("next", req.nextUrl.pathname);
+    return NextResponse.redirect(loginUrl);
   }
 
-  const hasSession = hasValidSupabaseSession(req)
-
-  if (hasSession) {
-    // log mínimo pra sanity check (vai pro Vercel)
-    console.log('[mw] ok path=', pathname)
-    return NextResponse.next()
+  if (user && isAuthPage) {
+    return NextResponse.redirect(new URL("/", req.url));
   }
 
-  const url = req.nextUrl.clone()
-  url.pathname = '/login'
-  url.search = `?next=${encodeURIComponent(pathname + (req.nextUrl.search || ''))}`
-  console.log('[mw] sem sessão -> redirecionando para', url.toString())
-  return NextResponse.redirect(url)
+  return res;
 }
 
 export const config = {
-  matcher: ['/((?!_next/static|_next/image|favicon.ico|assets|public).*)'],
-}
+  matcher: ["/((?!_next/static|_next/image|favicon.ico).*)"],
+};

@@ -1,14 +1,21 @@
-'use client'
-import { createBrowserClient } from '@supabase/ssr'
-import { useEffect, useState } from 'react'
+"use client";
+import { useEffect, useState } from "react";
+
 export default function WhoAmI() {
-  const [user, setUser] = useState<any>(null)
+  const [data, setData] = useState<any>(null);
+
   useEffect(() => {
-    const s = createBrowserClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-    )
-    s.auth.getUser().then(({ data }) => setUser(data.user ?? null))
-  }, [])
-  return <pre className="p-6">{JSON.stringify({ user }, null, 2)}</pre>
+    fetch("/api/_debug/auth-status")
+      .then((res) => res.json())
+      .then(setData);
+  }, []);
+
+  return (
+    <div className="p-6">
+      <h1 className="text-xl font-bold">Who Am I</h1>
+      <pre className="bg-gray-100 p-4 rounded mt-4">
+        {JSON.stringify(data, null, 2)}
+      </pre>
+    </div>
+  );
 }

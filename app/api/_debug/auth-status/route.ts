@@ -1,6 +1,5 @@
-import { NextResponse } from 'next/server'
-import { createServerClient } from '@supabase/ssr'
-import type { NextRequest } from 'next/server'
+import { NextRequest, NextResponse } from "next/server";
+import { createServerClient } from "@supabase/ssr";
 
 export async function GET(req: NextRequest) {
   const supabase = createServerClient(
@@ -8,12 +7,22 @@ export async function GET(req: NextRequest) {
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
     {
       cookies: {
-        get: (name: string) => req.cookies.get(name)?.value,
-        set: () => {},
-        remove: () => {},
+        getAll: () => req.cookies.getAll(),
       },
     }
-  )
-  const { data: { session } } = await supabase.auth.getSession()
-  return NextResponse.json({ hasSession: !!session, userId: session?.user.id ?? null })
+  );
+
+  const {
+    data: { user },
+    error,
+  } = await supabase.auth.getUser();
+
+  return NextResponse.json(
+    {
+      hasSession: !!user,
+      user,
+      error,
+    },
+    { status: 200 }
+  );
 }

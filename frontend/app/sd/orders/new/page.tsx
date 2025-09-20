@@ -1,6 +1,8 @@
-import { supabaseServer } from '@/lib/supabase/server'
-import { getTenantId } from '@/lib/auth'
-import { getCustomers, getMaterials } from '@/lib/data'
+export const runtime = 'nodejs'
+
+import { supabaseServer } from '@/src/lib/supabase/server'
+import { getTenantId } from '@/src/lib/auth'
+import { getCustomers, getMaterials } from '@/src/lib/data'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import { ArrowLeft } from 'lucide-react'
@@ -16,7 +18,7 @@ async function createSalesOrder(formData: FormData) {
     // Gerar número do pedido
     const { data: docNumber, error: docError } = await supabase
       .rpc('next_doc_number', {
-        p_tenant_id: tenantId,
+        p_tenant: tenantId,
         p_doc_type: 'SO'
       })
 

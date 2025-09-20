@@ -1,5 +1,5 @@
 import Link from 'next/link'
-import { supabaseServer } from '@/lib/supabase/server'
+import { supabaseServer } from '@/src/lib/supabase/server'
 
 export default async function Header() {
   const sb = supabaseServer()

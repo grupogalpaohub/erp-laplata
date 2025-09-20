@@ -1,6 +1,6 @@
-import { supabaseServer } from '@/lib/supabase/server'
-import { getTenantId } from '@/lib/auth'
-import { getMaterialTypes, getMaterialClassifications, getVendors } from '@/lib/data'
+import { supabaseServer } from '@/src/lib/supabase/server'
+import { getTenantId } from '@/src/lib/auth'
+import { getMaterialTypes, getMaterialClassifications, getVendors } from '@/src/lib/data'
 import { redirect } from 'next/navigation'
 
 async function createMaterial(formData: FormData) {

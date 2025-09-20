@@ -1,6 +1,8 @@
-import { supabaseServer } from '@/lib/supabase/server'
-import { getTenantId } from '@/lib/auth'
-import { getVendors, getMaterials } from '@/lib/data'
+export const runtime = 'nodejs'
+
+import { supabaseServer } from '@/src/lib/supabase/server'
+import { getTenantId } from '@/src/lib/auth'
+import { getVendors, getMaterials } from '@/src/lib/data'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import { ArrowLeft } from 'lucide-react'
@@ -16,7 +18,7 @@ async function createPurchaseOrder(formData: FormData) {
     // Gerar número do pedido
     const { data: docNumber, error: docError } = await supabase
       .rpc('next_doc_number', {
-        p_tenant_id: tenantId,
+        p_tenant: tenantId,
         p_doc_type: 'PO'
       })
 
@@ -62,11 +64,20 @@ async function createPurchaseOrder(formData: FormData) {
         const lineTotal = quantity * unitCost
         totalAmount += lineTotal
 
+        // Buscar depósito padrão do tenant
+        const { data: wh } = await supabase
+          .from('wh_warehouse')
+          .select('plant_id')
+          .eq('tenant_id', tenantId)
+          .eq('is_default', true)
+          .single()
+        const plantId = wh?.plant_id || 'DEFAULT'
+
         items.push({
           tenant_id: tenantId,
           po_item_id: i + 1,
           mm_order: docNumber,
-          plant_id: 'GOIANIA', // Default warehouse
+          plant_id: plantId,
           mm_material: materials[i],
           mm_qtt: quantity,
           unit_cost_cents: unitCost,

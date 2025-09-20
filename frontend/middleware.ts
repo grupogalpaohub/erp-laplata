@@ -1,7 +1,6 @@
 import type { NextRequest } from 'next/server'
 import { NextResponse } from 'next/server'
 
-// ✅ Rotas públicas liberadas sem sessão
 const PUBLIC_PATHS = new Set<string>([
   '/',
   '/login',
@@ -13,7 +12,7 @@ const PUBLIC_PATHS = new Set<string>([
 export function middleware(req: NextRequest) {
   const { pathname, search } = req.nextUrl
 
-  // ✅ Ignora assets e estáticos (sempre liberar)
+  // Liberar estáticos/ativos
   if (
     pathname.startsWith('/_next') ||
     pathname.startsWith('/assets') ||
@@ -22,12 +21,12 @@ export function middleware(req: NextRequest) {
     return NextResponse.next()
   }
 
-  // ✅ Páginas públicas liberadas
+  // Liberar rotas públicas
   if (PUBLIC_PATHS.has(pathname)) {
     return NextResponse.next()
   }
 
-  // ✅ Check leve baseado em cookies — compatível com Edge (sem Supabase/Node)
+  // Check leve por cookies (Edge-safe; sem Supabase/Node)
   const hasSession =
     req.cookies.has('sb-access-token') ||
     req.cookies.has('sb:token') ||
@@ -43,7 +42,6 @@ export function middleware(req: NextRequest) {
   return NextResponse.next()
 }
 
-// Matcher padrão — não tente mudar runtime (middleware é sempre Edge)
 export const config = {
   matcher: ['/((?!_next/static|_next/image|favicon.ico|assets|public).*)'],
 }

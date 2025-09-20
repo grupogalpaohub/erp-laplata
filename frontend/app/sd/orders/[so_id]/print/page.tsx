@@ -1,4 +1,4 @@
-import { supabaseServer } from '@/lib/supabase/server'
+import { supabaseServer } from '@/src/lib/supabase/server'
 import { notFound } from 'next/navigation'
 
 async function getSalesOrder(soId: string) {

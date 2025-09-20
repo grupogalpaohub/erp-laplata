@@ -1,5 +1,5 @@
-import { supabaseServer } from '@/lib/supabase/server'
-import { getTenantId } from '@/lib/auth'
+import { supabaseServer } from '@/src/lib/supabase/server'
+import { getTenantId } from '@/src/lib/auth'
 import KpiCard from '@/src/components/KpiCard'
 import ModuleTile from '@/src/components/ModuleTile'
 import { Package, ShoppingCart, Warehouse, Plus, TrendingUp, AlertTriangle, Users, BarChart3, DollarSign } from 'lucide-react'

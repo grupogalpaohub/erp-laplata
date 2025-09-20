@@ -46,7 +46,7 @@ export default async function CatalogoMateriais() {
       lead_time_days, 
       mm_vendor_id, 
       status,
-      mm_vendor!mm_vendor_id(vendor_name)
+      mm_vendor!inner(vendor_name)
     `)
     .eq('tenant_id', tenantId)
     .order('mm_material', { ascending: true })
@@ -70,18 +70,22 @@ export default async function CatalogoMateriais() {
   const materiais = (data ?? []) as Material[]
 
   return (
-    <main className="mx-auto max-w-7xl px-4 py-6 space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-semibold">Catálogo de Materiais</h1>
-          <p className="text-gray-500 mt-1">Gerencie materiais e fornecedores</p>
-        </div>
+    <div className="space-y-8">
+      {/* Header */}
+      <div className="text-center mb-12">
+        <h1 className="text-4xl font-bold text-fiori-primary mb-4">Catálogo de Materiais</h1>
+        <p className="text-xl text-fiori-secondary mb-2">Gerencie materiais e fornecedores</p>
+        <p className="text-lg text-fiori-muted">Visualize e gerencie todos os materiais cadastrados</p>
+      </div>
+
+      {/* Actions */}
+      <div className="flex justify-center mb-8">
         <Link href="/mm/materials/new" className="btn-fiori-primary">Novo Material</Link>
       </div>
 
       {materiais.length === 0 ? (
         <div className="card-fiori text-center py-12">
-          <div className="text-gray-500 text-lg">Nenhum material encontrado.</div>
+          <div className="text-fiori-secondary text-lg">Nenhum material encontrado.</div>
           <Link href="/mm/materials/new" className="btn-fiori-primary mt-4 inline-block">Criar Primeiro Material</Link>
         </div>
       ) : (
@@ -95,7 +99,8 @@ export default async function CatalogoMateriais() {
                   <th>Descrição</th>
                   <th>Tipo</th>
                   <th>Classe</th>
-                  <th>Preço (R$)</th>
+                  <th>Preço Venda (R$)</th>
+                  <th>Preço Compra (R$)</th>
                   <th>Fornecedor</th>
                   <th>Status</th>
                   <th>Lead Time</th>
@@ -114,8 +119,11 @@ export default async function CatalogoMateriais() {
                     <td className="text-right font-medium">
                       {material.mm_price_cents != null ? `R$ ${(material.mm_price_cents / 100).toFixed(2)}` : "-"}
                     </td>
+                    <td className="text-right font-medium">
+                      {material.mm_price_cents != null ? `R$ ${(material.mm_price_cents / 100 * 0.8).toFixed(2)}` : "-"}
+                    </td>
                     <td>
-                      {(material.mm_vendor?.[0]?.vendor_name ?? material.mm_vendor_id ?? "-")}
+                      {(material.mm_vendor?.vendor_name ?? material.mm_vendor_id ?? "-")}
                     </td>
                     <td>
                       <span className={`badge-fiori ${
@@ -136,6 +144,6 @@ export default async function CatalogoMateriais() {
           </div>
         </div>
       )}
-    </main>
+    </div>
   )
 }

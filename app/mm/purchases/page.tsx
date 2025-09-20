@@ -34,12 +34,16 @@ export default async function PurchaseOrdersPage({ searchParams }: { searchParam
   const rows = (data ?? []) as PO[]
 
   return (
-    <main className="mx-auto max-w-7xl px-4 py-6 space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-semibold">Pedidos de Compras</h1>
-          <p className="text-gray-500 mt-1">Gerencie pedidos de compras e fornecedores</p>
-        </div>
+    <div className="space-y-8">
+      {/* Header */}
+      <div className="text-center mb-12">
+        <h1 className="text-4xl font-bold text-fiori-primary mb-4">Pedidos de Compras</h1>
+        <p className="text-xl text-fiori-secondary mb-2">Gerencie pedidos de compras e fornecedores</p>
+        <p className="text-lg text-fiori-muted">Visualize e gerencie todos os pedidos de compras</p>
+      </div>
+
+      {/* Actions */}
+      <div className="flex justify-center mb-8">
         <Link href="/mm/purchases/new" className="btn-fiori-primary">Novo Pedido</Link>
       </div>
 
@@ -95,12 +99,12 @@ export default async function PurchaseOrdersPage({ searchParams }: { searchParam
                 </tr>
               ))}
               {rows.length === 0 && (
-                <tr><td className="p-8 text-center text-gray-500" colSpan={5}>Nenhum pedido encontrado.</td></tr>
+                <tr><td className="p-8 text-center text-fiori-secondary" colSpan={5}>Nenhum pedido encontrado.</td></tr>
               )}
             </tbody>
           </table>
         </div>
       </div>
-    </main>
+    </div>
   )
 }

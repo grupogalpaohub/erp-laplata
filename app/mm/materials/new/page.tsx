@@ -35,8 +35,7 @@ async function createMaterial(formData: FormData) {
     mm_mat_type: mm_mat_type,
     mm_mat_class: formData.get('mm_mat_class') as string,
     mm_vendor_id: formData.get('mm_vendor_id') as string,
-    purchase_price_cents: Math.round(parseFloat(formData.get('purchase_price_cents') as string) * 100),
-    sale_price_cents: Math.round(parseFloat(formData.get('sale_price_cents') as string) * 100),
+    mm_price_cents: Math.round(parseFloat(formData.get('mm_price_cents') as string) * 100),
     barcode: formData.get('barcode') as string,
     lead_time_days: parseInt(lead_time_days),
     status: 'active'
@@ -77,13 +76,17 @@ export default async function NewMaterialPage() {
   const labelStyle = "label-fiori"
 
   return (
-    <div className="mx-auto max-w-4xl px-4 py-6 space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-semibold">Novo Material</h1>
-          <p className="text-gray-500 mt-1">Criar novo material no sistema</p>
-        </div>
-        <Link href="/mm/catalog" className="px-3 py-2 rounded border">
+    <div className="space-y-8">
+      {/* Header */}
+      <div className="text-center mb-12">
+        <h1 className="text-4xl font-bold text-fiori-primary mb-4">Novo Material</h1>
+        <p className="text-xl text-fiori-secondary mb-2">Criar novo material no sistema</p>
+        <p className="text-lg text-fiori-muted">Preencha os dados para cadastrar um novo material</p>
+      </div>
+
+      {/* Back Button */}
+      <div className="flex justify-center">
+        <Link href="/mm/catalog" className="btn-fiori-outline">
           Voltar para Catálogo
         </Link>
       </div>
@@ -180,38 +183,20 @@ export default async function NewMaterialPage() {
               </select>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div>
-                <label htmlFor="purchase_price_cents" className={labelStyle}>
-                  Preço de Compras (R$) *
-                </label>
-                <input
-                  type="number"
-                  name="purchase_price_cents"
-                  id="purchase_price_cents"
-                  step="0.01"
-                  min="0"
-                  required
-                  className={fieldStyle}
-                  placeholder="0.00"
-                />
-              </div>
-
-              <div>
-                <label htmlFor="sale_price_cents" className={labelStyle}>
-                  Preço de Vendas (R$) *
-                </label>
-                <input
-                  type="number"
-                  name="sale_price_cents"
-                  id="sale_price_cents"
-                  step="0.01"
-                  min="0"
-                  required
-                  className={fieldStyle}
-                  placeholder="0.00"
-                />
-              </div>
+            <div>
+              <label htmlFor="mm_price_cents" className={labelStyle}>
+                Preço (R$) *
+              </label>
+              <input
+                type="number"
+                name="mm_price_cents"
+                id="mm_price_cents"
+                step="0.01"
+                min="0"
+                required
+                className={fieldStyle}
+                placeholder="0.00"
+              />
             </div>
 
             <div>

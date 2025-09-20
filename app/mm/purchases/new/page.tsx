@@ -73,7 +73,7 @@ export default async function NewPOPage() {
   
   const { data: materials, error: materialError } = await supabase
     .from('mm_material')
-    .select('mm_material, mm_comercial, mm_desc, purchase_price_cents, sale_price_cents, mm_vendor_id')
+    .select('mm_material, mm_comercial, mm_desc, mm_price_cents, mm_vendor_id')
     .eq('tenant_id', tenantId)
     .order('mm_material')
 
@@ -81,10 +81,12 @@ export default async function NewPOPage() {
   console.log('NewPOPage - materials:', materials?.length || 0, 'error:', materialError?.message)
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-semibold text-fiori-primary">Criar Pedido de Compras</h1>
-        <Link href="/mm/purchases" className="btn-fiori-outline">Voltar</Link>
+    <div className="space-y-8">
+      {/* Header */}
+      <div className="text-center mb-12">
+        <h1 className="text-4xl font-bold text-fiori-primary mb-4">Criar Pedido de Compras</h1>
+        <p className="text-xl text-fiori-secondary mb-2">Gerar novo pedido de compras</p>
+        <p className="text-lg text-fiori-muted">Selecione fornecedor e materiais para criar o pedido</p>
       </div>
 
       {/* Debug Info */}
@@ -93,6 +95,11 @@ export default async function NewPOPage() {
         <p className="text-xs text-fiori-secondary">Tenant ID: {tenantId}</p>
         <p className="text-xs text-fiori-secondary">Fornecedores: {vendors?.length || 0} {vendorError && `(Erro: ${vendorError.message})`}</p>
         <p className="text-xs text-fiori-secondary">Materiais: {materials?.length || 0} {materialError && `(Erro: ${materialError.message})`}</p>
+      </div>
+
+      {/* Back Button */}
+      <div className="flex justify-center">
+        <Link href="/mm/purchases" className="btn-fiori-outline">Voltar</Link>
       </div>
 
       <form action={createPO} className="form-fiori">

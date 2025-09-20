@@ -23,7 +23,7 @@ const PUBLIC_PATHS = new Set<string>([
 ])
 
 export function middleware(req: NextRequest) {
-  const { pathname, search } = req.nextUrl
+  const { pathname } = req.nextUrl
 
   // Liberar estáticos/ativos
   if (
@@ -46,10 +46,7 @@ export function middleware(req: NextRequest) {
     req.cookies.has('supabase-auth-token')
 
   if (!hasSession) {
-    const url = req.nextUrl.clone()
-    url.pathname = '/login'
-    url.searchParams.set('next', pathname + (search || ''))
-    return NextResponse.redirect(url)
+    return NextResponse.redirect(new URL('/login', req.url))
   }
 
   return NextResponse.next()

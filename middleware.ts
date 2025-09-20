@@ -50,7 +50,14 @@ export async function middleware(req: NextRequest) {
   }
 
   // Verifica se tem sessão válida do Supabase
-  if (hasValidSupabaseSession(req)) {
+  const hasSession = hasValidSupabaseSession(req)
+  console.log('[Middleware] Session check:', { 
+    pathname, 
+    hasSession, 
+    cookies: req.cookies.getAll().map(c => ({ name: c.name, hasValue: !!c.value }))
+  })
+  
+  if (hasSession) {
     return NextResponse.next()
   }
 

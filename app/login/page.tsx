@@ -43,8 +43,13 @@ export default function LoginPage() {
 
       // Fallback universal de redirecionamento
       const target = data?.url
+      console.log('[OAuth] Response data:', { data, hasUrl: !!target })
+      
       if (target) {
+        console.log('[OAuth] Redirecting to:', target)
         window.location.assign(target)
+      } else {
+        console.warn('[OAuth] No redirect URL received from Supabase')
       }
       // Se o SDK fizer o redirect automático, este trecho nem roda.
     } finally {

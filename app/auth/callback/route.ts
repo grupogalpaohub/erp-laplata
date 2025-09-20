@@ -41,7 +41,8 @@ export async function GET(req: NextRequest) {
     }
   )
 
-  const { error } = await supabase.auth.exchangeCodeForSession(code)
+  const { data, error } = await supabase.auth.exchangeCodeForSession(code)
+  
   if (error) {
     console.error('Auth exchange error:', error)
     const to = new URL('/login', siteUrl())
@@ -49,6 +50,16 @@ export async function GET(req: NextRequest) {
     return NextResponse.redirect(to, { status: 303 })
   }
 
-  console.log('Auth exchange successful, redirecting to:', redirectTo.toString())
+  console.log('Auth exchange successful:', { 
+    hasUser: !!data.user, 
+    hasSession: !!data.session,
+    userId: data.user?.id,
+    sessionId: data.session?.access_token?.substring(0, 20) + '...'
+  })
+  
+  // Log dos cookies que serão definidos
+  console.log('Response cookies:', res.cookies.getAll().map(c => ({ name: c.name, hasValue: !!c.value })))
+  
+  console.log('Redirecting to:', redirectTo.toString())
   return res
 }

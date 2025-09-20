@@ -33,35 +33,49 @@ export default function LoginPage() {
 
   async function signIn() {
     setLoading(true)
-    const sb = createBrowserClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-    )
-    const redirectTo = `${siteUrl()}/auth/callback?next=${encodeURIComponent(next)}`
     
-    console.log('[login] iniciando OAuth:', {
-      provider: 'google',
-      redirectTo,
-      siteUrl: siteUrl(),
-      next
-    })
-    
-    const { data, error } = await sb.auth.signInWithOAuth({
-      provider: 'google',
-      options: { redirectTo, queryParams: { prompt: 'select_account' } },
-    })
-    
-    console.log('[login] OAuth response:', { data, error })
-    
-    if (error) {
-      console.error('[login] oauth error:', error.message)
-      alert(`Erro OAuth: ${error.message}`)
-      setLoading(false)
-    } else if (data?.url) {
-      console.log('[login] redirecionando para:', data.url)
-      window.location.href = data.url
-    } else {
-      console.warn('[login] sem URL de redirecionamento')
+    try {
+      // Primeiro, limpar qualquer sessão existente
+      await fetch('/api/auth/clear-session', { method: 'POST' })
+      
+      const sb = createBrowserClient(
+        process.env.NEXT_PUBLIC_SUPABASE_URL!,
+        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+      )
+      const redirectTo = `${siteUrl()}/auth/callback?next=${encodeURIComponent(next)}`
+      
+      console.log('[login] iniciando OAuth:', {
+        provider: 'google',
+        redirectTo,
+        siteUrl: siteUrl(),
+        next
+      })
+      
+      const { data, error } = await sb.auth.signInWithOAuth({
+        provider: 'google',
+        options: { 
+          redirectTo, 
+          queryParams: { prompt: 'select_account' },
+          skipBrowserRedirect: false
+        },
+      })
+      
+      console.log('[login] OAuth response:', { data, error })
+      
+      if (error) {
+        console.error('[login] oauth error:', error.message)
+        alert(`Erro OAuth: ${error.message}`)
+        setLoading(false)
+      } else if (data?.url) {
+        console.log('[login] redirecionando para:', data.url)
+        window.location.href = data.url
+      } else {
+        console.warn('[login] sem URL de redirecionamento')
+        setLoading(false)
+      }
+    } catch (error) {
+      console.error('[login] erro geral:', error)
+      alert('Erro ao fazer login. Tente novamente.')
       setLoading(false)
     }
   }
@@ -120,9 +134,22 @@ export default function LoginPage() {
             </div>
           </div>
           <div className="card-fiori-footer text-center">
-            <p className="text-xs text-gray-500">
+            <p className="text-xs text-gray-500 mb-4">
               Ao fazer login, você concorda com nossos termos de uso
             </p>
+            <button
+              onClick={async () => {
+                try {
+                  await fetch('/api/auth/clear-session', { method: 'POST' })
+                  window.location.reload()
+                } catch (error) {
+                  console.error('Erro ao limpar sessão:', error)
+                }
+              }}
+              className="text-xs text-blue-600 hover:text-blue-800 underline"
+            >
+              Limpar sessão e tentar novamente
+            </button>
           </div>
         </div>
       </div>

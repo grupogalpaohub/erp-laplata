@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import { Upload, Download, CheckCircle, XCircle, AlertCircle } from 'lucide-react'
+import { MATERIAL_TYPES, MATERIAL_CLASSIFICATIONS, UNITS_OF_MEASURE } from '@/src/lib/material-config'
 
 interface ValidationResult {
   row_index: number
@@ -157,11 +158,11 @@ export default function BulkImportPage() {
       '',
       '# Instruções:',
       '# - Campos obrigatórios: mm_desc, mm_mat_type, mm_mat_class, mm_vendor_id, purchase_price_cents, sale_price_cents, lead_time_days',
-      '# - mm_mat_type: brinco, gargantilha, choker, pulseira, kit',
-      '# - mm_mat_class: acessorio, joia, bijuteria, semi-joia',
+      `# - mm_mat_type: ${MATERIAL_TYPES.map(t => t.type).join(', ')}`,
+      `# - mm_mat_class: ${MATERIAL_CLASSIFICATIONS.map(c => c.classification).join(', ')}`,
       '# - Preços em centavos (ex: 2500 = R$ 25,00)',
       '# - lead_time_days: número de dias para entrega',
-      '# - unit_of_measure: unidade, kg, g, m, cm, l, ml'
+      `# - unit_of_measure: ${UNITS_OF_MEASURE.map(u => u.value).join(', ')}`
     ].join('\n')
     
     const blob = new Blob([csvContent], { type: 'text/csv' })

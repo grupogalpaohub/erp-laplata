@@ -5,6 +5,7 @@ import { getTenantId } from '@/src/lib/auth'
 import { getVendors } from '@/src/lib/data'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
+import { MATERIAL_TYPES, MATERIAL_CLASSIFICATIONS, UNITS_OF_MEASURE } from '@/src/lib/material-config'
 
 async function createMaterial(formData: FormData) {
   'use server'
@@ -69,20 +70,9 @@ export default async function NewMaterialPage() {
   ])
 
   // Valores fixos para tipos e classificações
-  const materialTypes = [
-    { type: 'brinco', name: 'Brinco' },
-    { type: 'gargantilha', name: 'Gargantilha' },
-    { type: 'choker', name: 'Choker' },
-    { type: 'pulseira', name: 'Pulseira' },
-    { type: 'kit', name: 'Kit' }
-  ]
-
-  const materialClassifications = [
-    { classification: 'acessorio', name: 'Acessório' },
-    { classification: 'joia', name: 'Joia' },
-    { classification: 'bijuteria', name: 'Bijuteria' },
-    { classification: 'semi-joia', name: 'Semi-joia' }
-  ]
+  // Usar configuração centralizada do customizing
+  const materialTypes = MATERIAL_TYPES
+  const materialClassifications = MATERIAL_CLASSIFICATIONS
 
   // Estilo consistente para campos
   const fieldStyle = "input-fiori"
@@ -265,13 +255,9 @@ export default async function NewMaterialPage() {
                   id="unit_of_measure"
                   className={fieldStyle}
                 >
-                  <option value="unidade">Unidade</option>
-                  <option value="kg">Quilograma</option>
-                  <option value="g">Grama</option>
-                  <option value="m">Metro</option>
-                  <option value="cm">Centímetro</option>
-                  <option value="l">Litro</option>
-                  <option value="ml">Mililitro</option>
+                  {UNITS_OF_MEASURE.map((unit) => (
+                    <option key={unit.value} value={unit.value}>{unit.label}</option>
+                  ))}
                 </select>
               </div>
             </div>

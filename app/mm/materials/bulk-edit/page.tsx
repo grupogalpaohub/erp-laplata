@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { Save, X, CheckCircle, AlertCircle } from 'lucide-react'
+import { MATERIAL_TYPES, MATERIAL_CLASSIFICATIONS, UNITS_OF_MEASURE } from '@/src/lib/material-config'
 
 interface Material {
   mm_material: string
@@ -269,20 +270,28 @@ export default function BulkEditPage() {
                     />
                   </td>
                   <td className="px-4 py-3">
-                    <input
-                      type="text"
+                    <select
                       value={material.mm_mat_type || ''}
                       onChange={(e) => handleFieldChange(material.mm_material, 'mm_mat_type', e.target.value)}
                       className="w-full px-2 py-1 border rounded text-sm"
-                    />
+                    >
+                      <option value="">Selecione...</option>
+                      {MATERIAL_TYPES.map((type) => (
+                        <option key={type.type} value={type.type}>{type.name}</option>
+                      ))}
+                    </select>
                   </td>
                   <td className="px-4 py-3">
-                    <input
-                      type="text"
+                    <select
                       value={material.mm_mat_class || ''}
                       onChange={(e) => handleFieldChange(material.mm_material, 'mm_mat_class', e.target.value)}
                       className="w-full px-2 py-1 border rounded text-sm"
-                    />
+                    >
+                      <option value="">Selecione...</option>
+                      {MATERIAL_CLASSIFICATIONS.map((classification) => (
+                        <option key={classification.classification} value={classification.classification}>{classification.name}</option>
+                      ))}
+                    </select>
                   </td>
                   <td className="px-4 py-3">
                     <input

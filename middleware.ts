@@ -5,6 +5,12 @@ export async function middleware(req: NextRequest) {
   const res = NextResponse.next();
   const pathname = req.nextUrl.pathname;
 
+  // Pular middleware para rotas de API
+  if (pathname.startsWith('/api/')) {
+    console.log('[middleware] skipping API route:', pathname);
+    return res;
+  }
+
   console.log('[middleware] START:', { 
     pathname, 
     cookies: req.cookies.getAll().map(c => ({ name: c.name, hasValue: !!c.value }))

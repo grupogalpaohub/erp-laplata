@@ -1,15 +1,23 @@
+// frontend/src/app/api/_debug/auth-status/route.ts
 import { NextResponse } from 'next/server'
-import { supabaseServer } from '@/src/lib/supabase/server'
-export async function GET() {
-  const sb = supabaseServer()
-  const [user, session] = await Promise.all([
-    sb.auth.getUser(),
-    sb.auth.getSession()
-  ])
+import { createServerClient } from '@supabase/ssr'
+import type { NextRequest } from 'next/server'
+
+export async function GET(req: NextRequest) {
+  const supabase = createServerClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    {
+      cookies: {
+        get: (name: string) => req.cookies.get(name)?.value,
+        set: () => {},
+        remove: () => {},
+      },
+    }
+  )
+  const { data: { session } } = await supabase.auth.getSession()
   return NextResponse.json({
-    NEXT_PUBLIC_SUPABASE_URL: process.env.NEXT_PUBLIC_SUPABASE_URL,
-    NEXT_PUBLIC_SITE_URL: process.env.NEXT_PUBLIC_SITE_URL,
-    user: user.data?.user ?? null,
-    session: session.data?.session ? { expires_at: session.data.session.expires_at } : null
+    hasSession: !!session,
+    userId: session?.user.id ?? null,
   })
 }

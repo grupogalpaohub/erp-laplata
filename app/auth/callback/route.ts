@@ -1,82 +1,59 @@
-export const runtime = 'nodejs'
-export const dynamic = 'force-dynamic'  // evita cache do Next/Edge
+// app/auth/callback/route.ts
+export const dynamic = 'force-dynamic'
 
-import { type NextRequest, NextResponse } from 'next/server'
+import { NextRequest, NextResponse } from 'next/server'
 import { createServerClient } from '@supabase/ssr'
-import { siteUrl } from '@/src/lib/env'
 
 export async function GET(req: NextRequest) {
   const url = new URL(req.url)
   const code = url.searchParams.get('code')
+  const error = url.searchParams.get('error')
   const next = url.searchParams.get('next') || '/'
 
-  console.log('Auth callback received:', { code: !!code, next, error: url.searchParams.get('error') })
+  const res = NextResponse.redirect(new URL(next, url.origin))
 
-  const err = url.searchParams.get('error')
-  if (err || !code) {
-    console.log('Auth callback error:', { err, hasCode: !!code })
-    const to = new URL('/login', siteUrl())
-    if (err) to.searchParams.set('error', err)
-    if (!code) to.searchParams.set('error', 'missing_code')
-    return NextResponse.redirect(to, { status: 303 })
+  if (error) {
+    console.error('[auth] OAuth callback error:', error)
+    res.cookies.set('auth_error', error, { path: '/', httpOnly: false })
+    return res
+  }
+  if (!code) {
+    console.warn('[auth] OAuth callback sem "code"')
+    return res
   }
 
-  const redirectTo = new URL(next.startsWith('/') ? next : '/', siteUrl())
-  console.log('Auth callback redirecting to:', redirectTo.toString())
-  const res = NextResponse.redirect(redirectTo, { status: 303 })
-
+  // Cria client com controle de cookies explícito
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
     {
       cookies: {
-        get: (name: string) => req.cookies.get(name)?.value,
-        set: (name: string, value: string, options: any) => {
-          // Configurações específicas para cookies do Supabase
-          const cookieOptions = {
+        get(name: string) { return req.cookies.get(name)?.value },
+        set(name: string, value: string, options: any) {
+          const secure = process.env.NODE_ENV === 'production'
+          res.cookies.set(name, value, {
             ...options,
-            httpOnly: true,
-            secure: process.env.NODE_ENV === 'production',
-            sameSite: 'lax' as const,
-            path: '/'
-          }
-          res.cookies.set({ name, value, ...cookieOptions })
-        },
-        remove: (name: string, options: any) => {
-          res.cookies.set({ 
-            name, 
-            value: '', 
-            ...options, 
-            maxAge: 0,
-            httpOnly: true,
-            secure: process.env.NODE_ENV === 'production',
-            sameSite: 'lax' as const,
-            path: '/'
+            path: '/',            // <- crítico
+            httpOnly: true,       // <- crítico
+            sameSite: 'lax',      // <- crítico
+            secure,               // <- crítico
           })
+        },
+        remove(name: string, options: any) {
+          res.cookies.set(name, '', { ...options, path: '/', expires: new Date(0) })
         },
       },
     }
   )
 
-  const { data, error } = await supabase.auth.exchangeCodeForSession(code)
-  
-  if (error) {
-    console.error('Auth exchange error:', error)
-    const to = new URL('/login', siteUrl())
-    to.searchParams.set('error', 'exchange_failed')
-    return NextResponse.redirect(to, { status: 303 })
+  const { data, error: exErr } = await supabase.auth.exchangeCodeForSession(code)
+
+  if (exErr) {
+    console.error('[auth] exchangeCodeForSession falhou:', exErr)
+    res.cookies.set('auth_error', exErr.message, { path: '/', httpOnly: false })
+    return res
   }
 
-  console.log('Auth exchange successful:', { 
-    hasUser: !!data.user, 
-    hasSession: !!data.session,
-    userId: data.user?.id,
-    sessionId: data.session?.access_token?.substring(0, 20) + '...'
-  })
-  
-  // Log dos cookies que serão definidos
-  console.log('Response cookies:', res.cookies.getAll().map(c => ({ name: c.name, hasValue: !!c.value })))
-  
-  console.log('Redirecting to:', redirectTo.toString())
+  console.log('[auth] session OK (user id):', data.session?.user.id)
   return res
 }

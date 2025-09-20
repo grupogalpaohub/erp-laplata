@@ -194,32 +194,32 @@ export default function BulkImportPage() {
 
       {/* Step 1: Upload */}
       {state.step === 'upload' && (
-        <div className="bg-white rounded-lg border p-6">
-          <h2 className="text-lg font-semibold mb-4">1. Preparar Arquivo</h2>
+        <div className="card-fiori">
+          <h2 className="card-fiori-title mb-4">1. Preparar Arquivo</h2>
           
           <div className="space-y-4">
             <div>
               <button
                 onClick={downloadTemplate}
-                className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+                className="btn-fiori-primary flex items-center gap-2"
               >
                 <Download className="w-4 h-4" />
                 Baixar Template CSV
               </button>
-              <p className="text-sm text-gray-600 mt-1">
+              <p className="text-sm text-gray-300 mt-1">
                 Use o template para garantir o formato correto
               </p>
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="label-fiori">
                 Upload do Arquivo CSV
               </label>
               <input
                 type="file"
                 accept=".csv"
                 onChange={handleFileUpload}
-                className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
+                className="block w-full text-sm text-white file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:text-sm file:font-semibold file:bg-gray-800 file:text-white hover:file:bg-gray-700 file:border file:border-gray-600"
               />
             </div>
           </div>
@@ -228,18 +228,18 @@ export default function BulkImportPage() {
 
       {/* Step 2: Validation */}
       {state.step === 'validation' && (
-        <div className="bg-white rounded-lg border p-6">
-          <h2 className="text-lg font-semibold mb-4">2. Validação dos Dados</h2>
+        <div className="card-fiori">
+          <h2 className="card-fiori-title mb-4">2. Validação dos Dados</h2>
           
           <div className="space-y-4">
             <div className="flex items-center justify-between">
-              <p className="text-sm text-gray-600">
+              <p className="text-sm text-gray-300">
                 {state.materials.length} materiais encontrados no arquivo
               </p>
               <button
                 onClick={validateMaterials}
                 disabled={state.isValidating}
-                className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 disabled:opacity-50"
+                className="btn-fiori-primary disabled:opacity-50"
               >
                 {state.isValidating ? 'Validando...' : 'Validar Materiais'}
               </button>
@@ -248,30 +248,30 @@ export default function BulkImportPage() {
             {state.validationResults.length > 0 && (
               <div className="space-y-4">
                 <div className="grid grid-cols-3 gap-4">
-                  <div className="bg-blue-50 p-4 rounded">
-                    <div className="text-2xl font-bold text-blue-600">{state.materials.length}</div>
-                    <div className="text-sm text-blue-600">Total</div>
+                  <div className="bg-gray-800 border border-gray-600 p-4 rounded">
+                    <div className="text-2xl font-bold text-blue-400">{state.materials.length}</div>
+                    <div className="text-sm text-gray-300">Total</div>
                   </div>
-                  <div className="bg-green-50 p-4 rounded">
-                    <div className="text-2xl font-bold text-green-600">{validMaterials.length}</div>
-                    <div className="text-sm text-green-600">Válidos</div>
+                  <div className="bg-gray-800 border border-gray-600 p-4 rounded">
+                    <div className="text-2xl font-bold text-green-400">{validMaterials.length}</div>
+                    <div className="text-sm text-gray-300">Válidos</div>
                   </div>
-                  <div className="bg-red-50 p-4 rounded">
-                    <div className="text-2xl font-bold text-red-600">{invalidMaterials.length}</div>
-                    <div className="text-sm text-red-600">Inválidos</div>
+                  <div className="bg-gray-800 border border-gray-600 p-4 rounded">
+                    <div className="text-2xl font-bold text-red-400">{invalidMaterials.length}</div>
+                    <div className="text-sm text-gray-300">Inválidos</div>
                   </div>
                 </div>
 
                 {invalidMaterials.length > 0 && (
-                  <div className="bg-red-50 border border-red-200 rounded p-4">
-                    <h3 className="font-semibold text-red-800 mb-3">❌ Erros Encontrados:</h3>
+                  <div className="alert-fiori-danger">
+                    <h3 className="font-semibold mb-3">❌ Erros Encontrados:</h3>
                     <div className="space-y-3 max-h-60 overflow-y-auto">
                       {invalidMaterials.map((result, index) => (
-                        <div key={index} className="bg-white border border-red-200 rounded p-3">
-                          <div className="font-medium text-red-800 mb-1">
+                        <div key={index} className="bg-gray-800 border border-red-700 rounded p-3">
+                          <div className="font-medium text-red-300 mb-1">
                             Linha {result.row_index + 1}: {(result as any).material?.mm_comercial || (result as any).material?.mm_desc || 'Material sem nome'}
                           </div>
-                          <div className="text-sm text-red-600">
+                          <div className="text-sm text-red-400">
                             {result.error_message}
                           </div>
                         </div>
@@ -285,7 +285,7 @@ export default function BulkImportPage() {
                     <button
                       onClick={importMaterials}
                       disabled={state.isImporting}
-                      className="px-6 py-2 bg-green-600 text-white rounded hover:bg-green-700 disabled:opacity-50"
+                      className="btn-fiori-success disabled:opacity-50"
                     >
                       {state.isImporting ? 'Importando...' : `Importar ${validMaterials.length} Materiais`}
                     </button>
@@ -299,17 +299,17 @@ export default function BulkImportPage() {
 
       {/* Step 3: Success */}
       {state.step === 'success' && (
-        <div className="bg-white rounded-lg border p-6">
+        <div className="card-fiori">
           <div className="text-center">
-            <CheckCircle className="w-16 h-16 text-green-600 mx-auto mb-4" />
-            <h2 className="text-2xl font-semibold text-green-800 mb-2">Importação Concluída!</h2>
-            <p className="text-gray-600 mb-6">
+            <CheckCircle className="w-16 h-16 text-green-400 mx-auto mb-4" />
+            <h2 className="text-2xl font-semibold text-green-300 mb-2">Importação Concluída!</h2>
+            <p className="text-gray-300 mb-6">
               {validMaterials.length} materiais foram importados com sucesso
             </p>
             <div className="space-x-4">
               <Link
-                href="/mm/materials/edit"
-                className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+                href="/mm/materials/bulk-edit"
+                className="btn-fiori-primary"
               >
                 Ver Materiais
               </Link>
@@ -323,7 +323,7 @@ export default function BulkImportPage() {
                   isImporting: false,
                   error: null
                 })}
-                className="px-4 py-2 border rounded hover:bg-gray-50"
+                className="btn-fiori-outline"
               >
                 Nova Importação
               </button>

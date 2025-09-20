@@ -104,11 +104,11 @@
 }
 
 .btn-fiori-secondary {
-  @apply btn-fiori bg-gray-100 text-gray-700 border border-gray-300 hover:bg-gray-200 hover:border-gray-400 focus:ring-gray-500 shadow-sm;
+  @apply btn-fiori bg-gray-700 text-white border border-gray-600 hover:bg-gray-600 hover:border-gray-500 focus:ring-gray-500 shadow-sm;
 }
 
 .btn-fiori-outline {
-  @apply btn-fiori bg-white text-gray-700 border border-gray-300 hover:bg-gray-50 hover:border-gray-400 focus:ring-blue-500 shadow-sm;
+  @apply btn-fiori bg-gray-800 text-white border border-gray-600 hover:bg-gray-700 hover:border-gray-500 focus:ring-blue-500 shadow-sm;
 }
 
 .btn-fiori-success {
@@ -129,11 +129,11 @@
 }
 
 .input-fiori {
-  @apply w-full px-4 py-3 border border-gray-500 rounded-md text-white placeholder-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 bg-gray-800;
+  @apply w-full px-4 py-3 border border-gray-500 rounded-md text-white placeholder-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 bg-gray-900;
 }
 
 .select-fiori {
-  @apply w-full px-4 py-3 border border-gray-500 rounded-md text-white bg-gray-800 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200;
+  @apply w-full px-4 py-3 border border-gray-500 rounded-md text-white bg-gray-900 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200;
 }
 
 .label-fiori {
@@ -141,7 +141,7 @@
 }
 
 .input-fiori-inline {
-  @apply w-full px-3 py-2 border border-gray-300 rounded-md text-gray-900 placeholder-gray-500 focus:ring-1 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 bg-white text-sm;
+  @apply w-full px-3 py-2 border border-gray-500 rounded-md text-white placeholder-gray-300 focus:ring-1 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 bg-gray-900 text-sm;
 }
 
 /* SAP Fiori Card Styles - Dark Theme */
@@ -184,15 +184,15 @@
 
 /* Fiori Navigation Styles */
 .nav-fiori {
-  @apply bg-white border-b border-gray-200 shadow-sm;
+  @apply bg-gray-900 border-b border-gray-700 shadow-sm;
 }
 
 .nav-fiori-item {
-  @apply px-4 py-2 text-sm font-medium text-gray-700 hover:text-blue-600 hover:bg-gray-50 rounded-md transition-colors;
+  @apply px-4 py-2 text-sm font-medium text-white hover:text-blue-400 hover:bg-gray-800 rounded-md transition-colors;
 }
 
 .nav-fiori-item.active {
-  @apply text-blue-600 bg-blue-50;
+  @apply text-blue-400 bg-gray-800;
 }
 
 /* Fiori Status Badges */
@@ -201,19 +201,19 @@
 }
 
 .badge-fiori-success {
-  @apply badge-fiori bg-green-100 text-green-800 border border-green-200;
+  @apply badge-fiori bg-green-900 text-green-200 border border-green-700;
 }
 
 .badge-fiori-warning {
-  @apply badge-fiori bg-yellow-100 text-yellow-800 border border-yellow-200;
+  @apply badge-fiori bg-yellow-900 text-yellow-200 border border-yellow-700;
 }
 
 .badge-fiori-danger {
-  @apply badge-fiori bg-red-100 text-red-800 border border-red-200;
+  @apply badge-fiori bg-red-900 text-red-200 border border-red-700;
 }
 
 .badge-fiori-info {
-  @apply badge-fiori bg-blue-100 text-blue-800 border border-blue-200;
+  @apply badge-fiori bg-blue-900 text-blue-200 border border-blue-700;
 }
 
 /* SAP Fiori Tile Styles - Dark Theme */
@@ -239,23 +239,23 @@
 
 /* Fiori Modal Styles */
 .modal-fiori {
-  @apply fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50;
+  @apply fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50;
 }
 
 .modal-fiori-content {
-  @apply bg-white rounded-xl p-6 max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto;
+  @apply bg-gray-900 border border-gray-600 rounded-xl p-6 max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto;
 }
 
 .modal-fiori-header {
-  @apply flex items-center justify-between mb-4 pb-4 border-b border-gray-200;
+  @apply flex items-center justify-between mb-4 pb-4 border-b border-gray-600;
 }
 
 .modal-fiori-title {
-  @apply text-xl font-semibold text-gray-900;
+  @apply text-xl font-semibold text-white;
 }
 
 .modal-fiori-close {
-  @apply text-gray-400 hover:text-gray-600 transition-colors;
+  @apply text-gray-400 hover:text-gray-200 transition-colors;
 }
 
 /* Fiori Alert Styles */
@@ -264,19 +264,19 @@
 }
 
 .alert-fiori-success {
-  @apply alert-fiori bg-green-50 border-green-200 text-green-800;
+  @apply alert-fiori bg-green-900 border-green-700 text-green-200;
 }
 
 .alert-fiori-warning {
-  @apply alert-fiori bg-yellow-50 border-yellow-200 text-yellow-800;
+  @apply alert-fiori bg-yellow-900 border-yellow-700 text-yellow-200;
 }
 
 .alert-fiori-danger {
-  @apply alert-fiori bg-red-50 border-red-200 text-red-800;
+  @apply alert-fiori bg-red-900 border-red-700 text-red-200;
 }
 
 .alert-fiori-info {
-  @apply alert-fiori bg-blue-50 border-blue-200 text-blue-800;
+  @apply alert-fiori bg-blue-900 border-blue-700 text-blue-200;
 }
 
 /* Dark Theme Body */

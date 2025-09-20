@@ -81,19 +81,19 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4">
+    <div className="min-h-screen bg-fiori-primary flex items-center justify-center px-4">
       <div className="max-w-md w-full">
         <div className="card-fiori">
           <div className="card-fiori-header text-center">
             <div className="w-16 h-16 bg-blue-600 rounded-xl flex items-center justify-center mx-auto mb-4">
               <span className="text-white font-bold text-2xl">E</span>
             </div>
-            <h1 className="card-fiori-title">ERP LaPlata</h1>
+            <h1 className="card-fiori-title">ERP LaPlata Lunaria</h1>
             <p className="card-fiori-subtitle">Sistema de Gestão Empresarial</p>
           </div>
           <div className="card-fiori-body">
             <div className="space-y-4">
-              <p className="text-sm text-gray-600 text-center">
+              <p className="text-sm text-fiori-secondary text-center">
                 Faça login com sua conta Google para acessar o sistema
               </p>
               <button
@@ -134,7 +134,7 @@ export default function LoginPage() {
             </div>
           </div>
           <div className="card-fiori-footer text-center">
-            <p className="text-xs text-gray-500 mb-4">
+            <p className="text-xs text-fiori-muted mb-4">
               Ao fazer login, você concorda com nossos termos de uso
             </p>
             <button

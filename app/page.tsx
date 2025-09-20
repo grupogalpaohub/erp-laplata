@@ -1,32 +1,46 @@
 import Link from 'next/link'
-import { createClient } from '@/src/lib/supabase/server'
+import { supabaseServer } from '@/src/lib/supabaseServer'
 import { getTenantId } from '@/src/lib/auth'
 
 export const dynamic = 'force-dynamic'
 export const revalidate = 0
 
 export default async function HomePage() {
-  const supabase = createClient()
-  const tenantId = await getTenantId()
+  let materials = []
+  let vendors = []
+  let orders = []
 
-  // Buscar dados para KPIs
-  const { data: materials } = await supabase
-    .from('mm_material')
-    .select('mm_material, mm_comercial, purchase_price_cents, sale_price_cents')
-    .eq('tenant_id', tenantId)
-    .limit(5)
+  try {
+    const supabase = supabaseServer()
+    const tenantId = await getTenantId()
 
-  const { data: vendors } = await supabase
-    .from('mm_vendor')
-    .select('vendor_id, vendor_name')
-    .eq('tenant_id', tenantId)
-    .limit(5)
+    // Buscar dados para KPIs com tratamento de erro
+    const [materialsResult, vendorsResult, ordersResult] = await Promise.allSettled([
+      supabase
+        .from('mm_material')
+        .select('mm_material, mm_comercial, purchase_price_cents, sale_price_cents')
+        .eq('tenant_id', tenantId)
+        .limit(5),
+      supabase
+        .from('mm_vendor')
+        .select('vendor_id, vendor_name')
+        .eq('tenant_id', tenantId)
+        .limit(5),
+      supabase
+        .from('mm_purchase_order')
+        .select('mm_order, vendor_id, total_amount_cents, status')
+        .eq('tenant_id', tenantId)
+        .limit(5)
+    ])
 
-  const { data: orders } = await supabase
-    .from('mm_purchase_order')
-    .select('mm_order, vendor_id, total_amount_cents, status')
-    .eq('tenant_id', tenantId)
-    .limit(5)
+    materials = materialsResult.status === 'fulfilled' ? (materialsResult.value.data || []) : []
+    vendors = vendorsResult.status === 'fulfilled' ? (vendorsResult.value.data || []) : []
+    orders = ordersResult.status === 'fulfilled' ? (ordersResult.value.data || []) : []
+
+  } catch (error) {
+    console.error('Error loading dashboard data:', error)
+    // Continuar com arrays vazios em caso de erro
+  }
 
   return (
     <div className="space-y-8">
@@ -149,7 +163,7 @@ export default async function HomePage() {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
               </svg>
             </div>
-            <div className="kpi-fiori kpi-fiori-success">{materials?.length || 0}</div>
+            <div className="kpi-fiori kpi-fiori-success">{materials.length}</div>
             <p className="tile-fiori-metric-label">Itens cadastrados</p>
           </div>
 
@@ -161,7 +175,7 @@ export default async function HomePage() {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
               </svg>
             </div>
-            <div className="kpi-fiori kpi-fiori-success">{vendors?.length || 0}</div>
+            <div className="kpi-fiori kpi-fiori-success">{vendors.length}</div>
             <p className="tile-fiori-metric-label">Fornecedores ativos</p>
           </div>
 
@@ -173,7 +187,7 @@ export default async function HomePage() {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
               </svg>
             </div>
-            <div className="kpi-fiori kpi-fiori-neutral">{orders?.length || 0}</div>
+            <div className="kpi-fiori kpi-fiori-neutral">{orders.length}</div>
             <p className="tile-fiori-metric-label">Pedidos em andamento</p>
           </div>
 

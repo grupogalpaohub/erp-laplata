@@ -1,0 +1,32 @@
+import { NextResponse } from 'next/server'
+import { supabaseServer } from '@/src/lib/supabaseServer'
+
+export async function GET() {
+  try {
+    const sb = supabaseServer()
+    const { data: { user }, error } = await sb.auth.getUser()
+    
+    return NextResponse.json({
+      ok: true,
+      env: {
+        url: !!process.env.NEXT_PUBLIC_SUPABASE_URL,
+        anon: !!process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
+        site: process.env.NEXT_PUBLIC_SITE_URL || null,
+      },
+      user: user ? { id: user.id, email: user.email } : null,
+      error: error?.message || null,
+      timestamp: new Date().toISOString()
+    })
+  } catch (e: any) {
+    return NextResponse.json({ 
+      ok: false, 
+      error: String(e.message || e),
+      env: {
+        url: !!process.env.NEXT_PUBLIC_SUPABASE_URL,
+        anon: !!process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
+        site: process.env.NEXT_PUBLIC_SITE_URL || null,
+      },
+      timestamp: new Date().toISOString()
+    }, { status: 500 })
+  }
+}

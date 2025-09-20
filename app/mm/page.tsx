@@ -17,12 +17,6 @@ export default async function MMIndex() {
           accent="teal"
         />
         <ModuleTile
-          href="/mm/materials/edit"
-          title="Edição de Materiais"
-          description="Editar e atualizar materiais"
-          accent="blue"
-        />
-        <ModuleTile
           href="/mm/catalog"
           title="Catálogo de Materiais"
           description="Consulta com filtros e status"
@@ -48,7 +42,7 @@ export default async function MMIndex() {
         />
         <ModuleTile
           href="/mm/materials/bulk-edit"
-          title="Edição em Lote"
+          title="Edição de Materiais"
           description="Editar múltiplos materiais"
           accent="purple"
         />

@@ -148,21 +148,18 @@ export default function BulkImportPage() {
       'purchase_price_cents', 
       'sale_price_cents', 
       'barcode', 
-      'weight_grams', 
-      'lead_time_days', 
-      'unit_of_measure'
+      'lead_time_days'
     ]
     const csvContent = [
       headers.join(','),
-      'Exemplo Brinco,Descrição do brinco,brinco,acessorio,VENDOR001,2500,3500,123456789,10,7,unidade',
+      'Exemplo Brinco,Descrição do brinco,brinco,acessorio,VENDOR001,2500,3500,123456789,7',
       '',
       '# Instruções:',
       '# - Campos obrigatórios: mm_desc, mm_mat_type, mm_mat_class, mm_vendor_id, purchase_price_cents, sale_price_cents, lead_time_days',
       `# - mm_mat_type: ${MATERIAL_TYPES.map(t => t.type).join(', ')}`,
       `# - mm_mat_class: ${MATERIAL_CLASSIFICATIONS.map(c => c.classification).join(', ')}`,
       '# - Preços em centavos (ex: 2500 = R$ 25,00)',
-      '# - lead_time_days: número de dias para entrega',
-      `# - unit_of_measure: ${UNITS_OF_MEASURE.map(u => u.value).join(', ')}`
+      '# - lead_time_days: número de dias para entrega'
     ].join('\n')
     
     const blob = new Blob([csvContent], { type: 'text/csv' })

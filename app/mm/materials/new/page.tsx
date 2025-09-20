@@ -38,9 +38,7 @@ async function createMaterial(formData: FormData) {
     purchase_price_cents: Math.round(parseFloat(formData.get('purchase_price_cents') as string) * 100),
     sale_price_cents: Math.round(parseFloat(formData.get('sale_price_cents') as string) * 100),
     barcode: formData.get('barcode') as string,
-    weight_grams: formData.get('weight_grams') ? parseInt(formData.get('weight_grams') as string) : null,
     lead_time_days: parseInt(lead_time_days),
-    unit_of_measure: formData.get('unit_of_measure') as string || 'unidade',
     status: 'active'
   }
 
@@ -216,50 +214,19 @@ export default async function NewMaterialPage() {
               </div>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              <div>
-                <label htmlFor="weight_grams" className={labelStyle}>
-                  Peso (gramas)
-                </label>
-                <input
-                  type="number"
-                  name="weight_grams"
-                  id="weight_grams"
-                  min="0"
-                  className={fieldStyle}
-                  placeholder="0"
-                />
-              </div>
-
-              <div>
-                <label htmlFor="lead_time_days" className={labelStyle}>
-                  Lead Time (dias) *
-                </label>
-                <input
-                  type="number"
-                  name="lead_time_days"
-                  id="lead_time_days"
-                  min="0"
-                  required
-                  className={fieldStyle}
-                  placeholder="7"
-                />
-              </div>
-
-              <div>
-                <label htmlFor="unit_of_measure" className={labelStyle}>
-                  Unidade de Medida
-                </label>
-                <select
-                  name="unit_of_measure"
-                  id="unit_of_measure"
-                  className={fieldStyle}
-                >
-                  {UNITS_OF_MEASURE.map((unit) => (
-                    <option key={unit.value} value={unit.value}>{unit.label}</option>
-                  ))}
-                </select>
-              </div>
+            <div>
+              <label htmlFor="lead_time_days" className={labelStyle}>
+                Lead Time (dias) *
+              </label>
+              <input
+                type="number"
+                name="lead_time_days"
+                id="lead_time_days"
+                min="0"
+                required
+                className={fieldStyle}
+                placeholder="7"
+              />
             </div>
 
             <div>

@@ -7,9 +7,8 @@ export async function getVendors() {
   
   const { data, error } = await supabase
     .from('mm_vendor')
-    .select('*')
+    .select('vendor_id, vendor_name')
     .eq('tenant_id', tenantId)
-    .eq('is_active', true)
     .order('vendor_name')
 
   if (error) {

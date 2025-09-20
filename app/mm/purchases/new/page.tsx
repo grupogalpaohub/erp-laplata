@@ -59,10 +59,16 @@ async function createPO(formData: FormData) {
 
 export default async function NewPOPage() {
   const supabase = createClient()
-  const { data: vendors } = await supabase.from('mm_vendor').select('vendor_id, vendor_name').order('vendor_name')
+  const { data: vendors } = await supabase
+    .from('mm_vendor')
+    .select('vendor_id, vendor_name')
+    .eq('tenant_id', 'LaplataLunaria')
+    .order('vendor_name')
+  
   const { data: materials } = await supabase
     .from('mm_material')
     .select('mm_material, mm_comercial, mm_desc, purchase_price_cents, sale_price_cents, mm_vendor_id')
+    .eq('tenant_id', 'LaplataLunaria')
     .order('mm_material')
 
   return (

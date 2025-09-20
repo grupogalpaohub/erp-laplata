@@ -18,13 +18,21 @@ export default async function CreateMaterialPage() {
   // opcional: carrega vendors para o select; se tabela não existir, segue vazio
   let vendors: Array<{ vendor_id: string, vendor_name?: string | null }> = []
   try {
-    const { data } = await supabase
+    const { data, error } = await supabase
       .from('mm_vendor')
       .select('vendor_id, vendor_name')
       .eq('tenant_id', 'LaplataLunaria')
       .order('vendor_name', { ascending: true })
-    vendors = (data ?? []) as any
-  } catch {}
+    
+    if (error) {
+      console.error('Erro ao carregar fornecedores:', error)
+    } else {
+      vendors = (data ?? []) as any
+      console.log('Fornecedores carregados:', vendors)
+    }
+  } catch (err) {
+    console.error('Erro ao carregar fornecedores:', err)
+  }
 
   return <FormCadastro vendors={vendors} />
 }

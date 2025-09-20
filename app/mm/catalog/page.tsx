@@ -123,7 +123,7 @@ export default async function CatalogoMateriais() {
                       {material.mm_price_cents != null ? `R$ ${(material.mm_price_cents / 100 * 0.8).toFixed(2)}` : "-"}
                     </td>
                     <td>
-                      {(material.mm_vendor?.vendor_name ?? material.mm_vendor_id ?? "-")}
+                      {(material.mm_vendor?.[0]?.vendor_name ?? material.mm_vendor_id ?? "-")}
                     </td>
                     <td>
                       <span className={`badge-fiori ${

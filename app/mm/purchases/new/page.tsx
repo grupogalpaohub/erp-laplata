@@ -63,23 +63,36 @@ export default async function NewPOPage() {
   const supabase = createClient()
   const tenantId = await getTenantId()
   
-  const { data: vendors } = await supabase
+  console.log('NewPOPage - tenantId:', tenantId)
+  
+  const { data: vendors, error: vendorError } = await supabase
     .from('mm_vendor')
     .select('vendor_id, vendor_name')
     .eq('tenant_id', tenantId)
     .order('vendor_name')
   
-  const { data: materials } = await supabase
+  const { data: materials, error: materialError } = await supabase
     .from('mm_material')
     .select('mm_material, mm_comercial, mm_desc, purchase_price_cents, sale_price_cents, mm_vendor_id')
     .eq('tenant_id', tenantId)
     .order('mm_material')
+
+  console.log('NewPOPage - vendors:', vendors?.length || 0, 'error:', vendorError?.message)
+  console.log('NewPOPage - materials:', materials?.length || 0, 'error:', materialError?.message)
 
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-semibold text-fiori-primary">Criar Pedido de Compras</h1>
         <Link href="/mm/purchases" className="btn-fiori-outline">Voltar</Link>
+      </div>
+
+      {/* Debug Info */}
+      <div className="bg-fiori-secondary p-4 rounded border">
+        <h3 className="text-sm font-semibold text-fiori-primary mb-2">Debug Info:</h3>
+        <p className="text-xs text-fiori-secondary">Tenant ID: {tenantId}</p>
+        <p className="text-xs text-fiori-secondary">Fornecedores: {vendors?.length || 0} {vendorError && `(Erro: ${vendorError.message})`}</p>
+        <p className="text-xs text-fiori-secondary">Materiais: {materials?.length || 0} {materialError && `(Erro: ${materialError.message})`}</p>
       </div>
 
       <form action={createPO} className="form-fiori">

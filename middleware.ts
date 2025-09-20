@@ -14,13 +14,21 @@ export async function middleware(req: NextRequest) {
     '/robots.txt',
     '/sitemap.xml',
     '/api/_debug',
+    '/api/debug',
+    '/api/public',
     '/api/test-middleware'
   ];
 
   // Verificar se é uma rota pública
-  const isPublicRoute = publicRoutes.some(route => 
-    pathname.startsWith(route) || pathname === route
-  );
+  const isPublicRoute = publicRoutes.some(route => {
+    if (route === '/api/debug') {
+      return pathname.startsWith('/api/debug')
+    }
+    if (route === '/api/public') {
+      return pathname.startsWith('/api/public')
+    }
+    return pathname.startsWith(route) || pathname === route
+  });
 
   if (isPublicRoute) {
     console.log('[middleware] public route, allowing:', pathname);

@@ -12,6 +12,9 @@ type Material = {
   lead_time_days: number | null
   mm_vendor_id: string | null
   status: string | null
+  mm_vendor: {
+    vendor_name: string
+  } | null
 }
 
 export default async function CatalogoMateriais() {
@@ -29,7 +32,19 @@ export default async function CatalogoMateriais() {
 
   const { data, error } = await supabase
     .from('mm_material')
-    .select('mm_material, mm_comercial, mm_desc, mm_mat_type, mm_mat_class, mm_price_cents, commercial_name, lead_time_days, mm_vendor_id, status')
+    .select(`
+      mm_material, 
+      mm_comercial, 
+      mm_desc, 
+      mm_mat_type, 
+      mm_mat_class, 
+      mm_price_cents, 
+      commercial_name, 
+      lead_time_days, 
+      mm_vendor_id, 
+      status,
+      mm_vendor!mm_vendor_id(vendor_name)
+    `)
     .eq('tenant_id', 'LaplataLunaria')
     .order('mm_material', { ascending: true })
   
@@ -83,7 +98,9 @@ export default async function CatalogoMateriais() {
                   <td className="border border-gray-300 p-2 text-right">
                     {material.mm_price_cents != null ? `R$ ${(material.mm_price_cents / 100).toFixed(2)}` : "-"}
                   </td>
-                  <td className="border border-gray-300 p-2">{material.mm_vendor_id || "-"}</td>
+                  <td className="border border-gray-300 p-2">
+                    {material.mm_vendor?.vendor_name || material.mm_vendor_id || "-"}
+                  </td>
                   <td className="border border-gray-300 p-2">
                     <span className={`px-2 py-1 rounded text-xs ${
                       (material.status ?? 'active') === 'active'

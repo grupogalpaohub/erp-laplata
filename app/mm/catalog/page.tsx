@@ -12,9 +12,7 @@ type Material = {
   lead_time_days: number | null
   mm_vendor_id: string | null
   status: string | null
-  mm_vendor: {
-    vendor_name: string
-  } | null
+  mm_vendor?: { vendor_name: string }[]
 }
 
 export default async function CatalogoMateriais() {
@@ -99,7 +97,7 @@ export default async function CatalogoMateriais() {
                     {material.mm_price_cents != null ? `R$ ${(material.mm_price_cents / 100).toFixed(2)}` : "-"}
                   </td>
                   <td className="border border-gray-300 p-2">
-                    {material.mm_vendor?.vendor_name || material.mm_vendor_id || "-"}
+                    {(material.mm_vendor?.[0]?.vendor_name ?? material.mm_vendor_id ?? "-")}
                   </td>
                   <td className="border border-gray-300 p-2">
                     <span className={`px-2 py-1 rounded text-xs ${

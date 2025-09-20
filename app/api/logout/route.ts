@@ -1,12 +1,11 @@
 export const runtime = 'nodejs'
 
 import { NextResponse } from 'next/server'
-import { cookies } from 'next/headers'
-import { createServerClient } from '@/src/lib/supabase/server'
 import { siteUrl } from '@/src/lib/env'
+import { supabaseServer } from '@/src/lib/supabase/server'
 
 async function doSignOut() {
-  const supabase = createServerClient({ cookies })
+  const supabase = supabaseServer()
   try { await supabase.auth.signOut() } catch {}
 }
 
@@ -17,6 +16,5 @@ export async function POST() {
 }
 
 export async function GET() {
-  // Suporte a GET porque o Next pode pré-buscar ou o link pode usar href
   return POST()
 }

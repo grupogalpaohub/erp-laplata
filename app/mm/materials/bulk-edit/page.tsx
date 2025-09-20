@@ -258,7 +258,7 @@ export default function BulkEditPage() {
                       type="text"
                       value={material.mm_comercial || ''}
                       onChange={(e) => handleFieldChange(material.mm_material, 'mm_comercial', e.target.value)}
-                      className="w-full px-2 py-1 border rounded text-sm"
+                      className="input-fiori text-sm"
                     />
                   </td>
                   <td className="px-4 py-3">
@@ -266,14 +266,14 @@ export default function BulkEditPage() {
                       type="text"
                       value={material.mm_desc || ''}
                       onChange={(e) => handleFieldChange(material.mm_material, 'mm_desc', e.target.value)}
-                      className="w-full px-2 py-1 border rounded text-sm"
+                      className="input-fiori text-sm"
                     />
                   </td>
                   <td className="px-4 py-3">
                     <select
                       value={material.mm_mat_type || ''}
                       onChange={(e) => handleFieldChange(material.mm_material, 'mm_mat_type', e.target.value)}
-                      className="w-full px-2 py-1 border rounded text-sm"
+                      className="input-fiori text-sm"
                     >
                       <option value="">Selecione...</option>
                       {MATERIAL_TYPES.map((type) => (
@@ -285,7 +285,7 @@ export default function BulkEditPage() {
                     <select
                       value={material.mm_mat_class || ''}
                       onChange={(e) => handleFieldChange(material.mm_material, 'mm_mat_class', e.target.value)}
-                      className="w-full px-2 py-1 border rounded text-sm"
+                      className="input-fiori text-sm"
                     >
                       <option value="">Selecione...</option>
                       {MATERIAL_CLASSIFICATIONS.map((classification) => (
@@ -300,7 +300,7 @@ export default function BulkEditPage() {
                       onChange={(e) => handleFieldChange(material.mm_material, 'mm_price_cents', 
                         e.target.value ? Math.round(parseFloat(e.target.value) * 100) : null
                       )}
-                      className="w-full px-2 py-1 border rounded text-sm"
+                      className="input-fiori text-sm"
                       step="0.01"
                     />
                   </td>
@@ -308,7 +308,7 @@ export default function BulkEditPage() {
                     <select
                       value={material.status || 'active'}
                       onChange={(e) => handleFieldChange(material.mm_material, 'status', e.target.value)}
-                      className="w-full px-2 py-1 border rounded text-sm"
+                      className="input-fiori text-sm"
                     >
                       <option value="active">Ativo</option>
                       <option value="inactive">Inativo</option>

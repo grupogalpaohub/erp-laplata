@@ -21,6 +21,8 @@ interface PurchaseOrder {
 interface PurchaseOrderItem {
   po_item_id: number
   mm_material: string
+  mm_comercial: string | null
+  mm_desc: string | null
   mm_qtt: number
   unit_cost_cents: number
   line_total_cents: number
@@ -52,7 +54,15 @@ async function getPurchaseOrderItems(po_id: string): Promise<PurchaseOrderItem[]
   
   const { data, error } = await supabase
     .from('mm_purchase_order_item')
-    .select('*')
+    .select(`
+      po_item_id,
+      mm_material,
+      mm_qtt,
+      unit_cost_cents,
+      line_total_cents,
+      notes,
+      mm_material!inner(mm_comercial, mm_desc)
+    `)
     .eq('mm_order', po_id)
     .eq('tenant_id', tenantId)
     .order('po_item_id')
@@ -62,7 +72,17 @@ async function getPurchaseOrderItems(po_id: string): Promise<PurchaseOrderItem[]
     return []
   }
 
-  return data || []
+  // Transformar os dados para a interface esperada
+  return (data || []).map(item => ({
+    po_item_id: item.po_item_id,
+    mm_material: item.mm_material,
+    mm_comercial: (item.mm_material as any)?.mm_comercial || null,
+    mm_desc: (item.mm_material as any)?.mm_desc || null,
+    mm_qtt: item.mm_qtt,
+    unit_cost_cents: item.unit_cost_cents,
+    line_total_cents: item.line_total_cents,
+    notes: item.notes
+  }))
 }
 
 export default async function PurchaseOrderDetailPage({ params }: { params: { po_id: string } }) {
@@ -176,7 +196,17 @@ export default async function PurchaseOrderDetailPage({ params }: { params: { po
                   <tbody>
                     {items.map((item) => (
                       <tr key={item.po_item_id}>
-                        <td className="font-mono text-sm">{item.mm_material}</td>
+                        <td>
+                          <div className="space-y-1">
+                            <div className="font-mono text-sm font-medium">{item.mm_material}</div>
+                            {item.mm_comercial && (
+                              <div className="text-sm text-fiori-secondary">{item.mm_comercial}</div>
+                            )}
+                            {item.mm_desc && (
+                              <div className="text-xs text-fiori-muted">{item.mm_desc}</div>
+                            )}
+                          </div>
+                        </td>
                         <td className="text-right">{item.mm_qtt}</td>
                         <td className="text-right">R$ {(item.unit_cost_cents / 100).toFixed(2)}</td>
                         <td className="text-right font-medium">R$ {(item.line_total_cents / 100).toFixed(2)}</td>

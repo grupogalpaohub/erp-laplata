@@ -33,21 +33,21 @@
   --fiori-gray-9: #111827;
   --fiori-black: #000000;
   
-  /* SAP Fiori Background Colors */
-  --fiori-bg-primary: #ffffff;
-  --fiori-bg-secondary: #f7f7f7;
-  --fiori-bg-tertiary: #f3f4f6;
+/* SAP Fiori Background Colors - Dark Theme */
+--fiori-bg-primary: #1a1a1a;
+--fiori-bg-secondary: #2d2d2d;
+--fiori-bg-tertiary: #3a3a3a;
   
-  /* SAP Fiori Text Colors */
-  --fiori-text-primary: #1f2937;
-  --fiori-text-secondary: #6b7280;
-  --fiori-text-tertiary: #9ca3af;
-  --fiori-text-inverse: #ffffff;
+/* SAP Fiori Text Colors - Dark Theme */
+--fiori-text-primary: #ffffff;
+--fiori-text-secondary: #d1d5db;
+--fiori-text-tertiary: #9ca3af;
+--fiori-text-inverse: #1a1a1a;
   
-  /* SAP Fiori Border Colors */
-  --fiori-border-light: #e5e7eb;
-  --fiori-border-medium: #d1d5db;
-  --fiori-border-dark: #9ca3af;
+/* SAP Fiori Border Colors - Dark Theme */
+--fiori-border-light: #4b5563;
+--fiori-border-medium: #6b7280;
+--fiori-border-dark: #9ca3af;
   
   /* SAP Fiori Shadow */
   --fiori-shadow-xs: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
@@ -123,59 +123,59 @@
   @apply btn-fiori bg-yellow-500 text-white border border-yellow-500 hover:bg-yellow-600 hover:border-yellow-600 focus:ring-yellow-500 shadow-sm;
 }
 
-/* SAP Fiori Form Styles */
+/* SAP Fiori Form Styles - Dark Theme */
 .form-fiori {
-  @apply bg-white rounded-lg border border-gray-200 p-8 shadow-sm;
+  @apply bg-gray-800 rounded-lg border border-gray-700 p-8 shadow-sm;
 }
 
 .input-fiori {
-  @apply w-full px-4 py-3 border border-gray-300 rounded-md text-gray-900 placeholder-gray-500 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 bg-white;
+  @apply w-full px-4 py-3 border border-gray-600 rounded-md text-white placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 bg-gray-700;
 }
 
 .select-fiori {
-  @apply w-full px-4 py-3 border border-gray-300 rounded-md text-gray-900 bg-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200;
+  @apply w-full px-4 py-3 border border-gray-600 rounded-md text-white bg-gray-700 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200;
 }
 
 .label-fiori {
-  @apply block text-sm font-semibold text-gray-700 mb-3;
+  @apply block text-sm font-semibold text-gray-200 mb-3;
 }
 
 .input-fiori-inline {
   @apply w-full px-3 py-2 border border-gray-300 rounded-md text-gray-900 placeholder-gray-500 focus:ring-1 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 bg-white text-sm;
 }
 
-/* SAP Fiori Card Styles */
+/* SAP Fiori Card Styles - Dark Theme */
 .card-fiori {
-  @apply bg-white rounded-lg border border-gray-200 p-6 shadow-sm hover:shadow-md transition-shadow duration-200;
+  @apply bg-gray-800 rounded-lg border border-gray-700 p-6 shadow-sm hover:shadow-md transition-shadow duration-200;
 }
 
 .card-fiori-header {
-  @apply border-b border-gray-200 pb-4 mb-6;
+  @apply border-b border-gray-700 pb-4 mb-6;
 }
 
 .card-fiori-title {
-  @apply text-lg font-semibold text-gray-900 mb-2;
+  @apply text-lg font-semibold text-white mb-2;
 }
 
 .card-fiori-subtitle {
-  @apply text-sm text-gray-600;
+  @apply text-sm text-gray-300;
 }
 
-/* SAP Fiori Table Styles */
+/* SAP Fiori Table Styles - Dark Theme */
 .table-fiori {
-  @apply w-full border-collapse bg-white rounded-lg overflow-hidden shadow-sm;
+  @apply w-full border-collapse bg-gray-800 rounded-lg overflow-hidden shadow-sm;
 }
 
 .table-fiori th {
-  @apply px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider border-b border-gray-200 bg-gray-50;
+  @apply px-6 py-4 text-left text-xs font-semibold text-gray-300 uppercase tracking-wider border-b border-gray-700 bg-gray-900;
 }
 
 .table-fiori td {
-  @apply px-6 py-4 whitespace-nowrap text-sm text-gray-900 border-b border-gray-200;
+  @apply px-6 py-4 whitespace-nowrap text-sm text-white border-b border-gray-700;
 }
 
 .table-fiori tbody tr:hover {
-  @apply bg-gray-50;
+  @apply bg-gray-700;
 }
 
 .table-fiori tbody tr:last-child td {
@@ -216,9 +216,9 @@
   @apply badge-fiori bg-blue-100 text-blue-800 border border-blue-200;
 }
 
-/* SAP Fiori Tile Styles */
+/* SAP Fiori Tile Styles - Dark Theme */
 .tile-fiori {
-  @apply bg-white rounded-lg border border-gray-200 p-8 shadow-sm hover:shadow-lg transition-all duration-300 cursor-pointer;
+  @apply bg-gray-800 rounded-lg border border-gray-700 p-8 shadow-sm hover:shadow-lg transition-all duration-300 cursor-pointer;
 }
 
 .tile-fiori-header {
@@ -226,11 +226,11 @@
 }
 
 .tile-fiori-title {
-  @apply text-xl font-bold text-gray-900 group-hover:text-blue-600 transition-colors duration-200;
+  @apply text-xl font-bold text-white group-hover:text-blue-400 transition-colors duration-200;
 }
 
 .tile-fiori-subtitle {
-  @apply text-sm text-gray-600 mt-2 leading-relaxed;
+  @apply text-sm text-gray-300 mt-2 leading-relaxed;
 }
 
 .tile-fiori-icon {
@@ -277,4 +277,11 @@
 
 .alert-fiori-info {
   @apply alert-fiori bg-blue-50 border-blue-200 text-blue-800;
+}
+
+/* Dark Theme Body */
+body {
+  color: var(--fiori-text-primary);
+  background-color: var(--fiori-bg-primary);
+  min-height: 100vh;
 }

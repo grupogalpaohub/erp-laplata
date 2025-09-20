@@ -12,6 +12,9 @@ export async function GET() {
         url: !!process.env.NEXT_PUBLIC_SUPABASE_URL,
         anon: !!process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
         site: process.env.NEXT_PUBLIC_SITE_URL || null,
+        urlValue: process.env.NEXT_PUBLIC_SUPABASE_URL ? 'SET' : 'MISSING',
+        anonValue: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ? 'SET' : 'MISSING',
+        siteValue: process.env.NEXT_PUBLIC_SITE_URL || 'MISSING',
       },
       user: user ? { id: user.id, email: user.email } : null,
       error: error?.message || null,
@@ -25,6 +28,9 @@ export async function GET() {
         url: !!process.env.NEXT_PUBLIC_SUPABASE_URL,
         anon: !!process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
         site: process.env.NEXT_PUBLIC_SITE_URL || null,
+        urlValue: process.env.NEXT_PUBLIC_SUPABASE_URL ? 'SET' : 'MISSING',
+        anonValue: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ? 'SET' : 'MISSING',
+        siteValue: process.env.NEXT_PUBLIC_SITE_URL || 'MISSING',
       },
       timestamp: new Date().toISOString()
     }, { status: 500 })

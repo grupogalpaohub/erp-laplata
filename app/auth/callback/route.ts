@@ -1,5 +1,5 @@
-// app/auth/callback/route.ts
 export const runtime = 'nodejs'
+export const dynamic = 'force-dynamic'  // evita cache do Next/Edge
 
 import { type NextRequest, NextResponse } from 'next/server'
 import { createServerClient } from '@supabase/ssr'
@@ -10,7 +10,6 @@ export async function GET(req: NextRequest) {
   const code = url.searchParams.get('code')
   const next = url.searchParams.get('next') || '/'
 
-  // se vier erro do provider, volta pra login com o erro
   const err = url.searchParams.get('error')
   if (err || !code) {
     const to = new URL('/login', siteUrl())
@@ -19,8 +18,6 @@ export async function GET(req: NextRequest) {
     return NextResponse.redirect(to, { status: 303 })
   }
 
-  // Vamos preparar a resposta de redirect ANTES de criar o client,
-  // e plugamos os set/remove de cookies NESTA resposta.
   const redirectTo = new URL(next.startsWith('/') ? next : '/', siteUrl())
   const res = NextResponse.redirect(redirectTo, { status: 303 })
 
@@ -29,14 +26,10 @@ export async function GET(req: NextRequest) {
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
     {
       cookies: {
-        // lê cookies atuais do request
         get: (name: string) => req.cookies.get(name)?.value,
-        // grava cookies na RESPOSTA (fundamental p/ sessão persistir)
         set: (name: string, value: string, options: any) => {
-          // Next 14 aceita objeto no set:
           res.cookies.set({ name, value, ...options })
         },
-        // remove cookie na RESPOSTA
         remove: (name: string, options: any) => {
           res.cookies.set({ name, value: '', ...options, maxAge: 0 })
         },
@@ -44,7 +37,6 @@ export async function GET(req: NextRequest) {
     }
   )
 
-  // troca o code pelo refresh/access token e grava nos cookies httpOnly
   const { error } = await supabase.auth.exchangeCodeForSession(code)
   if (error) {
     const to = new URL('/login', siteUrl())

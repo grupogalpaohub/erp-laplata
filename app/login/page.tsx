@@ -1,5 +1,7 @@
 'use client'
 
+export const dynamic = 'force-dynamic'  // evita cache/otimização
+
 import { useCallback, useMemo, useState } from 'react'
 import { supabaseBrowser } from '@/src/lib/supabase/client'
 
@@ -15,12 +17,8 @@ export default function LoginPage() {
   const handleGoogle = useCallback(async () => {
     setLoading(true)
     try {
-      // Propaga o "next" para a callback
       const base = process.env.NEXT_PUBLIC_SITE_URL || window.location.origin
-      const redirectTo = `${base}/auth/callback${
-        next ? `?next=${encodeURIComponent(next)}` : ''
-      }`
-
+      const redirectTo = `${base}/auth/callback${next ? `?next=${encodeURIComponent(next)}` : ''}`
       const supabase = supabaseBrowser()
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',

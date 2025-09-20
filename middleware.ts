@@ -1,33 +1,38 @@
 import type { NextRequest } from 'next/server'
 import { NextResponse } from 'next/server'
 
-const PUBLIC_PATHS = new Set<string>([
-  '/', '/login', '/auth/callback', '/favicon.ico'
-])
-
-// cookies possíveis do Supabase (v2, v1 e helpers antigos)
-const TOKEN_COOKIES = [
-  'sb-access-token',
-  'sb-refresh-token',
-  'sb:token',
-  'supabase-auth-token', // legacy (às vezes é JSON/array)
-]
+const PUBLIC_PATHS = new Set<string>(['/', '/login', '/auth/callback', '/favicon.ico'])
 
 function hasSupabaseSession(req: NextRequest): boolean {
-  // se existir QUALQUER um dos cookies acima, consideramos autenticado
-  for (const name of TOKEN_COOKIES) {
+  const all = req.cookies.getAll()
+
+  // 1) Cookies explícitos conhecidos
+  for (const name of [
+    'sb-access-token',
+    'sb-refresh-token',
+    'sb:token',
+    'supabase-auth-token', // legacy (JSON: ["access","refresh"])
+  ]) {
     const v = req.cookies.get(name)?.value
     if (v && v !== '[]') return true
   }
+
+  // 2) Formato novo: sb-<project-ref>-auth-token (JSON: ["access","refresh"])
+  const hasDynamic = all.some(c =>
+    /^sb-[a-z0-9]{10,}-auth-token$/i.test(c.name) && c.value && c.value !== '[]'
+  )
+  if (hasDynamic) return true
+
   return false
 }
 
 export function middleware(req: NextRequest) {
   const { pathname, search } = req.nextUrl
-  // rotas públicas liberadas
+
+  // liberar rotas públicas
   if (PUBLIC_PATHS.has(pathname)) return NextResponse.next()
 
-  // pular assets e API (Edge-safe)
+  // liberar assets e APIs
   if (
     pathname.startsWith('/_next/') ||
     pathname.startsWith('/assets') ||
@@ -35,9 +40,8 @@ export function middleware(req: NextRequest) {
     pathname.startsWith('/api')
   ) return NextResponse.next()
 
-  // precisa estar logado para o restante
-  const ok = hasSupabaseSession(req)
-  if (ok) return NextResponse.next()
+  // precisa sessão
+  if (hasSupabaseSession(req)) return NextResponse.next()
 
   const url = req.nextUrl.clone()
   url.pathname = '/login'

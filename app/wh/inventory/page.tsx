@@ -1,3 +1,5 @@
+export const dynamic = 'force-dynamic'
+export const revalidate = 0
 import { supabaseServer } from '@/src/lib/supabase/server'
 
 async function getInventory() {

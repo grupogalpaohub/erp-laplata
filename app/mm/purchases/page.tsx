@@ -1,3 +1,5 @@
+export const dynamic = 'force-dynamic'
+export const revalidate = 0
 export const runtime = 'nodejs'
 import { createClient } from '@/src/lib/supabase/server'
 import Link from 'next/link'

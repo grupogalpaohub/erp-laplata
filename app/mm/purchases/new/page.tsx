@@ -1,11 +1,15 @@
+export const dynamic = 'force-dynamic'
+export const revalidate = 0
 export const runtime = 'nodejs'
 import { createClient } from '@/src/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
+import { redirect } from 'next/navigation'
 import Link from 'next/link'
 
 async function createPO(formData: FormData) {
   'use server'
   const supabase = createClient()
+
   // Header
   const header = {
     mm_vendor_id: String(formData.get('mm_vendor_id') || ''),
@@ -37,8 +41,9 @@ async function createPO(formData: FormData) {
   const { error: eI } = await supabase.from('mm_purchase_order_item').insert(items)
   if (eI) throw new Error(eI.message)
 
+  // Atualiza cache e navega – Server Actions devem retornar void
   revalidatePath('/mm/purchases')
-  return h.po_id as string
+  redirect('/mm/purchases')
 }
 
 export default async function NewPOPage() {
@@ -84,7 +89,7 @@ export default async function NewPOPage() {
 }
 
 function ItemsTable({ materials }: { materials: any[] }) {
-  // Renderiza 5 linhas por padrão; o usuário pode adicionar mais depois (evolutivo)
+  // Renderiza 5 linhas por padrão; evolutivo para adicionar/remover linhas depois
   const rows = Array.from({length:5}, (_,i)=>i)
   return (
     <section className="space-y-3">
@@ -114,8 +119,7 @@ function ItemsTable({ materials }: { materials: any[] }) {
                 </td>
                 <td className="p-2 border text-right">
                   {/* Dica visual: mostra preço atual (não enviado), o server congela no trigger */}
-                  {/* Em produção, pode-se renderizar data-attrs com preço para preview de subtotal */}
-                  {/* Aqui mantemos simples e 100% server-trusted */}
+                  {/* Em versão futura podemos renderizar preço atual para preview */}
                 </td>
                 <td className="p-2 border text-right">
                   <input type="number" min="0" step="1" name={`item_${i}_mm_qtt`} className="border p-2 rounded w-32 text-right" />

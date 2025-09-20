@@ -1,3 +1,5 @@
+export const dynamic = 'force-dynamic'
+export const revalidate = 0
 import { supabaseServer } from '@/src/lib/supabase/server'
 import { getTenantId } from '@/src/lib/auth'
 import { getMaterialTypes, getMaterialClassifications, getVendors } from '@/src/lib/data'

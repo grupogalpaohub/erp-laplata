@@ -1,3 +1,5 @@
+export const dynamic = 'force-dynamic'
+export const revalidate = 0
 import { supabaseServer } from '@/src/lib/supabase/server'
 import Link from 'next/link'
 import { Plus, Eye, Printer } from 'lucide-react'

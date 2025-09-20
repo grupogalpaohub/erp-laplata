@@ -253,3 +253,4 @@ Entre em contato com a equipe de desenvolvimento.
 - Middleware de proteção
 - Layout Fiori implementado
 - Catálogo conectado ao Supabase
+- Deploy rollback executado com sucesso

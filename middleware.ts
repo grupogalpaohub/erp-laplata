@@ -26,18 +26,31 @@ export async function middleware(req: NextRequest) {
 
   // Verificar cookies de sessão do Supabase
   const cookies = req.cookies.getAll();
+  console.log('[middleware] all cookies:', cookies.map(c => ({ name: c.name, value: c.value?.substring(0, 20) + '...' })));
+  
   const hasSupabaseSession = cookies.some(cookie => {
     const name = cookie.name;
     const value = cookie.value;
     
     // Verificar cookies de autenticação do Supabase
-    return (
+    const isSupabaseCookie = (
       (name.includes('sb-') && name.includes('auth-token')) ||
       (name.includes('sb-') && name.includes('.0')) ||
       (name.includes('sb-') && name.includes('.1')) ||
       (name === 'sb-access-token') ||
       (name === 'sb-refresh-token')
-    ) && value && value !== '[]' && value !== 'null' && value !== 'undefined';
+    );
+    
+    const hasValidValue = value && 
+      value !== '[]' && 
+      value !== 'null' && 
+      value !== 'undefined' &&
+      value !== '' &&
+      value.length > 10; // Cookies de sessão válidos são longos
+    
+    console.log('[middleware] cookie check:', { name, isSupabaseCookie, hasValidValue, valueLength: value?.length });
+    
+    return isSupabaseCookie && hasValidValue;
   });
 
   console.log('[middleware] pathname:', pathname, 'hasSession:', hasSupabaseSession);

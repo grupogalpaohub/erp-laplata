@@ -1,38 +1,46 @@
-# ERP Laplata - Frontend
+# ERP LaPlata - Sistema de Gestão Empresarial
 
-Sistema de gestão empresarial (ERP) desenvolvido com Next.js 15, TypeScript, Tailwind CSS e Supabase.
+Sistema ERP completo desenvolvido com Next.js 14, TypeScript, Tailwind CSS e Supabase, inspirado no design SAP Fiori.
 
 ## 🚀 Tecnologias
 
-- **Next.js 15** - Framework React com App Router
-- **TypeScript** - Tipagem estática
-- **Tailwind CSS** - Framework CSS utilitário
-- **Supabase** - Backend como serviço (PostgreSQL + Auth)
-- **Cloudflare Pages** - Hospedagem e Edge Functions
-- **@cloudflare/next-on-pages** - Adapter para Cloudflare Pages
+- **Next.js 14** - Framework React com App Router e Server Components
+- **TypeScript** - Tipagem estática completa
+- **Tailwind CSS** - Framework CSS utilitário com tema Fiori customizado
+- **Supabase** - Backend como serviço (PostgreSQL + Auth + RLS)
+- **Vercel** - Hospedagem e deploy automático
+- **SAP Fiori Design System** - Interface inspirada no SAP Fiori
 
 ## 📁 Estrutura do Projeto
 
 ```
+app/
+├── (auth)/                # Rotas de autenticação
+│   ├── login/            # Página de login
+│   └── auth/             # Callback OAuth
+├── api/                   # API Routes
+│   ├── auth/             # Autenticação
+│   ├── debug/            # Endpoints de debug
+│   └── mm/               # APIs do módulo MM
+├── mm/                    # Material Management
+│   ├── materials/        # Gestão de materiais
+│   ├── purchases/        # Pedidos de compra
+│   └── vendors/          # Fornecedores
+├── sd/                    # Sales & Distribution
+├── wh/                    # Warehouse Management
+├── co/                    # Controlling
+├── crm/                   # Customer Relationship
+├── fi/                    # Financial
+├── analytics/             # Analytics
+└── setup/                 # Configurações
+
 src/
-├── app/                    # App Router (Next.js 15)
-│   ├── (auth)/            # Rotas de autenticação
-│   ├── co/                # Módulo Controlling
-│   ├── mm/                # Módulo Material Management
-│   ├── sd/                # Módulo Sales & Distribution
-│   ├── wh/                # Módulo Warehouse
-│   ├── crm/               # Módulo Customer Relationship
-│   ├── fi/                # Módulo Financial
-│   ├── analytics/         # Analytics
-│   └── setup/             # Configurações
-├── components/            # Componentes React
-│   ├── ui/               # Componentes base (shadcn/ui)
-│   ├── layout/           # Layout components
-│   └── dashboard/        # Dashboard components
-├── lib/                  # Utilitários e configurações
-│   ├── supabase/         # Cliente Supabase
-│   └── auth.ts           # Autenticação
-└── contexts/             # React Contexts
+├── lib/                   # Utilitários e configurações
+│   ├── supabaseServer.ts # Cliente Supabase server-side
+│   ├── auth.ts           # Autenticação e tenant
+│   └── material-config.ts # Configurações de materiais
+└── components/            # Componentes React
+    └── FioriShell.tsx    # Shell principal Fiori
 ```
 
 ## 🔧 Variáveis de Ambiente
@@ -42,11 +50,12 @@ Crie um arquivo `.env.local` na raiz do projeto:
 ```env
 NEXT_PUBLIC_SUPABASE_URL=https://your-supabase-url.supabase.co
 NEXT_PUBLIC_SUPABASE_ANON_KEY=your-supabase-anon-key
+NEXT_PUBLIC_SITE_URL=https://your-domain.vercel.app
 ```
 
-### Cloudflare Pages
+### Vercel
 
-Configure as mesmas variáveis no dashboard do Cloudflare Pages:
+Configure as variáveis no dashboard do Vercel:
 - **Settings** → **Environment Variables**
 - Adicione para **Production** e **Preview**
 
@@ -59,12 +68,6 @@ npm run dev
 # Build para produção
 npm run build
 
-# Build para Cloudflare Pages
-npm run pages:build
-
-# Preview local com Cloudflare
-npm run preview:cf
-
 # Linting
 npm run lint
 
@@ -74,94 +77,153 @@ npm run type-check
 
 ## 🚀 Deploy
 
-### Cloudflare Pages
+### Vercel (Recomendado)
 
-1. **Build local:**
-   ```bash
-   npm run pages:build
-   ```
+1. **Conecte o repositório** no dashboard do Vercel
+2. **Configure as variáveis** de ambiente
+3. **Deploy automático** a cada push para a branch principal
 
-2. **Deploy:**
-   ```bash
-   npx wrangler pages deploy .vercel/output
-   ```
+### Deploy Manual
 
-### Configuração no Dashboard
+```bash
+# Build
+npm run build
 
-- **Root directory:** `frontend`
-- **Build command:** `npm run pages:build`
-- **Build output directory:** `.vercel/output/static`
-- **Functions directory:** `.vercel/output/functions`
+# Deploy (se usando Vercel CLI)
+vercel --prod
+```
 
 ## 📊 Módulos Disponíveis
 
-### MM - Material Management
-- `/mm/catalog` - Catálogo de materiais
-- `/mm/vendors` - Fornecedores
-- `/mm/purchases` - Compras
+### 🏠 Dashboard Principal
+- **KPIs em tempo real** com cores Fiori (verde/amarelo/vermelho)
+- **Navegação por tiles** inspirada no SAP Fiori
+- **Tema escuro** consistente em toda aplicação
 
-### SD - Sales & Distribution
+### 📦 MM - Material Management
+- `/mm/catalog` - Catálogo de materiais com filtros
+- `/mm/materials/new` - Cadastro individual de materiais
+- `/mm/materials/bulk-edit` - Edição em lote com confirmação
+- `/mm/materials/bulk-import` - Importação via CSV/XLSX
+- `/mm/purchases` - Listagem de pedidos de compra
+- `/mm/purchases/new` - Criação de pedidos de compra
+- `/mm/vendors` - Gestão de fornecedores
+
+### 💰 SD - Sales & Distribution
 - `/sd/orders` - Pedidos de venda
 - `/sd/customers` - Clientes
 - `/sd/invoices` - Faturas
 
-### WH - Warehouse
+### 📦 WH - Warehouse Management
 - `/wh/inventory` - Estoque
 - `/wh/movements` - Movimentações
 - `/wh/reports` - Relatórios
 
-### CRM - Customer Relationship
+### 👥 CRM - Customer Relationship
 - `/crm/leads` - Leads
 - `/crm/opportunities` - Oportunidades
 - `/crm/activities` - Atividades
 
-### FI - Financial
+### 💳 FI - Financial
 - `/fi/payables` - Contas a pagar
 - `/fi/receivables` - Contas a receber
 - `/fi/cashflow` - Fluxo de caixa
 
-### CO - Controlling
+### 📊 CO - Controlling
 - `/co/dashboard` - Dashboard CO
 - `/co/reports` - Relatórios
 - `/co/costs` - Análise de custos
 
-### Sistema
+### ⚙️ Sistema
 - `/setup` - Configurações
 - `/analytics` - Analytics
 
 ## 🔒 Autenticação
 
-O sistema usa Supabase Auth com Google OAuth configurado.
+- **Supabase Auth** com Google OAuth
+- **Middleware** para proteção de rotas
+- **Callback robusto** com tratamento de erros
+- **Sessão persistente** com cookies seguros
+- **Landing page** antes do login
 
-## 🎨 UI/UX
+## 🎨 UI/UX - SAP Fiori Design System
 
-- **Design System:** Fiori-inspired
-- **Componentes:** shadcn/ui + Radix UI
-- **Estilização:** Tailwind CSS
-- **Ícones:** Lucide React
+### Tema Escuro Consistente
+- **Cores Fiori oficiais** com tema escuro
+- **Tiles quadrados** sem bordas arredondadas
+- **Contraste otimizado** para legibilidade
+- **Sem caixas brancas** em lugar nenhum
+
+### Componentes Fiori
+- **Tiles de navegação** com hover effects
+- **Tabelas escuras** com headers destacados
+- **Formulários** com inputs de tema escuro
+- **Botões** com estilos Fiori (primary, secondary, outline)
+- **Modais** com fundo escuro e bordas sutis
+- **Alertas** com cores semânticas (sucesso, aviso, erro)
+
+### KPIs Coloridos
+- **Verde** para indicadores positivos
+- **Amarelo** para atenção necessária
+- **Vermelho** para problemas críticos
+- **Neutro** para informações gerais
 
 ## 📱 Responsividade
 
-- Mobile-first design
-- Sidebar colapsível
-- Tabelas responsivas
-- Navegação otimizada para touch
+- **Mobile-first** design
+- **Tabelas responsivas** com scroll horizontal
+- **Navegação otimizada** para touch
+- **Layout adaptativo** para diferentes telas
+
+## 🚀 Funcionalidades Implementadas
+
+### ✅ Material Management (MM)
+- **Geração automática de IDs** de materiais (B_, G_, C_, P_, K_)
+- **Cadastro individual** com validação completa
+- **Edição em lote** com confirmação de mudanças
+- **Importação em massa** via CSV/XLSX com validação
+- **Catálogo** com filtros e busca
+- **Pedidos de compra** com detalhes completos dos materiais
+- **Gestão de fornecedores** integrada
+
+### ✅ Autenticação e Segurança
+- **Login com Google** via Supabase OAuth
+- **Middleware robusto** para proteção de rotas
+- **Sessões persistentes** com cookies seguros
+- **Tratamento de erros** em callbacks OAuth
+- **Landing page** antes do acesso ao sistema
+
+### ✅ Design System Fiori
+- **Tema escuro** consistente em toda aplicação
+- **Tiles quadrados** sem bordas arredondadas
+- **Cores semânticas** para KPIs e status
+- **Componentes padronizados** (botões, inputs, tabelas)
+- **Navegação intuitiva** inspirada no SAP Fiori
 
 ## 🐛 Troubleshooting
 
-### Erro de Build
-- Verifique se todas as variáveis de ambiente estão configuradas
-- Execute `npm run type-check` para verificar erros de TypeScript
+### Problemas de Login
+- Acesse `/api/_debug/health` para verificar variáveis de ambiente
+- Use `/api/auth/clear-session` para limpar sessão corrompida
+- Verifique se as variáveis estão configuradas no Vercel
 
-### Erro de Deploy
-- Verifique se o build local funciona: `npm run pages:build`
-- Confirme as configurações no Cloudflare Pages dashboard
-
-### Erro de Conexão com Supabase
-- Verifique as variáveis de ambiente
-- Confirme se o projeto Supabase está ativo
+### Problemas de Materiais
+- Acesse `/api/debug/check-materials-dropdown` para verificar dados
+- Confirme se o `tenant_id` está correto
 - Verifique as políticas RLS no Supabase
+
+### Problemas de Build
+- Execute `npm run type-check` para verificar erros de TypeScript
+- Verifique se todas as variáveis de ambiente estão configuradas
+- Confirme se o Supabase está acessível
 
 ## 📄 Licença
 
 Proprietário - Grupo Galpão Hub
+
+## 🔗 Links Úteis
+
+- **Deploy:** https://workspace-mu-livid.vercel.app
+- **GitHub:** https://github.com/grupogalpaohub/erp-laplata
+- **Supabase:** Dashboard do projeto
+- **Vercel:** Dashboard de deploy

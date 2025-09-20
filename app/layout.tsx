@@ -1,11 +1,7 @@
-import type { Metadata } from 'next'
-import FioriShell from '@/src/components/FioriShell'
 import './globals.css'
+import FioriShell from '@/components/FioriShell'
 
-export const metadata: Metadata = {
-  title: 'ERP LaPlata',
-  description: 'ERP LaPlata - Next.js + Supabase',
-}
+export const metadata = { title: 'ERP LaPlata' }
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (

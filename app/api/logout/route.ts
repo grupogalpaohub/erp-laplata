@@ -14,7 +14,4 @@ export async function POST() {
   const to = new URL('/login', siteUrl())
   return NextResponse.redirect(to, { status: 303 })
 }
-
-export async function GET() {
-  return POST()
-}
+export async function GET() { return POST() }

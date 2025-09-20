@@ -40,6 +40,18 @@ export default async function MMIndex() {
           description="Listagem e filtros"
           accent="orange"
         />
+        <ModuleTile
+          href="/mm/materials/bulk-import"
+          title="Importação em Massa"
+          description="Importar materiais via CSV"
+          accent="pink"
+        />
+        <ModuleTile
+          href="/mm/materials/bulk-edit"
+          title="Edição em Lote"
+          description="Editar múltiplos materiais"
+          accent="purple"
+        />
       </TileGrid>
     </main>
   )

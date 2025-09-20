@@ -11,12 +11,19 @@ async function createMaterial(formData: FormData) {
   const supabase = supabaseServer()
   const tenantId = await getTenantId()
 
+  const mm_mat_type = formData.get('mm_mat_type') as string
+  
+  // Validar se o tipo é obrigatório
+  if (!mm_mat_type) {
+    throw new Error('Tipo de material é obrigatório')
+  }
+
   const materialData = {
     tenant_id: tenantId,
-    mm_material: formData.get('mm_material') as string,
+    // mm_material será gerado automaticamente pelo trigger
     mm_comercial: formData.get('mm_comercial') as string,
     mm_desc: formData.get('mm_desc') as string,
-    mm_mat_type: formData.get('mm_mat_type') as string,
+    mm_mat_type: mm_mat_type,
     mm_mat_class: formData.get('mm_mat_class') as string,
     mm_price_cents: parseInt(formData.get('mm_price_cents') as string) * 100, // Convert to cents
     barcode: formData.get('barcode') as string,
@@ -25,18 +32,22 @@ async function createMaterial(formData: FormData) {
   }
 
   try {
-    const { error } = await supabase
+    const { data, error } = await supabase
       .from('mm_material')
       .insert([materialData])
+      .select('mm_material')
+      .single()
 
     if (error) {
       console.error('Error creating material:', error)
-      return
+      throw new Error(error.message)
     }
 
-    redirect('/mm/catalog')
+    // Redirecionar com mensagem de sucesso mostrando o ID gerado
+    redirect(`/mm/catalog?success=Material ${data.mm_material} criado com sucesso`)
   } catch (error) {
     console.error('Error creating material:', error)
+    throw error
   }
 }
 
@@ -56,17 +67,25 @@ export default async function NewMaterialPage() {
           <div className="bg-white shadow rounded-lg p-6">
             <div className="grid grid-cols-1 gap-6">
               <div>
-                <label htmlFor="mm_material" className="block text-sm font-medium text-gray-700">
-                  Código do Material *
+                <label htmlFor="mm_mat_type" className="block text-sm font-medium text-gray-700">
+                  Tipo de Material *
                 </label>
-                <input
-                  type="text"
-                  name="mm_material"
-                  id="mm_material"
+                <select
+                  name="mm_mat_type"
+                  id="mm_mat_type"
                   required
                   className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-                  placeholder="Ex: MAT-001"
-                />
+                >
+                  <option value="">Selecione o tipo...</option>
+                  {materialTypes.map((type) => (
+                    <option key={type} value={type}>
+                      {type}
+                    </option>
+                  ))}
+                </select>
+                <p className="mt-1 text-sm text-gray-500">
+                  O ID do material será gerado automaticamente baseado no tipo selecionado
+                </p>
               </div>
 
               <div>
@@ -97,24 +116,6 @@ export default async function NewMaterialPage() {
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div>
-                  <label htmlFor="mm_mat_type" className="block text-sm font-medium text-gray-700">
-                    Tipo de Material *
-                  </label>
-                  <select
-                    name="mm_mat_type"
-                    id="mm_mat_type"
-                    required
-                    className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-                  >
-                    <option value="">Selecione...</option>
-                    {materialTypes.map((type) => (
-                      <option key={type.category} value={type.category}>
-                        {type.category}
-                      </option>
-                    ))}
-                  </select>
-                </div>
 
                 <div>
                   <label htmlFor="mm_mat_class" className="block text-sm font-medium text-gray-700">

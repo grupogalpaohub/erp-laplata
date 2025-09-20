@@ -1,52 +1,50 @@
 import type { NextRequest } from 'next/server'
 import { NextResponse } from 'next/server'
 
-export const config = {
-  matcher: ['/((?!_next/static|_next/image|favicon.ico|assets|public|api).*)'],
-}
-
 const PUBLIC_PATHS = new Set<string>([
-  '/',
-  '/login',
-  '/auth/callback',
-  '/auth/callback/hash',
-  '/favicon.ico',
+  '/', '/login', '/auth/callback', '/favicon.ico'
 ])
 
+// cookies possíveis do Supabase (v2, v1 e helpers antigos)
+const TOKEN_COOKIES = [
+  'sb-access-token',
+  'sb-refresh-token',
+  'sb:token',
+  'supabase-auth-token', // legacy (às vezes é JSON/array)
+]
+
+function hasSupabaseSession(req: NextRequest): boolean {
+  // se existir QUALQUER um dos cookies acima, consideramos autenticado
+  for (const name of TOKEN_COOKIES) {
+    const v = req.cookies.get(name)?.value
+    if (v && v !== '[]') return true
+  }
+  return false
+}
+
 export function middleware(req: NextRequest) {
-  const { pathname } = req.nextUrl
+  const { pathname, search } = req.nextUrl
+  // rotas públicas liberadas
+  if (PUBLIC_PATHS.has(pathname)) return NextResponse.next()
 
-  // Liberar estáticos/ativos
+  // pular assets e API (Edge-safe)
   if (
-    pathname.startsWith('/_next') ||
+    pathname.startsWith('/_next/') ||
     pathname.startsWith('/assets') ||
-    pathname.startsWith('/public')
-  ) {
-    return NextResponse.next()
-  }
+    pathname.startsWith('/public') ||
+    pathname.startsWith('/api')
+  ) return NextResponse.next()
 
-  // Liberar rotas públicas
-  if (PUBLIC_PATHS.has(pathname)) {
-    return NextResponse.next()
-  }
+  // precisa estar logado para o restante
+  const ok = hasSupabaseSession(req)
+  if (ok) return NextResponse.next()
 
-  // Check leve por cookies (Edge-safe; sem Supabase/Node)
-  // Verificar cookies do Supabase Auth - verificar todos os possíveis nomes
-  const hasSession =
-    req.cookies.has('sb-access-token') ||
-    req.cookies.has('sb-refresh-token') ||
-    req.cookies.has('sb-provider-token') ||
-    req.cookies.has('supabase-auth-token') ||
-    req.cookies.has('supabase.auth.token') ||
-    req.cookies.has('sb:token') ||
-    req.cookies.has('supabase.auth.refresh_token') ||
-    req.cookies.has('supabase.auth.access_token')
+  const url = req.nextUrl.clone()
+  url.pathname = '/login'
+  url.search = `?next=${encodeURIComponent(pathname + (search || ''))}`
+  return NextResponse.redirect(url)
+}
 
-  if (!hasSession) {
-    const loginUrl = new URL('/login', req.url)
-    loginUrl.searchParams.set('next', pathname)
-    return NextResponse.redirect(loginUrl)
-  }
-
-  return NextResponse.next()
+export const config = {
+  matcher: ['/((?!_next/static|_next/image|favicon.ico|assets|public|api).*)'],
 }

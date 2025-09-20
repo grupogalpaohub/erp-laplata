@@ -152,7 +152,7 @@ export default function BulkImportPage() {
     ]
     const csvContent = [
       headers.join(','),
-      'Exemplo Brinco,Descrição do brinco,brinco,acessorio,VENDOR001,2500,3500,123456789,7',
+      'Exemplo Brinco,Descrição do brinco,Brinco,Amuletos,VENDOR001,2500,3500,123456789,7',
       '',
       '# Instruções:',
       '# - Campos obrigatórios: mm_desc, mm_mat_type, mm_mat_class, mm_vendor_id, purchase_price_cents, sale_price_cents, lead_time_days',

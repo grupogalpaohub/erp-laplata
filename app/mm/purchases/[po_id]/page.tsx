@@ -3,6 +3,7 @@ export const revalidate = 0
 export const runtime = 'nodejs'
 
 import { createClient } from '@/src/lib/supabase/server'
+import { getTenantId } from '@/src/lib/auth'
 import Link from 'next/link'
 import { ArrowLeft, Printer, Edit } from 'lucide-react'
 
@@ -28,12 +29,13 @@ interface PurchaseOrderItem {
 
 async function getPurchaseOrder(po_id: string): Promise<PurchaseOrder | null> {
   const supabase = createClient()
+  const tenantId = await getTenantId()
   
   const { data, error } = await supabase
     .from('mm_purchase_order')
     .select('*')
     .eq('mm_order', po_id)
-    .eq('tenant_id', 'LaplataLunaria')
+    .eq('tenant_id', tenantId)
     .single()
 
   if (error) {
@@ -46,12 +48,13 @@ async function getPurchaseOrder(po_id: string): Promise<PurchaseOrder | null> {
 
 async function getPurchaseOrderItems(po_id: string): Promise<PurchaseOrderItem[]> {
   const supabase = createClient()
+  const tenantId = await getTenantId()
   
   const { data, error } = await supabase
     .from('mm_purchase_order_item')
     .select('*')
     .eq('mm_order', po_id)
-    .eq('tenant_id', 'LaplataLunaria')
+    .eq('tenant_id', tenantId)
     .order('po_item_id')
 
   if (error) {

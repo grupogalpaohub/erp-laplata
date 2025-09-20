@@ -2,6 +2,7 @@ export const dynamic = 'force-dynamic'
 export const revalidate = 0
 export const runtime = 'nodejs'
 import { createClient } from '@/src/lib/supabase/server'
+import { getTenantId } from '@/src/lib/auth'
 import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
@@ -10,10 +11,11 @@ import PriceDisplay from './PriceDisplay'
 async function createPO(formData: FormData) {
   'use server'
   const supabase = createClient()
+  const tenantId = await getTenantId()
 
   // Header
   const header = {
-    tenant_id: 'LaplataLunaria',
+    tenant_id: tenantId,
     mm_order: `PO-${Date.now()}`, // Gerar ID único
     vendor_id: String(formData.get('vendor_id') || ''),
     po_date: String(formData.get('po_date') || new Date().toISOString().slice(0,10)),
@@ -37,7 +39,7 @@ async function createPO(formData: FormData) {
     const mm_qtt = Number(qttStr)
     if (material && mm_qtt > 0) {
       items.push({ 
-        tenant_id: 'LaplataLunaria',
+        tenant_id: tenantId,
         mm_order: h.mm_order, 
         plant_id: 'DEFAULT', // Usar depósito padrão
         mm_material: material, 
@@ -59,16 +61,18 @@ async function createPO(formData: FormData) {
 
 export default async function NewPOPage() {
   const supabase = createClient()
+  const tenantId = await getTenantId()
+  
   const { data: vendors } = await supabase
     .from('mm_vendor')
     .select('vendor_id, vendor_name')
-    .eq('tenant_id', 'LaplataLunaria')
+    .eq('tenant_id', tenantId)
     .order('vendor_name')
   
   const { data: materials } = await supabase
     .from('mm_material')
     .select('mm_material, mm_comercial, mm_desc, purchase_price_cents, sale_price_cents, mm_vendor_id')
-    .eq('tenant_id', 'LaplataLunaria')
+    .eq('tenant_id', tenantId)
     .order('mm_material')
 
   return (

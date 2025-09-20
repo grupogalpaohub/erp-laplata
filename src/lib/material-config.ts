@@ -2,18 +2,18 @@
 // Este arquivo deve ser atualizado sempre que houver mudanças no customizing
 
 export const MATERIAL_TYPES = [
-  { type: 'brinco', name: 'Brinco' },
-  { type: 'gargantilha', name: 'Gargantilha' },
-  { type: 'choker', name: 'Choker' },
-  { type: 'pulseira', name: 'Pulseira' },
-  { type: 'kit', name: 'Kit' }
+  { type: 'Brinco', name: 'Brinco' },
+  { type: 'Gargantilha', name: 'Gargantilha' },
+  { type: 'Choker', name: 'Choker' },
+  { type: 'Pulseira', name: 'Pulseira' },
+  { type: 'Kit', name: 'Kit' }
 ]
 
 export const MATERIAL_CLASSIFICATIONS = [
-  { classification: 'acessorio', name: 'Acessório' },
-  { classification: 'joia', name: 'Joia' },
-  { classification: 'bijuteria', name: 'Bijuteria' },
-  { classification: 'semi-joia', name: 'Semi-joia' }
+  { classification: 'Amuletos', name: 'Amuletos' },
+  { classification: 'Elementar', name: 'Elementar' },
+  { classification: 'Ciclos', name: 'Ciclos' },
+  { classification: 'Ancestral', name: 'Ancestral' }
 ]
 
 export const UNITS_OF_MEASURE = [

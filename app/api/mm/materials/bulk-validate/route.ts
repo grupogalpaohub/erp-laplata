@@ -10,45 +10,116 @@ export async function POST(req: NextRequest) {
     const supabase = createClient()
     const { materials } = await req.json()
 
+    console.log('Validação iniciada para', materials?.length || 0, 'materiais')
+
     if (!materials || !Array.isArray(materials)) {
       return NextResponse.json(
-        { error: 'Lista de materiais é obrigatória' },
+        { 
+          success: false,
+          error: 'Lista de materiais é obrigatória',
+          details: 'O arquivo deve conter uma lista de materiais para validação'
+        },
         { status: 400 }
       )
     }
 
-    // Validar materiais usando a função SQL
-    const { data: validationResults, error } = await supabase
-      .rpc('validate_bulk_materials', { materials })
+    const validationResults = []
+    const errors = []
 
-    if (error) {
-      console.error('Erro na validação:', error)
-      return NextResponse.json(
-        { error: 'Erro na validação dos materiais' },
-        { status: 500 }
-      )
+    for (let i = 0; i < materials.length; i++) {
+      const material = materials[i]
+      const rowNumber = i + 1
+      const materialErrors = []
+
+      console.log(`Validando material ${rowNumber}:`, material)
+
+      // Validar campos obrigatórios
+      if (!material.mm_desc) {
+        materialErrors.push(`Linha ${rowNumber}: Descrição é obrigatória`)
+      }
+
+      if (!material.mm_mat_type) {
+        materialErrors.push(`Linha ${rowNumber}: Tipo de material é obrigatório`)
+      } else {
+        const validTypes = MATERIAL_TYPES.map(t => t.type)
+        if (!validTypes.includes(material.mm_mat_type)) {
+          materialErrors.push(`Linha ${rowNumber}: Tipo de material '${material.mm_mat_type}' inválido. Valores aceitos: ${validTypes.join(', ')}`)
+        }
+      }
+
+      if (!material.mm_mat_class) {
+        materialErrors.push(`Linha ${rowNumber}: Classificação é obrigatória`)
+      } else {
+        const validClasses = MATERIAL_CLASSIFICATIONS.map(c => c.classification)
+        if (!validClasses.includes(material.mm_mat_class)) {
+          materialErrors.push(`Linha ${rowNumber}: Classificação '${material.mm_mat_class}' inválida. Valores aceitos: ${validClasses.join(', ')}`)
+        }
+      }
+
+      if (!material.mm_vendor_id) {
+        materialErrors.push(`Linha ${rowNumber}: Fornecedor é obrigatório`)
+      }
+
+      if (!material.purchase_price_cents) {
+        materialErrors.push(`Linha ${rowNumber}: Preço de compra é obrigatório`)
+      } else if (isNaN(Number(material.purchase_price_cents)) || Number(material.purchase_price_cents) <= 0) {
+        materialErrors.push(`Linha ${rowNumber}: Preço de compra deve ser um número positivo`)
+      }
+
+      if (!material.sale_price_cents) {
+        materialErrors.push(`Linha ${rowNumber}: Preço de venda é obrigatório`)
+      } else if (isNaN(Number(material.sale_price_cents)) || Number(material.sale_price_cents) <= 0) {
+        materialErrors.push(`Linha ${rowNumber}: Preço de venda deve ser um número positivo`)
+      }
+
+      if (!material.lead_time_days) {
+        materialErrors.push(`Linha ${rowNumber}: Lead time é obrigatório`)
+      } else if (isNaN(Number(material.lead_time_days)) || Number(material.lead_time_days) < 0) {
+        materialErrors.push(`Linha ${rowNumber}: Lead time deve ser um número não negativo`)
+      }
+
+      const isValid = materialErrors.length === 0
+      
+      validationResults.push({
+        row: rowNumber,
+        material: material,
+        isValid,
+        errors: materialErrors
+      })
+
+      if (!isValid) {
+        errors.push(...materialErrors)
+      }
     }
 
-    const validMaterials = validationResults.filter((r: any) => r.is_valid)
-    const invalidMaterials = validationResults.filter((r: any) => !r.is_valid)
+    const validCount = validationResults.filter(r => r.isValid).length
+    const invalidCount = validationResults.filter(r => !r.isValid).length
+
+    console.log(`Validação concluída: ${validCount} válidos, ${invalidCount} inválidos`)
 
     return NextResponse.json({
+      success: true,
       total: materials.length,
-      valid: validMaterials.length,
-      invalid: invalidMaterials.length,
+      valid: validCount,
+      invalid: invalidCount,
       validationResults,
+      errors: errors,
       summary: {
-        canProceed: invalidMaterials.length === 0,
-        message: invalidMaterials.length === 0 
-          ? `Todos os ${validMaterials.length} materiais são válidos`
-          : `${invalidMaterials.length} materiais inválidos encontrados`
+        canProceed: invalidCount === 0,
+        message: invalidCount === 0 
+          ? `✅ Todos os ${validCount} materiais são válidos e podem ser importados`
+          : `❌ ${invalidCount} materiais inválidos encontrados. Corrija os erros antes de importar.`
       }
     })
 
   } catch (error) {
     console.error('Erro na API de validação:', error)
     return NextResponse.json(
-      { error: 'Erro interno do servidor' },
+      { 
+        success: false,
+        error: 'Erro interno do servidor',
+        details: error instanceof Error ? error.message : 'Erro desconhecido'
+      },
       { status: 500 }
     )
   }

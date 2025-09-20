@@ -264,11 +264,16 @@ export default function BulkImportPage() {
 
                 {invalidMaterials.length > 0 && (
                   <div className="bg-red-50 border border-red-200 rounded p-4">
-                    <h3 className="font-semibold text-red-800 mb-2">Erros Encontrados:</h3>
-                    <div className="space-y-2 max-h-40 overflow-y-auto">
+                    <h3 className="font-semibold text-red-800 mb-3">❌ Erros Encontrados:</h3>
+                    <div className="space-y-3 max-h-60 overflow-y-auto">
                       {invalidMaterials.map((result, index) => (
-                        <div key={index} className="text-sm text-red-700">
-                          <strong>Linha {result.row_index + 1}:</strong> {result.error_message}
+                        <div key={index} className="bg-white border border-red-200 rounded p-3">
+                          <div className="font-medium text-red-800 mb-1">
+                            Linha {result.row_index + 1}: {(result as any).material?.mm_comercial || (result as any).material?.mm_desc || 'Material sem nome'}
+                          </div>
+                          <div className="text-sm text-red-600">
+                            {result.error_message}
+                          </div>
                         </div>
                       ))}
                     </div>

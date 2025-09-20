@@ -2,6 +2,7 @@ export const dynamic = 'force-dynamic'
 export const revalidate = 0
 export const runtime = 'nodejs'
 import { createClient } from '@/src/lib/supabase/server'
+import { getTenantId } from '@/src/lib/auth'
 import Link from 'next/link'
 
 type PO = {
@@ -14,9 +15,12 @@ type PO = {
 
 export default async function PurchaseOrdersPage({ searchParams }: { searchParams: any }) {
   const supabase = createClient()
+  const tenantId = await getTenantId()
+  
   let q = supabase
     .from('mm_purchase_order')
     .select('mm_order, vendor_id, po_date, status, total_amount')
+    .eq('tenant_id', tenantId)
     .order('po_date', { ascending: false })
 
   if (searchParams.status) q = q.eq('status', searchParams.status)

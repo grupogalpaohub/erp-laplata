@@ -1,3 +1,8 @@
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+export const fetchCache = 'force-no-store';
+export const runtime = 'nodejs';
+
 import { NextResponse } from "next/server";
 
 export async function GET() {
@@ -14,3 +19,4 @@ export async function GET() {
     allEnvKeys: Object.keys(process.env).filter(k => k.includes('SUPABASE') || k.includes('SITE') || k.includes('VERCEL')),
   })
 }
+

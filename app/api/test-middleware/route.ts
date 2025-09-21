@@ -1,3 +1,8 @@
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+export const fetchCache = 'force-no-store';
+export const runtime = 'nodejs';
+
 import { NextRequest, NextResponse } from 'next/server'
 
 export async function GET(req: NextRequest) {
@@ -39,3 +44,4 @@ export async function GET(req: NextRequest) {
     timestamp: new Date().toISOString()
   })
 }
+

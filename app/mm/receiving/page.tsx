@@ -1,3 +1,7 @@
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+export const fetchCache = 'force-no-store';
+
 import { supabaseServer } from '@/src/lib/supabase/server'
 import { DataTable } from '@/src/components/DataTable'
 
@@ -41,3 +45,4 @@ export default async function ReceivingPage() {
     </main>
   )
 }
+

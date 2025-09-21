@@ -1,5 +1,5 @@
-import { createSupabaseServerClient } from './supabase/server'
-import { getTenantId } from './auth'
+import { createSupabaseServerClient } from '@/lib/supabaseServer'
+import { getTenantId } from '@/lib/auth'
 
 export async function getVendors() {
   const supabase = createSupabaseServerClient()

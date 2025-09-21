@@ -1,285 +1,274 @@
 import Link from 'next/link'
+import { ArrowLeft, Plus, Search, Download, Edit, Eye } from 'lucide-react'
 import { createSupabaseServerClient } from '@/lib/supabaseServer'
 import { getTenantId } from '@/lib/auth'
-import { Search, Download, Plus, Eye, Edit } from 'lucide-react'
 
 export const dynamic = 'force-dynamic'
 export const revalidate = 0
-export const fetchCache = 'force-no-store'
 
 interface Vendor {
   vendor_id: string
   vendor_name: string
-  contact_email: string
-  contact_phone: string
-  phone_country: string
-  addr_city: string
-  addr_state: string
-  payment_terms: string
-  is_active: boolean
+  email: string
+  telefone: string
+  cidade: string
+  estado: string
+  contact_person: string
+  address: string
+  city: string
+  state: string
+  zip_code: string
+  country: string
+  tax_id: string
+  payment_terms: number
+  rating: string
+  status: string
   created_at: string
-  updated_at: string
-  total_moved_cents: number
+  total_movimentado?: number
 }
 
 export default async function VendorsPage() {
   let vendors: Vendor[] = []
-  let totalCount = 0
+  let totalVendors = 0
+  let activeVendors = 0
 
   try {
     const supabase = createSupabaseServerClient()
     const tenantId = await getTenantId()
 
     // Buscar fornecedores com total movimentado
-    const { data, count, error } = await supabase
-      .from('mm_vendors_with_total')
+    const { data, error } = await supabase
+      .from('mm_vendor')
       .select(`
         vendor_id,
         vendor_name,
-        contact_email,
-        contact_phone,
-        phone_country,
-        addr_city,
-        addr_state,
+        email,
+        telefone,
+        cidade,
+        estado,
+        contact_person,
+        address,
+        city,
+        state,
+        zip_code,
+        country,
+        tax_id,
         payment_terms,
-        is_active,
-        created_at,
-        updated_at,
-        total_moved_cents
-      `, { count: 'exact' })
+        rating,
+        status,
+        created_at
+      `)
       .eq('tenant_id', tenantId)
-      .order('vendor_name')
-      .limit(25)
+      .order('vendor_name', { ascending: true })
 
     if (error) {
-      console.error('Error loading vendors:', error)
+      console.error('Erro ao buscar fornecedores:', error)
     } else {
       vendors = data || []
-      totalCount = count || 0
+      totalVendors = vendors.length
+      activeVendors = vendors.filter(v => v.status === 'active').length
     }
 
   } catch (error) {
-    console.error('Error loading vendors:', error)
-  }
-
-  const formatPhone = (phone: string, country: string) => {
-    if (!phone) return '-'
-    if (country === 'BR') {
-      const cleaned = phone.replace(/\D/g, '')
-      if (cleaned.length === 11) {
-        return `(${cleaned.slice(0, 2)}) ${cleaned.slice(2, 7)}-${cleaned.slice(7)}`
-      }
-      return phone
-    }
-    return phone
-  }
-
-  const getStatusBadge = (isActive: boolean) => {
-    return isActive ? (
-      <span className="badge-fiori badge-fiori-success">Ativo</span>
-    ) : (
-      <span className="badge-fiori badge-fiori-danger">Inativo</span>
-    )
+    console.error('Error loading vendors data:', error)
   }
 
   return (
     <div className="space-y-8">
       {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold text-fiori-primary">Central de Fornecedores</h1>
-          <p className="text-fiori-secondary mt-2">
-            {totalCount} fornecedor{totalCount !== 1 ? 'es' : ''} cadastrado{totalCount !== 1 ? 's' : ''}
-          </p>
+      <div className="flex items-center justify-between mb-8">
+        <Link href="/mm" className="btn-fiori-outline flex items-center gap-2">
+          <ArrowLeft className="w-4 h-4" />
+          Voltar
+        </Link>
+        <div className="text-center flex-1">
+          <h1 className="text-4xl font-bold text-fiori-primary mb-4">Central de Fornecedores</h1>
+          <p className="text-xl text-fiori-secondary mb-2">Gestão de fornecedores</p>
+          <p className="text-lg text-fiori-muted">Gerencie fornecedores e relacionamentos</p>
         </div>
-        <div className="flex gap-3">
-          <Link href="/mm" className="btn-fiori-outline">
-            Voltar para MM
-          </Link>
-          <Link href="/mm/vendors/new" className="btn-fiori-primary flex items-center gap-2">
-            <Plus className="w-4 h-4" />
-            Novo Fornecedor
-          </Link>
+        <Link href="/mm/vendors/new" className="btn-fiori-primary flex items-center gap-2">
+          <Plus className="w-4 h-4" />
+          Novo Fornecedor
+        </Link>
+      </div>
+
+      {/* KPIs */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+        <div className="tile-fiori">
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="tile-fiori-title text-sm">Total de Fornecedores</h3>
+            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+            </svg>
+          </div>
+          <div className="kpi-fiori kpi-fiori-primary">{totalVendors}</div>
+          <p className="tile-fiori-metric-label">Fornecedores cadastrados</p>
+        </div>
+
+        <div className="tile-fiori">
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="tile-fiori-title text-sm">Fornecedores Ativos</h3>
+            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+          </div>
+          <div className="kpi-fiori kpi-fiori-success">{activeVendors}</div>
+          <p className="tile-fiori-metric-label">Fornecedores ativos</p>
+        </div>
+
+        <div className="tile-fiori">
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="tile-fiori-title text-sm">Taxa de Atividade</h3>
+            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
+            </svg>
+          </div>
+          <div className="kpi-fiori kpi-fiori-info">
+            {totalVendors > 0 ? Math.round((activeVendors / totalVendors) * 100) : 0}%
+          </div>
+          <p className="tile-fiori-metric-label">Taxa de atividade</p>
         </div>
       </div>
 
       {/* Filtros */}
-      <div className="card-fiori">
-        <div className="card-fiori-header">
-          <h3 className="card-fiori-title">Filtros</h3>
-        </div>
-        <div className="card-fiori-content">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-            <div>
-              <label className="label-fiori">Pesquisar</label>
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-fiori-muted" />
-                <input
-                  type="text"
-                  placeholder="Nome, email ou telefone..."
-                  className="input-fiori pl-10"
-                />
-              </div>
-            </div>
-            <div>
-              <label className="label-fiori">Status</label>
-              <select className="select-fiori">
-                <option value="">Todos</option>
-                <option value="active">Ativo</option>
-                <option value="inactive">Inativo</option>
-              </select>
-            </div>
-            <div>
-              <label className="label-fiori">Forma de Pagamento</label>
-              <select className="select-fiori">
-                <option value="">Todas</option>
-                <option value="PIX">PIX</option>
-                <option value="TRANSFERENCIA">Transferência</option>
-                <option value="BOLETO">Boleto</option>
-                <option value="CARTAO">Cartão</option>
-              </select>
-            </div>
-            <div>
-              <label className="label-fiori">Cidade/UF</label>
+      <div className="tile-fiori">
+        <div className="flex flex-wrap gap-4 items-center">
+          <div className="flex-1 min-w-64">
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
               <input
                 type="text"
-                placeholder="Cidade ou estado..."
-                className="input-fiori"
+                placeholder="Buscar fornecedores..."
+                className="input-fiori pl-10"
               />
             </div>
           </div>
-          <div className="flex gap-3 mt-4">
-            <button className="btn-fiori-primary">Aplicar Filtros</button>
-            <button className="btn-fiori-outline">Limpar</button>
-            <button className="btn-fiori-outline flex items-center gap-2">
-              <Download className="w-4 h-4" />
-              Exportar CSV
-            </button>
-          </div>
+          <select className="input-fiori">
+            <option value="">Todos os status</option>
+            <option value="active">Ativo</option>
+            <option value="inactive">Inativo</option>
+          </select>
+          <select className="input-fiori">
+            <option value="">Todos os estados</option>
+            <option value="SP">São Paulo</option>
+            <option value="RJ">Rio de Janeiro</option>
+            <option value="MG">Minas Gerais</option>
+          </select>
+          <button className="btn-fiori-outline flex items-center gap-2">
+            <Download className="w-4 h-4" />
+            Exportar CSV
+          </button>
         </div>
       </div>
 
       {/* Tabela de Fornecedores */}
-      <div className="card-fiori">
-        <div className="card-fiori-header">
-          <h3 className="card-fiori-title">Lista de Fornecedores</h3>
-        </div>
-        <div className="card-fiori-content p-0">
-          {vendors.length > 0 ? (
-            <div className="overflow-x-auto">
-              <table className="table-fiori">
-                <thead>
-                  <tr>
-                    <th>ID</th>
-                    <th>Fornecedor</th>
-                    <th>Contato</th>
-                    <th>Telefone</th>
-                    <th>Cidade/UF</th>
-                    <th>Forma de Pagamento</th>
-                    <th>Status</th>
-                    <th>Total Movimentado (R$)</th>
-                    <th>Ações</th>
+      <div className="tile-fiori">
+        <div className="overflow-x-auto">
+          <table className="table-fiori">
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Fornecedor</th>
+                <th>Documento</th>
+                <th>Contato</th>
+                <th>Telefone</th>
+                <th>Cidade/UF</th>
+                <th>Payment Terms</th>
+                <th>Status</th>
+                <th>Total Movimentado</th>
+                <th>Ações</th>
+              </tr>
+            </thead>
+            <tbody>
+              {vendors.length === 0 ? (
+                <tr>
+                  <td colSpan={10} className="text-center py-8 text-gray-500">
+                    Nenhum fornecedor encontrado
+                  </td>
+                </tr>
+              ) : (
+                vendors.map((vendor) => (
+                  <tr key={vendor.vendor_id}>
+                    <td>
+                      <Link 
+                        href={`/mm/vendors/${vendor.vendor_id}`}
+                        className="text-fiori-primary hover:underline font-mono"
+                      >
+                        {vendor.vendor_id}
+                      </Link>
+                    </td>
+                    <td className="font-medium">{vendor.vendor_name}</td>
+                    <td className="font-mono text-sm">{vendor.tax_id || '-'}</td>
+                    <td>{vendor.contact_person || vendor.email || '-'}</td>
+                    <td>{vendor.telefone || '-'}</td>
+                    <td>
+                      {vendor.cidade && vendor.estado 
+                        ? `${vendor.cidade}/${vendor.estado}` 
+                        : vendor.city && vendor.state 
+                        ? `${vendor.city}/${vendor.state}` 
+                        : '-'
+                      }
+                    </td>
+                    <td>{vendor.payment_terms ? `${vendor.payment_terms} dias` : '-'}</td>
+                    <td>
+                      <span className={`px-2 py-1 rounded-full text-xs ${
+                        vendor.status === 'active' 
+                          ? 'bg-green-100 text-green-800' 
+                          : 'bg-red-100 text-red-800'
+                      }`}>
+                        {vendor.status === 'active' ? 'Ativo' : 'Inativo'}
+                      </span>
+                    </td>
+                    <td className="font-mono">
+                      R$ {(vendor.total_movimentado || 0).toLocaleString('pt-BR', { 
+                        minimumFractionDigits: 2 
+                      })}
+                    </td>
+                    <td>
+                      <div className="flex gap-2">
+                        <Link 
+                          href={`/mm/vendors/${vendor.vendor_id}`}
+                          className="btn-fiori-outline btn-sm"
+                          title="Ver detalhes"
+                        >
+                          <Eye className="w-4 h-4" />
+                        </Link>
+                        <Link 
+                          href={`/mm/vendors/${vendor.vendor_id}/edit`}
+                          className="btn-fiori-outline btn-sm"
+                          title="Editar"
+                        >
+                          <Edit className="w-4 h-4" />
+                        </Link>
+                      </div>
+                    </td>
                   </tr>
-                </thead>
-                <tbody>
-                  {vendors.map((vendor) => (
-                    <tr key={vendor.vendor_id}>
-                      <td>
-                        <span className="font-mono text-sm text-fiori-primary">
-                          {vendor.vendor_id}
-                        </span>
-                      </td>
-                      <td>
-                        <div>
-                          <div className="font-semibold text-fiori-primary">{vendor.vendor_name}</div>
-                        </div>
-                      </td>
-                      <td>
-                        <div className="text-sm">{vendor.contact_email || '-'}</div>
-                      </td>
-                      <td>
-                        <div className="text-sm">
-                          {formatPhone(vendor.contact_phone, vendor.phone_country)}
-                        </div>
-                      </td>
-                      <td>
-                        <div className="text-sm">
-                          {vendor.addr_city && vendor.addr_state 
-                            ? `${vendor.addr_city}/${vendor.addr_state}`
-                            : '-'
-                          }
-                        </div>
-                      </td>
-                      <td>
-                        <div className="text-sm">
-                          {vendor.payment_terms || '-'}
-                        </div>
-                      </td>
-                      <td>
-                        {getStatusBadge(vendor.is_active)}
-                      </td>
-                      <td>
-                        <div className="text-sm font-semibold">
-                          R$ {(vendor.total_moved_cents / 100).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
-                        </div>
-                      </td>
-                      <td>
-                        <div className="flex gap-2">
-                          <Link
-                            href={`/mm/vendors/${vendor.vendor_id}`}
-                            className="btn-fiori-outline text-xs flex items-center gap-1"
-                          >
-                            <Eye className="w-3 h-3" />
-                            Ver
-                          </Link>
-                          <Link
-                            href={`/mm/vendors/${vendor.vendor_id}/edit`}
-                            className="btn-fiori-outline text-xs flex items-center gap-1"
-                          >
-                            <Edit className="w-3 h-3" />
-                            Editar
-                          </Link>
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          ) : (
-            <div className="text-center py-12">
-              <svg className="w-16 h-16 text-fiori-muted mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
-              </svg>
-              <h3 className="text-lg font-semibold text-fiori-primary mb-2">Nenhum fornecedor encontrado</h3>
-              <p className="text-fiori-muted mb-4">Comece cadastrando seu primeiro fornecedor</p>
-              <Link href="/mm/vendors/new" className="btn-fiori-primary">
-                Cadastrar Fornecedor
-              </Link>
-            </div>
-          )}
+                ))
+              )}
+            </tbody>
+          </table>
         </div>
-      </div>
 
-      {/* Paginação */}
-      {vendors.length > 0 && (
-        <div className="flex items-center justify-between">
-          <div className="text-sm text-fiori-muted">
-            Mostrando 1-{vendors.length} de {totalCount} fornecedores
+        {/* Paginação */}
+        {vendors.length > 0 && (
+          <div className="flex items-center justify-between mt-6 pt-4 border-t border-gray-200">
+            <div className="text-sm text-gray-500">
+              Mostrando {vendors.length} de {vendors.length} fornecedores
+            </div>
+            <div className="flex gap-2">
+              <button className="btn-fiori-outline btn-sm" disabled>
+                Anterior
+              </button>
+              <button className="btn-fiori-primary btn-sm">
+                1
+              </button>
+              <button className="btn-fiori-outline btn-sm" disabled>
+                Próximo
+              </button>
+            </div>
           </div>
-          <div className="flex gap-2">
-            <button className="btn-fiori-outline text-sm" disabled>
-              Anterior
-            </button>
-            <button className="btn-fiori-primary text-sm">
-              1
-            </button>
-            <button className="btn-fiori-outline text-sm" disabled>
-              Próximo
-            </button>
-          </div>
-        </div>
-      )}
+        )}
+      </div>
     </div>
   )
 }

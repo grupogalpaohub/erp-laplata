@@ -1,6 +1,6 @@
 export const dynamic = 'force-dynamic'
 export const revalidate = 0
-import { createSupabaseServerClient } from '@/lib/supabase/server'
+import { createSupabaseServerClient } from '@/lib/supabaseServer'
 import { getTenantId } from '@/lib/auth'
 import { getVendors } from '@/lib/data'
 import { redirect } from 'next/navigation'
@@ -106,8 +106,8 @@ export default async function NewMaterialPage() {
               >
                 <option value="">Selecione o tipo...</option>
                 {materialTypes.map((type) => (
-                  <option key={type.type} value={type.type}>
-                    {type.name}
+                  <option key={type} value={type}>
+                    {type}
                   </option>
                 ))}
               </select>
@@ -156,8 +156,8 @@ export default async function NewMaterialPage() {
                 >
                   <option value="">Selecione...</option>
                   {materialClassifications.map((classification) => (
-                    <option key={classification.classification} value={classification.classification}>
-                      {classification.name}
+                    <option key={classification} value={classification}>
+                      {classification}
                     </option>
                   ))}
                 </select>

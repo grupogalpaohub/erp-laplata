@@ -8,6 +8,23 @@ export function createSupabaseServerClient() {
   if (!ENV.SUPABASE_URL || !ENV.SUPABASE_ANON_KEY) {
     throw new Error('Supabase URL/ANON ausentes. Verifique .env.local.');
   }
+  
+  // Se auth está desabilitada, usar service role para bypass RLS
+  if (ENV.AUTH_DISABLED && ENV.SERVICE_ROLE_KEY) {
+    return createServerClient(ENV.SUPABASE_URL, ENV.SERVICE_ROLE_KEY, {
+      cookies: {
+        getAll() {
+          return [];
+        },
+        setAll() {},
+      },
+      headers: {
+        'x-forwarded-host': headers().get('x-forwarded-host') ?? undefined,
+        'x-forwarded-proto': headers().get('x-forwarded-proto') ?? undefined,
+      },
+    });
+  }
+
   const cookieStore = cookies();
   const h = headers();
 

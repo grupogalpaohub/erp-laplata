@@ -73,7 +73,7 @@ async function getPurchaseOrderItems(po_id: string): Promise<PurchaseOrderItem[]
   }
 
   // Transformar os dados para a interface esperada
-  return (data || []).map(item => ({
+  return (data || []).map((item: any) => ({
     po_item_id: item.po_item_id,
     mm_material: item.mm_material,
     mm_comercial: (item.mm_material as any)?.mm_comercial || null,

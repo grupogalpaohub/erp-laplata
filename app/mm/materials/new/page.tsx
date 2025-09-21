@@ -64,7 +64,7 @@ async function createMaterial(formData: FormData) {
 export default async function NewMaterialPage() {
   const [vendors] = await Promise.all([
     getVendors()
-  ])
+  ]) as [{ vendor_id: string; vendor_name: string; }[]]
 
   // Valores fixos para tipos e classificações
   // Usar configuração centralizada do customizing

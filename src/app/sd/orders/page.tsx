@@ -19,7 +19,7 @@ export default async function OrdersList() {
   // Mapa de clientes (id -> nome) se existir customer
   let customers: Record<string,string> = {}
   if (orders && orders.length) {
-    const customerIds = Array.from(new Set(orders.map(o => o.customer_id).filter(Boolean)))
+    const customerIds = Array.from(new Set(orders.map((o: any) => o.customer_id).filter(Boolean)))
     if (customerIds.length) {
       const { data: cust } = await sb.from('crm_customer' as any).select('customer_id, name').in('customer_id', customerIds)
       customers = Object.fromEntries((cust ?? []).map((c:any) => [c.customer_id, c.name]))

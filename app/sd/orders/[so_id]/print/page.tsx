@@ -133,7 +133,7 @@ export default async function PrintSalesOrderPage({ params }: { params: { so_id:
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
-                {order.items.map((item, index) => (
+                {order.items.map((item: any, index: number) => (
                   <tr key={index}>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                       {item.row_no}

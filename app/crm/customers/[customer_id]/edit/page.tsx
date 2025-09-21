@@ -2,7 +2,7 @@ import Link from 'next/link'
 import { supabaseServer } from '@/src/lib/supabaseServer'
 import { getTenantId } from '@/src/lib/auth'
 import { ArrowLeft, Save, X } from 'lucide-react'
-import { notFound } from 'next/navigation'
+import { notFound, redirect } from 'next/navigation'
 
 export const dynamic = 'force-dynamic'
 export const revalidate = 0
@@ -106,10 +106,10 @@ async function updateCustomer(formData: FormData) {
     // Calcular diferenças para auditoria
     const changes: Record<string, { before: any; after: any }> = {}
     Object.keys(updatedData).forEach(key => {
-      if (key !== 'updated_at' && currentData[key] !== updatedData[key]) {
+      if (key !== 'updated_at' && (currentData as any)[key] !== (updatedData as any)[key]) {
         changes[key] = {
-          before: currentData[key],
-          after: updatedData[key]
+          before: (currentData as any)[key],
+          after: (updatedData as any)[key]
         }
       }
     })
@@ -141,11 +141,13 @@ async function updateCustomer(formData: FormData) {
         })
     }
 
-    return { success: true }
+    // Redirecionar após sucesso
+    redirect(`/crm/customers/${customerId}`)
 
   } catch (error) {
     console.error('Error updating customer:', error)
-    return { success: false, error: error instanceof Error ? error.message : 'Erro desconhecido' }
+    // Em caso de erro, redirecionar de volta para a página de edição
+    redirect(`/crm/customers/${formData.get('customer_id')}/edit?error=${encodeURIComponent(error instanceof Error ? error.message : 'Erro desconhecido')}`)
   }
 }
 
@@ -191,20 +193,20 @@ export default async function EditCustomerPage({ params }: PageProps) {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-4">
-          <Link href={`/crm/customers/${customer.customer_id}`} className="btn-fiori-outline flex items-center gap-2">
+          <Link href={`/crm/customers/${customer?.customer_id}`} className="btn-fiori-outline flex items-center gap-2">
             <ArrowLeft className="w-4 h-4" />
             Voltar
           </Link>
           <div>
             <h1 className="text-3xl font-bold text-fiori-primary">Editar Cliente</h1>
-            <p className="text-fiori-secondary mt-2">{customer.name}</p>
+            <p className="text-fiori-secondary mt-2">{customer?.name}</p>
           </div>
         </div>
       </div>
 
       {/* Formulário */}
       <form action={updateCustomer} className="space-y-8">
-        <input type="hidden" name="customer_id" value={customer.customer_id} />
+        <input type="hidden" name="customer_id" value={customer?.customer_id} />
 
         {/* Dados Básicos */}
         <div className="card-fiori">
@@ -222,7 +224,7 @@ export default async function EditCustomerPage({ params }: PageProps) {
                   id="name"
                   name="name"
                   required
-                  defaultValue={customer.name}
+                  defaultValue={customer?.name}
                   className="input-fiori"
                   placeholder="Nome completo do cliente"
                 />
@@ -231,7 +233,7 @@ export default async function EditCustomerPage({ params }: PageProps) {
                 <label htmlFor="customer_type" className="label-fiori">
                   Tipo de Cliente
                 </label>
-                <select id="customer_type" name="customer_type" defaultValue={customer.customer_type} className="select-fiori">
+                <select id="customer_type" name="customer_type" defaultValue={customer?.customer_type} className="select-fiori">
                   <option value="PF">Pessoa Física</option>
                   <option value="PJ">Pessoa Jurídica</option>
                 </select>
@@ -244,7 +246,7 @@ export default async function EditCustomerPage({ params }: PageProps) {
                   type="text"
                   id="document_id"
                   name="document_id"
-                  defaultValue={customer.document_id || ''}
+                  defaultValue={customer?.document_id || ''}
                   className="input-fiori"
                   placeholder="000.000.000-00 ou 00.000.000/0000-00"
                 />
@@ -258,7 +260,7 @@ export default async function EditCustomerPage({ params }: PageProps) {
                   id="contact_email"
                   name="contact_email"
                   required
-                  defaultValue={customer.contact_email || ''}
+                  defaultValue={customer?.contact_email || ''}
                   className="input-fiori"
                   placeholder="cliente@exemplo.com"
                 />
@@ -282,7 +284,7 @@ export default async function EditCustomerPage({ params }: PageProps) {
                   type="text"
                   id="contact_name"
                   name="contact_name"
-                  defaultValue={customer.contact_name || ''}
+                  defaultValue={customer?.contact_name || ''}
                   className="input-fiori"
                   placeholder="Nome da pessoa de contato"
                 />
@@ -291,7 +293,7 @@ export default async function EditCustomerPage({ params }: PageProps) {
                 <label htmlFor="phone_country" className="label-fiori">
                   País
                 </label>
-                <select id="phone_country" name="phone_country" defaultValue={customer.phone_country || 'BR'} className="select-fiori">
+                <select id="phone_country" name="phone_country" defaultValue={customer?.phone_country || 'BR'} className="select-fiori">
                   <option value="BR">Brasil (+55)</option>
                   <option value="US">Estados Unidos (+1)</option>
                   <option value="AR">Argentina (+54)</option>
@@ -306,7 +308,7 @@ export default async function EditCustomerPage({ params }: PageProps) {
                   type="tel"
                   id="contact_phone"
                   name="contact_phone"
-                  defaultValue={customer.contact_phone || ''}
+                  defaultValue={customer?.contact_phone || ''}
                   className="input-fiori"
                   placeholder="(11) 99999-9999"
                 />
@@ -330,7 +332,7 @@ export default async function EditCustomerPage({ params }: PageProps) {
                   type="text"
                   id="addr_street"
                   name="addr_street"
-                  defaultValue={customer.addr_street || ''}
+                  defaultValue={customer?.addr_street || ''}
                   className="input-fiori"
                   placeholder="Nome da rua ou avenida"
                 />
@@ -343,7 +345,7 @@ export default async function EditCustomerPage({ params }: PageProps) {
                   type="text"
                   id="addr_number"
                   name="addr_number"
-                  defaultValue={customer.addr_number || ''}
+                  defaultValue={customer?.addr_number || ''}
                   className="input-fiori"
                   placeholder="123"
                 />
@@ -356,7 +358,7 @@ export default async function EditCustomerPage({ params }: PageProps) {
                   type="text"
                   id="addr_complement"
                   name="addr_complement"
-                  defaultValue={customer.addr_complement || ''}
+                  defaultValue={customer?.addr_complement || ''}
                   className="input-fiori"
                   placeholder="Apto 45, Bloco B"
                 />
@@ -369,7 +371,7 @@ export default async function EditCustomerPage({ params }: PageProps) {
                   type="text"
                   id="addr_district"
                   name="addr_district"
-                  defaultValue={customer.addr_district || ''}
+                  defaultValue={customer?.addr_district || ''}
                   className="input-fiori"
                   placeholder="Centro"
                 />
@@ -382,7 +384,7 @@ export default async function EditCustomerPage({ params }: PageProps) {
                   type="text"
                   id="addr_city"
                   name="addr_city"
-                  defaultValue={customer.addr_city || ''}
+                  defaultValue={customer?.addr_city || ''}
                   className="input-fiori"
                   placeholder="São Paulo"
                 />
@@ -395,7 +397,7 @@ export default async function EditCustomerPage({ params }: PageProps) {
                   type="text"
                   id="addr_state"
                   name="addr_state"
-                  defaultValue={customer.addr_state || ''}
+                  defaultValue={customer?.addr_state || ''}
                   className="input-fiori"
                   placeholder="SP"
                   maxLength={2}
@@ -409,7 +411,7 @@ export default async function EditCustomerPage({ params }: PageProps) {
                   type="text"
                   id="addr_zip"
                   name="addr_zip"
-                  defaultValue={customer.addr_zip || ''}
+                  defaultValue={customer?.addr_zip || ''}
                   className="input-fiori"
                   placeholder="00000-000"
                 />
@@ -418,7 +420,7 @@ export default async function EditCustomerPage({ params }: PageProps) {
                 <label htmlFor="addr_country" className="label-fiori">
                   País
                 </label>
-                <select id="addr_country" name="addr_country" defaultValue={customer.addr_country || 'BR'} className="select-fiori">
+                <select id="addr_country" name="addr_country" defaultValue={customer?.addr_country || 'BR'} className="select-fiori">
                   <option value="BR">Brasil</option>
                   <option value="US">Estados Unidos</option>
                   <option value="AR">Argentina</option>
@@ -440,7 +442,7 @@ export default async function EditCustomerPage({ params }: PageProps) {
                 <label htmlFor="payment_terms" className="label-fiori">
                   Forma de Pagamento *
                 </label>
-                <select id="payment_terms" name="payment_terms" required defaultValue={customer.payment_terms || ''} className="select-fiori">
+                <select id="payment_terms" name="payment_terms" required defaultValue={customer?.payment_terms || ''} className="select-fiori">
                   <option value="">Selecione uma forma de pagamento</option>
                   {paymentTerms.map((term) => (
                     <option key={term.terms_code} value={term.terms_code}>
@@ -454,7 +456,7 @@ export default async function EditCustomerPage({ params }: PageProps) {
                   type="checkbox"
                   id="is_active"
                   name="is_active"
-                  defaultChecked={customer.is_active}
+                  defaultChecked={customer?.is_active}
                   className="checkbox-fiori"
                 />
                 <label htmlFor="is_active" className="label-fiori ml-2">
@@ -467,7 +469,7 @@ export default async function EditCustomerPage({ params }: PageProps) {
 
         {/* Botões de Ação */}
         <div className="flex justify-end gap-4">
-          <Link href={`/crm/customers/${customer.customer_id}`} className="btn-fiori-outline flex items-center gap-2">
+          <Link href={`/crm/customers/${customer?.customer_id}`} className="btn-fiori-outline flex items-center gap-2">
             <X className="w-4 h-4" />
             Cancelar
           </Link>

@@ -16,8 +16,8 @@ export default async function WHDashboardPage() {
     blockedItems: 0,
     activeItems: 0
   }
-  let recentMovements = []
-  let topCollections = []
+  let recentMovements: any[] = []
+  let topCollections: any[] = []
 
   try {
     const supabase = supabaseServer()

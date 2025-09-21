@@ -7,8 +7,8 @@ export const revalidate = 0
 export const fetchCache = 'force-no-store'
 
 export default async function SDPage() {
-  let salesOrders = []
-  let customers = []
+  let salesOrders: any[] = []
+  let customers: any[] = []
   let totalOrders = 0
   let totalValue = 0
 

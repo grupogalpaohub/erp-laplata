@@ -9,9 +9,9 @@ export const revalidate = 0
 export const fetchCache = 'force-no-store'
 
 export default async function NewSalesOrderPage() {
-  let customers = []
-  let materials = []
-  let paymentTerms = []
+  let customers: any[] = []
+  let materials: any[] = []
+  let paymentTerms: any[] = []
 
   try {
     const supabase = supabaseServer()

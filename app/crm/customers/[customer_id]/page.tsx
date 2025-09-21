@@ -122,15 +122,15 @@ export default async function CustomerDetailPage({ params }: PageProps) {
             Voltar
           </Link>
           <div>
-            <h1 className="text-3xl font-bold text-fiori-primary">{customer.name}</h1>
+            <h1 className="text-3xl font-bold text-fiori-primary">{customer?.name}</h1>
             <p className="text-fiori-secondary mt-2">
-              {getCustomerTypeLabel(customer.customer_type)} • {customer.customer_id}
+              {customer?.customer_type ? getCustomerTypeLabel(customer.customer_type) : 'N/A'} • {customer?.customer_id}
             </p>
           </div>
         </div>
         <div className="flex gap-3">
           <Link
-            href={`/crm/customers/${customer.customer_id}/edit`}
+            href={`/crm/customers/${customer?.customer_id}/edit`}
             className="btn-fiori-primary flex items-center gap-2"
           >
             <Edit className="w-4 h-4" />
@@ -148,7 +148,7 @@ export default async function CustomerDetailPage({ params }: PageProps) {
             </div>
             <h3 className="font-semibold text-fiori-primary">Status</h3>
             <div className="mt-2">
-              {getStatusBadge(customer.is_active)}
+              {getStatusBadge(customer?.is_active ?? false)}
             </div>
           </div>
         </div>
@@ -160,7 +160,7 @@ export default async function CustomerDetailPage({ params }: PageProps) {
             </div>
             <h3 className="font-semibold text-fiori-primary">Cliente desde</h3>
             <p className="text-fiori-secondary mt-1">
-              {new Date(customer.created_date).toLocaleDateString('pt-BR')}
+              {customer?.created_date ? new Date(customer.created_date).toLocaleDateString('pt-BR') : 'N/A'}
             </p>
           </div>
         </div>
@@ -202,7 +202,7 @@ export default async function CustomerDetailPage({ params }: PageProps) {
               <Mail className="w-5 h-5 text-fiori-muted" />
               <div>
                 <p className="text-sm text-fiori-muted">Email</p>
-                <p className="font-medium">{customer.contact_email || '-'}</p>
+                <p className="font-medium">{customer?.contact_email || '-'}</p>
               </div>
             </div>
             <div className="flex items-center gap-3">
@@ -210,16 +210,16 @@ export default async function CustomerDetailPage({ params }: PageProps) {
               <div>
                 <p className="text-sm text-fiori-muted">Telefone</p>
                 <p className="font-medium">
-                  {formatPhone(customer.contact_phone, customer.phone_country)}
+                  {customer?.contact_phone ? formatPhone(customer.contact_phone, customer?.phone_country || 'BR') : 'N/A'}
                 </p>
               </div>
             </div>
-            {customer.contact_name && (
+            {customer?.contact_name && (
               <div className="flex items-center gap-3">
                 <User className="w-5 h-5 text-fiori-muted" />
                 <div>
                   <p className="text-sm text-fiori-muted">Pessoa de Contato</p>
-                  <p className="font-medium">{customer.contact_name}</p>
+                  <p className="font-medium">{customer?.contact_name}</p>
                 </div>
               </div>
             )}
@@ -227,7 +227,7 @@ export default async function CustomerDetailPage({ params }: PageProps) {
               <CreditCard className="w-5 h-5 text-fiori-muted" />
               <div>
                 <p className="text-sm text-fiori-muted">Forma de Pagamento</p>
-                <p className="font-medium">{customer.payment_terms || '-'}</p>
+                <p className="font-medium">{customer?.payment_terms || '-'}</p>
               </div>
             </div>
           </div>
@@ -239,26 +239,26 @@ export default async function CustomerDetailPage({ params }: PageProps) {
             <h3 className="card-fiori-title">Endereço</h3>
           </div>
           <div className="card-fiori-content">
-            {customer.addr_street ? (
+            {customer?.addr_street ? (
               <div className="space-y-2">
                 <div className="flex items-center gap-3">
                   <MapPin className="w-5 h-5 text-fiori-muted" />
                   <div>
                     <p className="font-medium">
-                      {customer.addr_street}
-                      {customer.addr_number && `, ${customer.addr_number}`}
-                      {customer.addr_complement && ` - ${customer.addr_complement}`}
+                      {customer?.addr_street}
+                      {customer?.addr_number && `, ${customer?.addr_number}`}
+                      {customer?.addr_complement && ` - ${customer?.addr_complement}`}
                     </p>
                     <p className="text-sm text-fiori-muted">
-                      {customer.addr_district && `${customer.addr_district}, `}
-                      {customer.addr_city && customer.addr_state 
-                        ? `${customer.addr_city}/${customer.addr_state}`
-                        : customer.addr_city || customer.addr_state
+                      {customer?.addr_district && `${customer?.addr_district}, `}
+                      {customer?.addr_city && customer?.addr_state 
+                        ? `${customer?.addr_city}/${customer?.addr_state}`
+                        : customer?.addr_city || customer?.addr_state
                       }
-                      {customer.addr_zip && ` - ${customer.addr_zip}`}
+                      {customer?.addr_zip && ` - ${customer?.addr_zip}`}
                     </p>
                     <p className="text-sm text-fiori-muted">
-                      {customer.addr_country === 'BR' ? 'Brasil' : customer.addr_country}
+                      {customer?.addr_country === 'BR' ? 'Brasil' : customer?.addr_country}
                     </p>
                   </div>
                 </div>
@@ -279,14 +279,14 @@ export default async function CustomerDetailPage({ params }: PageProps) {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
               <p className="text-sm text-fiori-muted">Tipo</p>
-              <p className="font-medium">{getCustomerTypeLabel(customer.customer_type)}</p>
+              <p className="font-medium">{customer?.customer_type ? getCustomerTypeLabel(customer.customer_type) : 'N/A'}</p>
             </div>
             <div>
               <p className="text-sm text-fiori-muted">
-                {customer.customer_type === 'PJ' ? 'CNPJ' : 'CPF'}
+                {customer?.customer_type === 'PJ' ? 'CNPJ' : 'CPF'}
               </p>
               <p className="font-medium">
-                {formatDocument(customer.document_id, customer.customer_type)}
+                {customer?.document_id ? formatDocument(customer.document_id, customer?.customer_type || 'PF') : 'N/A'}
               </p>
             </div>
           </div>
@@ -327,13 +327,13 @@ export default async function CustomerDetailPage({ params }: PageProps) {
             <div>
               <p className="text-sm text-fiori-muted">Criado em</p>
               <p className="font-medium">
-                {new Date(customer.created_date).toLocaleString('pt-BR')}
+                {customer?.created_date ? new Date(customer.created_date).toLocaleString('pt-BR') : 'N/A'}
               </p>
             </div>
             <div>
               <p className="text-sm text-fiori-muted">Última atualização</p>
               <p className="font-medium">
-                {new Date(customer.updated_at).toLocaleString('pt-BR')}
+                {customer?.updated_at ? new Date(customer.updated_at).toLocaleString('pt-BR') : 'N/A'}
               </p>
             </div>
           </div>

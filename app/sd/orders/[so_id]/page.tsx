@@ -37,7 +37,7 @@ interface OrderItem {
   mm_material: {
     mm_comercial: string
     mm_desc: string
-  }
+  }[]
 }
 
 interface PageProps {
@@ -80,7 +80,7 @@ export default async function SalesOrderDetailPage({ params }: PageProps) {
         unit_price_cents,
         line_total_cents,
         row_no,
-        mm_material!inner(mm_comercial, mm_desc)
+        mm_material(mm_comercial, mm_desc)
       `)
       .eq('tenant_id', tenantId)
       .eq('so_id', params.so_id)
@@ -116,7 +116,7 @@ export default async function SalesOrderDetailPage({ params }: PageProps) {
         return (
           <div className="flex gap-3">
             <Link
-              href={`/sd/orders/${order.so_id}/edit`}
+              href={`/sd/orders/${order?.so_id}/edit`}
               className="btn-fiori-primary flex items-center gap-2"
             >
               <Edit className="w-4 h-4" />
@@ -145,7 +145,7 @@ export default async function SalesOrderDetailPage({ params }: PageProps) {
         return (
           <div className="flex gap-3">
             <Link
-              href={`/sd/orders/${order.so_id}/print`}
+              href={`/sd/orders/${order?.so_id}/print`}
               className="btn-fiori-outline flex items-center gap-2"
             >
               <Printer className="w-4 h-4" />
@@ -161,7 +161,7 @@ export default async function SalesOrderDetailPage({ params }: PageProps) {
         return (
           <div className="flex gap-3">
             <Link
-              href={`/sd/orders/${order.so_id}/print`}
+              href={`/sd/orders/${order?.so_id}/print`}
               className="btn-fiori-outline flex items-center gap-2"
             >
               <Printer className="w-4 h-4" />
@@ -183,16 +183,16 @@ export default async function SalesOrderDetailPage({ params }: PageProps) {
           </Link>
           <div>
             <h1 className="text-3xl font-bold text-fiori-primary">
-              Pedido {order.doc_no || order.so_id}
+              Pedido {order?.doc_no || order?.so_id}
             </h1>
             <p className="text-fiori-secondary mt-2">
-              {order.crm_customer.name} • {new Date(order.order_date).toLocaleDateString('pt-BR')}
+              {order?.crm_customer?.name} • {order?.order_date ? new Date(order.order_date).toLocaleDateString('pt-BR') : 'N/A'}
             </p>
           </div>
         </div>
         <div className="flex items-center gap-4">
-          {getStatusBadge(order.status)}
-          {getStatusActions(order.status)}
+          {getStatusBadge(order?.status || 'DRAFT')}
+          {getStatusActions(order?.status || 'DRAFT')}
         </div>
       </div>
 
@@ -205,15 +205,15 @@ export default async function SalesOrderDetailPage({ params }: PageProps) {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <div>
               <p className="text-sm text-fiori-muted">Nome</p>
-              <p className="font-semibold text-fiori-primary">{order.crm_customer.name}</p>
+              <p className="font-semibold text-fiori-primary">{order?.crm_customer.name}</p>
             </div>
             <div>
               <p className="text-sm text-fiori-muted">Email</p>
-              <p className="font-medium">{order.crm_customer.contact_email || '-'}</p>
+              <p className="font-medium">{order?.crm_customer.contact_email || '-'}</p>
             </div>
             <div>
               <p className="text-sm text-fiori-muted">Telefone</p>
-              <p className="font-medium">{order.crm_customer.contact_phone || '-'}</p>
+              <p className="font-medium">{order?.crm_customer.contact_phone || '-'}</p>
             </div>
           </div>
         </div>
@@ -229,32 +229,32 @@ export default async function SalesOrderDetailPage({ params }: PageProps) {
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <p className="text-sm text-fiori-muted">Número do Pedido</p>
-                <p className="font-semibold">{order.doc_no || order.so_id}</p>
+                <p className="font-semibold">{order?.doc_no || order?.so_id}</p>
               </div>
               <div>
                 <p className="text-sm text-fiori-muted">Data do Pedido</p>
-                <p className="font-medium">{new Date(order.order_date).toLocaleDateString('pt-BR')}</p>
+                <p className="font-medium">{order?.order_date ? new Date(order.order_date).toLocaleDateString('pt-BR') : 'N/A'}</p>
               </div>
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <p className="text-sm text-fiori-muted">Forma de Pagamento</p>
-                <p className="font-medium">{order.payment_term || '-'}</p>
+                <p className="font-medium">{order?.payment_term || '-'}</p>
               </div>
               <div>
                 <p className="text-sm text-fiori-muted">Previsão de Entrega</p>
                 <p className="font-medium">
-                  {order.expected_ship 
-                    ? new Date(order.expected_ship).toLocaleDateString('pt-BR')
+                  {order?.expected_ship 
+                    ? new Date(order?.expected_ship).toLocaleDateString('pt-BR')
                     : '-'
                   }
                 </p>
               </div>
             </div>
-            {order.notes && (
+            {order?.notes && (
               <div>
                 <p className="text-sm text-fiori-muted">Observações</p>
-                <p className="font-medium">{order.notes}</p>
+                <p className="font-medium">{order?.notes}</p>
               </div>
             )}
           </div>
@@ -268,14 +268,14 @@ export default async function SalesOrderDetailPage({ params }: PageProps) {
             <div className="flex justify-between items-center py-2 border-b border-fiori-border">
               <span className="text-fiori-muted">Valor Final:</span>
               <span className="text-lg font-semibold text-fiori-primary">
-                R$ {(order.total_final_cents / 100).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                R$ {((order?.total_final_cents || 0) / 100).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
               </span>
             </div>
-            {order.total_negotiated_cents && order.total_negotiated_cents !== order.total_final_cents && (
+            {order?.total_negotiated_cents && order?.total_negotiated_cents !== order?.total_final_cents && (
               <div className="flex justify-between items-center py-2 border-b border-fiori-border">
                 <span className="text-fiori-muted">Valor Negociado:</span>
                 <span className="text-lg font-semibold text-fiori-warning">
-                  R$ {(order.total_negotiated_cents / 100).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                  R$ {(order?.total_negotiated_cents / 100).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
                 </span>
               </div>
             )}
@@ -310,7 +310,7 @@ export default async function SalesOrderDetailPage({ params }: PageProps) {
                       <td>
                         <div>
                           <div className="font-semibold text-fiori-primary">
-                            {item.mm_material.mm_comercial || item.mm_material.mm_desc}
+                            {item.mm_material[0]?.mm_comercial || item.mm_material[0]?.mm_desc || 'N/A'}
                           </div>
                           <div className="text-xs text-fiori-muted">{item.material_id}</div>
                         </div>
@@ -337,7 +337,7 @@ export default async function SalesOrderDetailPage({ params }: PageProps) {
                       Total:
                     </td>
                     <td className="text-right font-bold text-lg text-fiori-primary">
-                      R$ {(order.total_final_cents / 100).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                      R$ {((order?.total_final_cents || 0) / 100).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
                     </td>
                   </tr>
                 </tfoot>
@@ -364,13 +364,13 @@ export default async function SalesOrderDetailPage({ params }: PageProps) {
             <div>
               <p className="text-sm text-fiori-muted">Criado em</p>
               <p className="font-medium">
-                {new Date(order.created_at).toLocaleString('pt-BR')}
+                {order?.created_at ? new Date(order.created_at).toLocaleString('pt-BR') : 'N/A'}
               </p>
             </div>
             <div>
               <p className="text-sm text-fiori-muted">Última atualização</p>
               <p className="font-medium">
-                {new Date(order.updated_at).toLocaleString('pt-BR')}
+                {order?.updated_at ? new Date(order.updated_at).toLocaleString('pt-BR') : 'N/A'}
               </p>
             </div>
           </div>

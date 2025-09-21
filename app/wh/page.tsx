@@ -7,7 +7,7 @@ export const revalidate = 0
 export const fetchCache = 'force-no-store'
 
 export default async function WHPage() {
-  let inventoryItems = []
+  let inventoryItems: any[] = []
   let totalItems = 0
   let totalValue = 0
   let lowStockItems = 0

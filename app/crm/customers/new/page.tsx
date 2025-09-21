@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import { supabaseServer } from '@/src/lib/supabaseServer'
 import { getTenantId } from '@/src/lib/auth'
+import { redirect } from 'next/navigation'
 import { ArrowLeft, Save, X } from 'lucide-react'
 
 export const dynamic = 'force-dynamic'
@@ -87,18 +88,19 @@ async function createCustomer(formData: FormData) {
         created_at: new Date().toISOString()
       })
 
-    // Redirecionar para a lista de clientes
-    return { success: true, customerId }
+    // Redirecionar após sucesso
+    redirect(`/crm/customers/${customerId}`)
 
   } catch (error) {
     console.error('Error creating customer:', error)
-    return { success: false, error: error instanceof Error ? error.message : 'Erro desconhecido' }
+    // Em caso de erro, redirecionar de volta para a página de criação
+    redirect(`/crm/customers/new?error=${encodeURIComponent(error instanceof Error ? error.message : 'Erro desconhecido')}`)
   }
 }
 
 export default async function NewCustomerPage() {
   // Buscar opções de payment terms
-  let paymentTerms = []
+  let paymentTerms: any[] = []
   try {
     const supabase = supabaseServer()
     const tenantId = await getTenantId()

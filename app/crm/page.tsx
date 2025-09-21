@@ -7,7 +7,7 @@ export const revalidate = 0
 export const fetchCache = 'force-no-store'
 
 export default async function CRMPage() {
-  let customers = []
+  let customers: any[] = []
   let totalCustomers = 0
   let activeCustomers = 0
 

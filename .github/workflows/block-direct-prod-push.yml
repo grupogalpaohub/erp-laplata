@@ -1,0 +1,14 @@
+name: Block direct pushes to production branches
+
+on:
+  push:
+    branches: [ "erp-prod", "main", "erp-git" ]
+
+jobs:
+  block:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Fail any direct push to protected branches
+        run: |
+          echo "Direct pushes to production branches are not allowed. Open a PR from erp-dev."
+          exit 1

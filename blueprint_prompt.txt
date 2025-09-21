@@ -1,8 +1,8 @@
-🧠 SYSTEM PROMPT — ERP La Plata (Fiori-like, Next 14 + Supabase, Free Tier-Ready)
+🧠 SYSTEM PROMPT — ERP La Plata (Fiori-like, Next 14 + Supabase, Vercel Ready)
 
 Implemente um ERP/CRM modular (MM/WH, SD, CRM, FI, CO) com telas de Setup/Customizing.
-Stack: Next.js 14 (App Router, React + TS) + Tailwind + Radix/shadcn + TanStack Query + Supabase (DB/Auth/Edge Functions) + Cloudflare Pages.
-Repositório: erp-laplata, branch: erp-git.
+Stack: Next.js 14 (App Router, React + TS) + Tailwind + Supabase (DB/Auth/Edge Functions) + Vercel.
+Repositório: erp-laplata, branches: erp-prod (produção), erp-dev (desenvolvimento), erp-git (integração).
 
 Regras globais (obrigatórias)
 
@@ -361,20 +361,26 @@ Cache: no frontend, TanStack Query com staleTime 30–120s para listas estáveis
 
 Cron KPI: no free da Supabase, rodar a cada 15 min.
 
-🧰 Build & Deploy (Free Tier friendly)
-Cloudflare Pages
+🧰 Build & Deploy (Vercel Ready)
+Vercel
 
-Framework preset: None
+Framework preset: Next.js
 
-Build command: cd frontend && npm install && npm run build
+Build command: npm run build
 
-Output: frontend/out
+Output: .next
 
-Branch de produção: erp-git
+Branch de produção: erp-prod
 
-Images: unoptimized: true no next.config.js
+Branch de preview: erp-dev, erp-git
 
-Env: somente NEXT_PUBLIC_* no Pages; service role não.
+Images: otimizadas automaticamente
+
+Env: NEXT_PUBLIC_* para frontend; SUPABASE_SERVICE_ROLE_KEY para Edge Functions.
+
+Dynamic SSR: Todas as páginas com `export const dynamic = 'force-dynamic'`.
+
+API Routes: Todas com `export const dynamic = 'force-dynamic'` e `runtime = 'nodejs'`.
 
 Supabase
 
@@ -435,13 +441,19 @@ Após publicar Edge Functions
 
  POST /kpi/refresh grava snapshots
 
-Cloudflare
+Vercel
 
- Variáveis NEXT_PUBLIC_* setadas
+ Variáveis NEXT_PUBLIC_* setadas para Production e Preview
 
- Build aponta para frontend/out
+ Build aponta para .next
 
- Branch de produção = erp-git
+ Branch de produção = erp-prod
+
+ Branch de preview = erp-dev, erp-git
+
+ Deploy automático configurado
+
+ GitHub Workflows para controle de deploys
 
 🧩 Componentes/base de código a gerar
 

@@ -1,9 +1,10 @@
 ==========================
-Cursor Rules — ERP LaPlata (v3, Vercel + Supabase)
+Cursor Rules — ERP LaPlata (v4, Vercel + Supabase + Dynamic SSR)
 ==========================
 
 Objetivo: garantir que o ERP rode em produção no Vercel com Supabase real,
 impedindo simplificações erradas (SAFE MODE, static export, mocks locais).
+Sistema totalmente funcional com deploy automático e configurações dinâmicas.
 
 ==========================
 Database Rules
@@ -29,10 +30,13 @@ Frontend Rules
 ==========================
 Harmonização
 ==========================
-- Branch de produção: `erp-git`.
-- Deploy: Vercel → Root: `frontend`, Build: `npm run build`, Output: `.next`.
+- Branch de produção: `erp-prod`.
+- Branch de desenvolvimento: `erp-dev` (Preview automático).
+- Branch de integração: `erp-git` (Preview automático).
+- Deploy: Vercel → Root: `.`, Build: `npm run build`, Output: `.next`.
 - NUNCA tentar Cloudflare Pages para este projeto (somente Vercel).
 - Toda alteração de schema: migration em `/supabase/migrations`.
+- Deploy automático: Push para `erp-dev` → Preview, Push para `erp-prod` → Production.
 
 ==========================
 Anti-Simplificação
@@ -55,12 +59,13 @@ PERMITIDO:
 ==========================
 Arquitetura Atual
 ==========================
-- **Layout**: Sidebar fixa + header + main content
-- **Autenticação**: Middleware de proteção + Google OAuth
-- **Módulos**: MM, SD, WH, CRM, FI, CO, Analytics
-- **UI**: Tailwind CSS + design Fiori-like
-- **Dados**: Server Components + Supabase real
-- **Deploy**: Vercel com variáveis de ambiente
+- **Layout**: Sidebar fixa + header + main content + botão "Voltar"
+- **Autenticação**: Middleware de proteção + Google OAuth + Supabase SSR
+- **Módulos**: MM, SD, WH, CRM, FI, CO, Analytics (todos funcionais)
+- **UI**: Tailwind CSS + design Fiori-like + tema escuro consistente
+- **Dados**: Server Components + Supabase real + Dynamic SSR
+- **Deploy**: Vercel com variáveis de ambiente + GitHub Workflows
+- **Configuração**: Dynamic rendering em todas as páginas e APIs
 
 ==========================
 Rotas Obrigatórias
@@ -107,14 +112,17 @@ Obrigatórias no Vercel:
 Check antes de PR
 ==========================
 - [ ] Build funciona em Vercel com `.next`.
-- [ ] UI segue padrão Fiori (sidebar, KPIs, tiles).
+- [ ] UI segue padrão Fiori (sidebar, KPIs, tiles, botão "Voltar").
 - [ ] Queries usam Supabase (sem mock).
 - [ ] Login bloqueia acesso sem autenticação.
-- [ ] Branch correta: `erp-git`.
+- [ ] Branch correta: `erp-dev` (desenvolvimento) ou `erp-prod` (produção).
 - [ ] Middleware de proteção funcionando.
-- [ ] Catálogo conectado ao Supabase real.
+- [ ] Todas as páginas com `export const dynamic = 'force-dynamic'`.
+- [ ] Todas as APIs com `export const dynamic = 'force-dynamic'`.
+- [ ] Nenhuma duplicação de `export const revalidate`.
 - [ ] Error boundaries implementados.
 - [ ] Nenhum placeholder "em breve".
+- [ ] Deploy automático funcionando.
 
 ==========================
 Git Hooks

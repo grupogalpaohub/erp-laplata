@@ -1,8 +1,9 @@
-# Prompt completo — UI ERP/CRM estilo Fiori
+# Prompt completo — UI ERP/CRM estilo Fiori (v2 - Tema Escuro)
 
-Quero atualizar o frontend do ERP/CRM para um **visual Fiori-like moderno**, com KPIs comparativos no topo e módulos organizados em tiles.
+Quero atualizar o frontend do ERP/CRM para um **visual Fiori-like moderno com tema escuro**, com KPIs comparativos no topo e módulos organizados em tiles.
 
-Use **React + Tailwind + Radix UI + Lucide icons** (mantendo a stack atual).
+Use **React + Tailwind + Lucide icons** (mantendo a stack atual).
+Sistema totalmente funcional com deploy automático no Vercel.
 
 ---
 
@@ -11,14 +12,17 @@ Use **React + Tailwind + Radix UI + Lucide icons** (mantendo a stack atual).
 - **Sidebar fixa à esquerda**:
     - Ícones + labels (CO, MM, SD, WH, CRM, FI, Analytics).
     - Deve recolher para apenas ícones em telas menores.
+    - **Tema escuro** com fundo #1a1a1a.
 - **Header/topbar fixo**:
     - Logo + nome do ERP.
     - Nome da empresa/tenant atual.
-    - Campo de **busca global** (abre modal tipo “command palette”).
+    - **Botão "Voltar"** em todas as páginas de módulos.
+    - Campo de **busca global** (abre modal tipo "command palette").
     - Atalhos para notificações, perfil do usuário e ajuda.
 - **Área principal**:
     - **Linha inicial com 4 KPIs** (detalhados abaixo).
     - **Grid de módulos em tiles/cards** (um para cada módulo do ERP).
+    - **Fundo escuro** consistente em toda aplicação.
 
 ---
 
@@ -43,10 +47,12 @@ Cada KPI deve exibir **valor principal em destaque** e **comparativo/contexto em
 
 **Estilo visual dos KPIs**:
 
+- **Tema escuro**: Fundo #2a2a2a, bordas sutis, sem caixas brancas.
 - Valor grande em bold, 24–32px, cor contextual (verde para positivo, vermelho para alerta, azul neutro).
-- Comparativo em fonte menor (12–14px), cor cinza/neutral.
+- Comparativo em fonte menor (12–14px), cor cinza claro.
 - Ícone no canto esquerdo de cada card.
 - Badge opcional (+/- %) se houver variação em relação ao mês anterior.
+- **Tiles quadrados** sem bordas arredondadas (estilo Fiori).
 
 ---
 
@@ -54,11 +60,12 @@ Cada KPI deve exibir **valor principal em destaque** e **comparativo/contexto em
 
 Cada módulo (CO, MM, SD, WH, CRM, FI, Analytics) deve ter um **tile retangular estilo Fiori**:
 
-- Fundo branco, sombra leve, bordas arredondadas (8–12px).
+- **Tema escuro**: Fundo #2a2a2a, sombra leve, **bordas quadradas** (estilo Fiori).
 - **Ícone + título** no topo esquerdo.
 - **Links internos** listados dentro do card (ex.: Dashboard, Setup, Criar Pedido…).
 - **Badges dinâmicos** quando houver status (ex.: nº de pedidos pendentes).
 - **Hover:** leve aumento de sombra + animação de zoom.
+- **Sem caixas brancas** em lugar nenhum.
 
 **Cores por módulo (identidade visual):**
 
@@ -74,12 +81,15 @@ Cada módulo (CO, MM, SD, WH, CRM, FI, Analytics) deve ter um **tile retangular 
 
 ## **4. Estilo Visual**
 
-- Paleta base inspirada no **SAP Fiori**:
-    - Branco / Cinza claro (#F5F6F8).
-    - Azul principal (#0A6ED1).
+- **Tema escuro** inspirado no **SAP Fiori**:
+    - Fundo principal: #1a1a1a (escuro).
+    - Cards/tiles: #2a2a2a (escuro médio).
+    - Azul principal: #0A6ED1 (destaque).
     - Acentos coloridos por módulo (cores definidas acima).
+    - **Sem caixas brancas** em lugar nenhum.
 - Tipografia: **Inter ou Ubuntu**.
 - Layout espaçado, clean, enterprise.
+- **Tiles quadrados** sem bordas arredondadas (estilo Fiori).
 
 ---
 
@@ -93,11 +103,14 @@ Cada módulo (CO, MM, SD, WH, CRM, FI, Analytics) deve ter um **tile retangular 
 
 ## **Resumo**
 
-- Sidebar fixa estilo Fiori.
-- Header corporativo com busca global e tenant.
+- Sidebar fixa estilo Fiori com **tema escuro**.
+- Header corporativo com busca global, tenant e **botão "Voltar"**.
 - **KPIs comparativos no topo** (Pedidos, Receita, Leads, Estoque).
 - Tiles coloridos para cada módulo, clean e responsivos.
+- **Tema escuro** consistente, sem caixas brancas.
+- **Tiles quadrados** sem bordas arredondadas (estilo Fiori).
 - Visual minimalista, moderno e pronto para uso enterprise.
+- **Deploy automático** no Vercel funcionando.
 
 ---
 

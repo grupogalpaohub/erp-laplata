@@ -388,15 +388,36 @@ vercel --prod
 - [ ] **Documentação** - Guias detalhados
 - [ ] **Monitoramento** - Logs e métricas
 
-## Vercel Setup (Prod + Preview)
+## 🚀 Vercel Setup (Produção + Preview)
 
-1. **Production Branch**: selecione `erp-prod` em *Project → Settings → General → Production Branch*.
-2. **Preview Deployments**: qualquer branch ≠ produção vira **Preview**.
-3. **Auto-Cancel** (Preview): já habilitado em `vercel.json` (`github.autoJobCancelation: true`).
-4. **ENV Vars (todos os ambientes)**:
-   - `NEXT_PUBLIC_SUPABASE_URL`
-   - `NEXT_PUBLIC_SUPABASE_ANON_KEY`
-5. **SSR Global**: usamos `export const dynamic = 'force-dynamic'` no `app/layout.*` para evitar build estático de páginas que usam cookies/Supabase.
+### Configuração de Branches
+1. **Production Branch**: `erp-prod` (configurado em Project → Settings → General)
+2. **Preview Branches**: `erp-dev`, `erp-git` (qualquer branch ≠ produção)
+3. **Auto-Cancel**: Habilitado para cancelar deploys anteriores automaticamente
+4. **Deploy Hooks**: Configurados para controle manual de deploys
+
+### Variáveis de Ambiente
+Configure no dashboard do Vercel para **Production** e **Preview**:
+- `NEXT_PUBLIC_SUPABASE_URL` - URL do projeto Supabase
+- `NEXT_PUBLIC_SUPABASE_ANON_KEY` - Chave anônima do Supabase
+- `NEXT_PUBLIC_SITE_URL` - URL base da aplicação (opcional)
+
+### Configurações Técnicas
+- **SSR Global**: `export const dynamic = 'force-dynamic'` em todas as páginas
+- **API Routes**: Configuradas com `export const dynamic = 'force-dynamic'`
+- **Runtime**: `nodejs` para todas as rotas API
+- **Cache**: `revalidate = 0` e `fetchCache = 'force-no-store'`
+
+### GitHub Workflows
+- **Deploy Preview**: Trigger automático via Deploy Hook para `erp-dev`
+- **Block Production**: Previne pushes diretos para branches de produção
+- **Auto-Cancel**: Cancela deploys anteriores quando novo commit é feito
+
+### Troubleshooting Deploy
+- **Build Errors**: Verificar duplicações de `export const` em arquivos
+- **Dynamic Server Usage**: Todas as rotas configuradas com `force-dynamic`
+- **Environment Variables**: Confirmar configuração no Vercel Dashboard
+- **Logs**: Usar `vercel logs <deployment-url>` para debug
 
 ## 📄 Licença
 

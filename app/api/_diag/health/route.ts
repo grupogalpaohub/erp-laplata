@@ -1,19 +1,19 @@
-import { NextResponse } from 'next/server'
-import { supabaseServer } from '@/src/lib/supabase/server'
+import { NextResponse } from 'next/server';
+
+export const dynamic = 'force-dynamic';
 
 export async function GET() {
-  try {
-    const sb = supabaseServer()
-    const { data: pong } = await sb.rpc('pg_sleep', { seconds: 0 }).catch(() => ({ data: 'ok' }))
-    return NextResponse.json({
-      ok: true,
-      env: {
-        url: !!process.env.NEXT_PUBLIC_SUPABASE_URL,
-        anon: !!process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
-      },
-      pong: !!pong
-    })
-  } catch (e: any) {
-    return NextResponse.json({ ok: false, error: String(e?.message || e) }, { status: 500 })
-  }
+  const env = {
+    NEXT_PUBLIC_SITE_URL: !!process.env.NEXT_PUBLIC_SITE_URL,
+    NEXT_PUBLIC_SUPABASE_URL: !!process.env.NEXT_PUBLIC_SUPABASE_URL,
+    NEXT_PUBLIC_SUPABASE_ANON_KEY: !!process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
+    NODE_ENV: process.env.NODE_ENV ?? null,
+  };
+
+  return NextResponse.json({
+    ok: true,
+    hint: 'Se NEXT_PUBLIC_SITE_URL estiver false no Preview, tudo bem — usamos o host automaticamente.',
+    env,
+    now: new Date().toISOString(),
+  });
 }

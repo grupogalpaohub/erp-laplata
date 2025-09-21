@@ -1,29 +1,23 @@
-export const runtime = 'nodejs'
-
 import { cookies } from 'next/headers'
 import { createServerClient } from '@supabase/ssr'
 
-/**
- * Server-side Supabase client using cookies() to forward the user session.
- * Use em Server Components e Route Handlers.
- */
-export function createClient() {
-  return createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    {
-      cookies: {
-        getAll: () => cookies().getAll(),
-        setAll: () => {},
-      },
-    }
-  )
+function required(name: string, value: string | undefined) {
+  if (!value) {
+    throw new Error(`[ENV] Missing ${name}. Defina NEXT_PUBLIC_SUPABASE_URL e NEXT_PUBLIC_SUPABASE_ANON_KEY no Vercel.`)
+  }
+  return value
 }
 
-/**
- * Backward-compatible alias used em vários arquivos legados.
- * Mantém o mesmo comportamento do createClient().
- */
 export function supabaseServer() {
-  return createClient()
+  const url  = required('NEXT_PUBLIC_SUPABASE_URL', process.env.NEXT_PUBLIC_SUPABASE_URL)
+  const anon = required('NEXT_PUBLIC_SUPABASE_ANON_KEY', process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY)
+
+  const cookieStore = cookies()
+  return createServerClient(url, anon, {
+    cookies: {
+      getAll() { return cookieStore.getAll() },
+      set() { /* Next SSR: o próprio framework persistirá */ },
+      remove() { /* idem */ }
+    }
+  })
 }

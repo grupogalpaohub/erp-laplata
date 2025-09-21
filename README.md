@@ -388,6 +388,16 @@ vercel --prod
 - [ ] **Documentação** - Guias detalhados
 - [ ] **Monitoramento** - Logs e métricas
 
+## Vercel Setup (Prod + Preview)
+
+1. **Production Branch**: selecione `erp-prod` em *Project → Settings → General → Production Branch*.
+2. **Preview Deployments**: qualquer branch ≠ produção vira **Preview**.
+3. **Auto-Cancel** (Preview): já habilitado em `vercel.json` (`github.autoJobCancelation: true`).
+4. **ENV Vars (todos os ambientes)**:
+   - `NEXT_PUBLIC_SUPABASE_URL`
+   - `NEXT_PUBLIC_SUPABASE_ANON_KEY`
+5. **SSR Global**: usamos `export const dynamic = 'force-dynamic'` no `app/layout.*` para evitar build estático de páginas que usam cookies/Supabase.
+
 ## 📄 Licença
 
 Proprietário - Grupo Galpão Hub

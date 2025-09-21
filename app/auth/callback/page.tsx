@@ -13,20 +13,40 @@ export default function AuthCallbackPage() {
   useEffect(() => {
     async function finalize() {
       try {
+        console.log('[CALLBACK] Processando callback...');
+        
         if (search.get('code')) {
+          console.log('[CALLBACK] Tem code, fazendo exchangeCodeForSession...');
           const { error } = await supabase.auth.exchangeCodeForSession(window.location.href);
-          if (error) console.error('[auth] exchangeCodeForSession error:', error);
+          if (error) {
+            console.error('[CALLBACK] exchangeCodeForSession error:', error);
+          } else {
+            console.log('[CALLBACK] Sessão criada com sucesso!');
+          }
         } else if (typeof window !== 'undefined' && window.location.hash.includes('access_token')) {
+          console.log('[CALLBACK] Tem access_token no hash...');
           const { error } = await supabase.auth.getSessionFromUrl({ storeSession: true });
-          if (error) console.error('[auth] getSessionFromUrl error:', error);
+          if (error) {
+            console.error('[CALLBACK] getSessionFromUrl error:', error);
+          } else {
+            console.log('[CALLBACK] Sessão criada do hash!');
+          }
         }
-      } finally {
+        
+        console.log('[CALLBACK] Redirecionando para:', next);
         router.replace(next);
+      } catch (error) {
+        console.error('[CALLBACK] Erro geral:', error);
+        router.replace('/');
       }
     }
     finalize();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  return <div style={{display:'grid',placeItems:'center',height:'50vh'}}><p>Finalizando login…</p></div>;
+  return (
+    <div style={{display:'grid',placeItems:'center',height:'50vh'}}>
+      <p>Finalizando login...</p>
+    </div>
+  );
 }

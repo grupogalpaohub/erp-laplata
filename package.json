@@ -7,6 +7,7 @@
     "build": "next build",
     "start": "next start",
     "preview": "next build && next start",
+    "env:check": "node -e \"require('dotenv').config({path:'.env.local'}); console.log('URL=',process.env.NEXT_PUBLIC_SUPABASE_URL||'<vazio>'); console.log('ANON=',process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY?'ok':'<vazio>'); console.log('SITE=',process.env.NEXT_PUBLIC_SITE_URL||'<vazio>')\"",
     "lint": "next lint"
   },
   "dependencies": {
@@ -15,6 +16,7 @@
     "@supabase/supabase-js": "^2.45.4",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
+    "dotenv": "^17.2.2",
     "lucide-react": "^0.544.0",
     "next": "^14.2.32",
     "react": "^18.3.1",

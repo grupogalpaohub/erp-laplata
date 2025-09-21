@@ -22,23 +22,23 @@ export default async function CatalogoMateriais() {
   const supabase = createSupabaseServerClient()
   const tenantId = await getTenantId()
 
-  const { data, error } = await supabase
-    .from('mm_material')
-    .select(`
-      mm_material, 
-      mm_comercial, 
-      mm_desc, 
-      mm_mat_type, 
-      mm_mat_class, 
-      mm_price_cents, 
-      commercial_name, 
-      lead_time_days, 
-      mm_vendor_id, 
-      status,
-      mm_vendor!inner(vendor_name)
-    `)
-    .eq('tenant_id', tenantId)
-    .order('mm_material', { ascending: true })
+          const { data, error } = await supabase
+            .from('mm_material')
+            .select(`
+              mm_material, 
+              mm_comercial, 
+              mm_desc, 
+              mm_mat_type, 
+              mm_mat_class, 
+              mm_price_cents, 
+              commercial_name, 
+              lead_time_days, 
+              mm_vendor_id, 
+              status,
+              mm_vendor(vendor_name)
+            `)
+            .eq('tenant_id', tenantId)
+            .order('mm_material', { ascending: true })
   
   console.log('[catalog] query result:', { data, error })
 

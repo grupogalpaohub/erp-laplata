@@ -23,31 +23,31 @@ export default async function HomePage() {
     const supabase = createSupabaseServerClient()
     const tenantId = await getTenantId()
 
-    // Buscar dados para KPIs com tratamento de erro
-    const [materialsResult, vendorsResult, ordersResult, salesResult, inventoryResult] = await Promise.allSettled([
-      supabase
-        .from('mm_material')
-        .select('mm_material, mm_comercial, purchase_price_cents, sale_price_cents')
-        .eq('tenant_id', tenantId),
-      supabase
-        .from('mm_vendor')
-        .select('vendor_id, vendor_name')
-        .eq('tenant_id', tenantId),
-      supabase
-        .from('mm_purchase_order')
-        .select('mm_order, vendor_id, total_amount_cents, status')
-        .eq('tenant_id', tenantId),
-      supabase
-        .from('sd_sales_order')
-        .select('so_id, total_final_cents, order_date')
-        .eq('tenant_id', tenantId)
-        .gte('order_date', new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString().split('T')[0]),
-      supabase
-        .from('wh_inventory_balance')
-        .select('material_id, qty_on_hand, unit_cost_cents')
-        .eq('tenant_id', tenantId)
-        .gt('qty_on_hand', 0)
-    ])
+          // Buscar dados para KPIs com tratamento de erro
+          const [materialsResult, vendorsResult, ordersResult, salesResult, inventoryResult] = await Promise.allSettled([
+            supabase
+              .from('mm_material')
+              .select('mm_material, mm_comercial, mm_price_cents')
+              .eq('tenant_id', tenantId),
+            supabase
+              .from('mm_vendor')
+              .select('vendor_id, vendor_name')
+              .eq('tenant_id', tenantId),
+            supabase
+              .from('mm_purchase_order')
+              .select('mm_order, vendor_id, total_amount_cents, status')
+              .eq('tenant_id', tenantId),
+            supabase
+              .from('sd_sales_order')
+              .select('so_id, total_final_cents, order_date')
+              .eq('tenant_id', tenantId)
+              .gte('order_date', new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString().split('T')[0]),
+            supabase
+              .from('wh_inventory_balance')
+              .select('mm_material, on_hand_qty, unit_cost_cents')
+              .eq('tenant_id', tenantId)
+              .gt('on_hand_qty', 0)
+          ])
 
     materials = materialsResult.status === 'fulfilled' ? (materialsResult.value.data || []) : []
     vendors = vendorsResult.status === 'fulfilled' ? (vendorsResult.value.data || []) : []
@@ -64,8 +64,8 @@ export default async function HomePage() {
   totalMaterials = materials.length
   totalVendors = vendors.length
   totalOrders = orders.length
-  totalSalesValue = sales.reduce((sum, order) => sum + (order.total_final_cents || 0), 0)
-  totalInventoryValue = inventory.reduce((sum, item) => sum + (item.qty_on_hand * item.unit_cost_cents || 0), 0)
+  totalSalesValue = sales.reduce((sum, order) => sum + (order.total_final_cents || 0), 0) / 100
+  totalInventoryValue = inventory.reduce((sum, item) => sum + ((item.on_hand_qty || 0) * (item.unit_cost_cents || 0)), 0) / 100
   totalProfit = totalSalesValue - totalInventoryValue
 
   return (

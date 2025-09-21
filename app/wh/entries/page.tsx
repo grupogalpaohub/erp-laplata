@@ -8,13 +8,14 @@ export const revalidate = 0
 export const fetchCache = 'force-no-store'
 
 interface EntryItem {
-  entry_id: string
-  material_id: string
-  qty_received: number
-  unit: string
-  entry_date: string
-  reference_doc: string
-  warehouse_id: string
+  ledger_id: string
+  plant_id: string
+  sku: string
+  qty_delta: number
+  reason: string
+  ref_table: string
+  ref_id: string
+  moved_at: string
   mm_material: {
     mm_material: string
     mm_comercial: string
@@ -30,21 +31,22 @@ export default async function EntriesPage() {
     const supabase = createSupabaseServerClient()
     const tenantId = await getTenantId()
 
-    // Buscar entradas de estoque
+    // Buscar movimentações de estoque
     const { data, count, error } = await supabase
-      .from('wh_inventory_entry')
+      .from('wh_inventory_ledger')
       .select(`
-        entry_id,
-        material_id,
-        qty_received,
-        unit,
-        entry_date,
-        reference_doc,
-        warehouse_id,
+        ledger_id,
+        plant_id,
+        sku,
+        qty_delta,
+        reason,
+        ref_table,
+        ref_id,
+        moved_at,
         mm_material!inner(mm_material, mm_comercial, mm_desc)
       `, { count: 'exact' })
       .eq('tenant_id', tenantId)
-      .order('entry_date', { ascending: false })
+      .order('moved_at', { ascending: false })
       .limit(50)
 
     if (error) {
@@ -142,9 +144,9 @@ export default async function EntriesPage() {
           <div className="card-fiori-content">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-fiori-muted">Pendentes</p>
-                <p className="text-2xl font-bold text-fiori-warning">
-                  {entries.filter(e => e.entry_date === 'PENDING').length}
+                <p className="text-sm text-fiori-muted">Entradas</p>
+                <p className="text-2xl font-bold text-fiori-success">
+                  {entries.filter(e => e.qty_delta > 0).length}
                 </p>
               </div>
               <Package className="w-8 h-8 text-fiori-warning" />
@@ -206,7 +208,7 @@ export default async function EntriesPage() {
                 </thead>
                 <tbody>
                   {entries.map((entry) => (
-                    <tr key={entry.entry_id}>
+                    <tr key={entry.ledger_id}>
                       <td>
                         <div>
                           <div className="font-semibold text-fiori-primary">
@@ -218,27 +220,34 @@ export default async function EntriesPage() {
                         </div>
                       </td>
                       <td className="text-right">
-                        <div className="text-sm font-semibold">
-                          {entry.qty_received.toLocaleString('pt-BR')} {entry.unit}
+                        <div className={`text-sm font-semibold ${entry.qty_delta > 0 ? 'text-green-600' : 'text-red-600'}`}>
+                          {entry.qty_delta > 0 ? '+' : ''}{entry.qty_delta.toLocaleString('pt-BR')}
+                        </div>
+                        <div className="text-xs text-fiori-muted">
+                          {entry.reason}
                         </div>
                       </td>
                       <td>
                         <div className="text-sm">
-                          {entry.entry_date ? new Date(entry.entry_date).toLocaleDateString('pt-BR') : '-'}
+                          {entry.moved_at ? new Date(entry.moved_at).toLocaleDateString('pt-BR') : '-'}
                         </div>
                       </td>
                       <td>
                         <div className="text-sm">
-                          {entry.reference_doc || '-'}
+                          {entry.ref_table}: {entry.ref_id}
                         </div>
                       </td>
                       <td>
-                        {getStatusBadge('CONFIRMED')}
+                        <span className={`badge-fiori ${
+                          entry.qty_delta > 0 ? 'badge-fiori-success' : 'badge-fiori-danger'
+                        }`}>
+                          {entry.qty_delta > 0 ? 'Entrada' : 'Saída'}
+                        </span>
                       </td>
                       <td>
                         <div className="flex gap-2">
                           <Link
-                            href={`/wh/entries/${entry.entry_id}`}
+                            href={`/wh/entries/${entry.ledger_id}`}
                             className="btn-fiori-outline text-xs flex items-center gap-1"
                           >
                             <Eye className="w-3 h-3" />

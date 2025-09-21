@@ -46,8 +46,7 @@ export default async function HomePage() {
               .from('wh_inventory_balance')
               .select(`
                 mm_material, 
-                on_hand_qty,
-                mm_material!inner(mm_price_cents)
+                on_hand_qty
               `)
               .eq('tenant_id', tenantId)
               .gt('on_hand_qty', 0)
@@ -69,7 +68,16 @@ export default async function HomePage() {
   totalVendors = vendors.length
   totalOrders = orders.length
   totalSalesValue = sales.reduce((sum, order) => sum + (order.total_final_cents || 0), 0) / 100
-          totalInventoryValue = inventory.reduce((sum, item) => sum + ((item.on_hand_qty || 0) * (item.mm_material?.mm_price_cents || 0)), 0) / 100
+          // Calcular valor do estoque buscando preços dos materiais
+          const materialPrices = new Map()
+          materials.forEach(material => {
+            materialPrices.set(material.mm_material, material.mm_price_cents || 0)
+          })
+          
+          totalInventoryValue = inventory.reduce((sum, item) => {
+            const price = materialPrices.get(item.mm_material) || 0
+            return sum + ((item.on_hand_qty || 0) * price)
+          }, 0) / 100
   totalProfit = totalSalesValue - totalInventoryValue
 
   return (

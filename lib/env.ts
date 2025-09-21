@@ -4,10 +4,13 @@ import dotenv from 'dotenv';
  * Carrega .env.local/.env em ambientes Node (SSR e API).
  * No Edge (middleware), este arquivo NÃO deve ser importado.
  */
-if (typeof process !== 'undefined' && process.env.NEXT_RUNTIME !== 'edge' && !process.env.NEXT_PUBLIC_SUPABASE_URL) {
+if (typeof process !== 'undefined' && process.env.NEXT_RUNTIME !== 'edge') {
+  // Força carregamento do .env.local
   dotenv.config({ path: '.env.local' });
+  
+  // Se ainda não tem as variáveis, tenta .env
   if (!process.env.NEXT_PUBLIC_SUPABASE_URL) {
-    dotenv.config(); // tenta .env como fallback
+    dotenv.config();
   }
 }
 

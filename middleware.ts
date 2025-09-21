@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createMiddlewareClient } from '@supabase/ssr';
+import { createServerClient } from '@supabase/ssr';
 
 // Importante: NO EDGE, não use lib/env.ts (usa fs/path/process.cwd etc).
 // Em vez disso, use process.env.NEXT_PUBLIC_* (Next injeta em build-time).
@@ -25,11 +25,20 @@ export async function middleware(req: NextRequest) {
   }
 
   const res = NextResponse.next();
-  const supabase = createMiddlewareClient({
-    supabaseUrl: SUPABASE_URL,
-    supabaseKey: SUPABASE_ANON_KEY,
-    req,
-    res,
+  
+  // Usar createServerClient com cookies do Edge Runtime
+  const supabase = createServerClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+    cookies: {
+      get(name: string) {
+        return req.cookies.get(name)?.value;
+      },
+      set(name: string, value: string, options: any) {
+        res.cookies.set(name, value, options);
+      },
+      remove(name: string, options: any) {
+        res.cookies.set(name, '', { ...options, maxAge: 0 });
+      },
+    },
   });
 
   // Força sync de sessão/cookies no Edge

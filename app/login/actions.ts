@@ -2,8 +2,6 @@
 import { createSupabaseServerClient } from '@/lib/supabaseServer';
 import { ENV } from '@/lib/env';
 
-export const runtime = 'nodejs';
-
 export async function loginWithGoogle(next?: string) {
   const supabase = createSupabaseServerClient();
   const redirectTo = `${ENV.SITE_URL}/auth/callback${next ? `?next=${encodeURIComponent(next)}` : ''}`;

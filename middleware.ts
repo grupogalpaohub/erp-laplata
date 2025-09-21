@@ -6,7 +6,7 @@ import { createMiddlewareClient } from '@supabase/ssr';
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const SUPABASE_ANON_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
 
-export const runtime = 'edge';
+export const runtime = 'experimental-edge';
 export const config = {
   matcher: ['/((?!_next|assets|public|favicon.ico|api).*)'],
 };

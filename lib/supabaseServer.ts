@@ -15,7 +15,11 @@ export function createSupabaseServerClient() {
   }
   const cookieStore = cookies();
   return createServerClient(ENV.SUPABASE_URL, ENV.SUPABASE_ANON_KEY, {
-    cookies: { get: (n: string) => cookieStore.get(n)?.value },
+    cookies: {
+      get: (n: string) => cookieStore.get(n)?.value,
+      set: (n: string, v: string, options: any) => cookieStore.set(n, v, options),
+      remove: (n: string, options: any) => cookieStore.set(n, '', { ...options, maxAge: 0 }),
+    },
     headers: {
       'x-forwarded-host': headers().get('x-forwarded-host') ?? undefined,
       'x-forwarded-proto': headers().get('x-forwarded-proto') ?? undefined,

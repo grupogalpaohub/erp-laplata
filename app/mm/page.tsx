@@ -58,80 +58,14 @@ export default async function MMIndex() {
           Voltar
         </Link>
         <div className="text-center flex-1">
-          <h1 className="text-4xl font-bold text-fiori-primary mb-4">Materiais (MM)</h1>
-          <p className="text-xl text-fiori-secondary mb-2">Gestão de Materiais e Compras</p>
-          <p className="text-lg text-fiori-muted">Selecione uma funcionalidade para começar</p>
+          <h1 className="text-4xl font-bold text-fiori-primary mb-4">MM - Gestão de Materiais</h1>
+          <p className="text-xl text-fiori-secondary mb-2">Materiais e compras</p>
+          <p className="text-lg text-fiori-muted">Gerencie materiais e relacionamento com fornecedores</p>
         </div>
         <div className="w-20"></div> {/* Spacer para centralizar */}
       </div>
 
-      {/* KPIs Section */}
-      <div className="mt-12">
-        <h2 className="text-2xl font-semibold text-fiori-primary mb-6">Visão Geral</h2>
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-          {/* KPI 1 - Total de Materiais */}
-          <div className="card-fiori">
-            <div className="card-fiori-content">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-fiori-muted">Total de Materiais</p>
-                  <p className="text-2xl font-bold text-fiori-primary">{totalMaterials}</p>
-                </div>
-                <svg className="w-8 h-8 text-fiori-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
-                </svg>
-              </div>
-            </div>
-          </div>
-
-          {/* KPI 2 - Fornecedores Ativos */}
-          <div className="card-fiori">
-            <div className="card-fiori-content">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-fiori-muted">Fornecedores Ativos</p>
-                  <p className="text-2xl font-bold text-fiori-success">{totalVendors}</p>
-                </div>
-                <svg className="w-8 h-8 text-fiori-success" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
-                </svg>
-              </div>
-            </div>
-          </div>
-
-          {/* KPI 3 - Pedidos de Compra */}
-          <div className="card-fiori">
-            <div className="card-fiori-content">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-fiori-muted">Pedidos de Compra</p>
-                  <p className="text-2xl font-bold text-fiori-info">{totalOrders}</p>
-                </div>
-                <svg className="w-8 h-8 text-fiori-info" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
-                </svg>
-              </div>
-            </div>
-          </div>
-
-          {/* KPI 4 - Valor Total em Compras */}
-          <div className="card-fiori">
-            <div className="card-fiori-content">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-fiori-muted">Valor Total em Compras</p>
-                  <p className="text-2xl font-bold text-fiori-warning">R$ {(totalValue / 100).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
-                </div>
-                <svg className="w-8 h-8 text-fiori-warning" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1" />
-                </svg>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Módulos */}
+      {/* Tiles Principais */}
       <div className="grid-fiori-3">
         <Link href="/mm/materials/new" className="group">
           <div className="tile-fiori">
@@ -204,6 +138,72 @@ export default async function MMIndex() {
             <p className="tile-fiori-subtitle">Editar múltiplos materiais</p>
           </div>
         </Link>
+      </div>
+
+      {/* Visão Geral */}
+      <div className="mt-12">
+        <h2 className="text-2xl font-semibold text-fiori-primary mb-6">Visão Geral</h2>
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+          {/* KPI 1 - Total de Materiais */}
+          <div className="card-fiori">
+            <div className="card-fiori-content">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm text-fiori-muted">Total de Materiais</p>
+                  <p className="text-2xl font-bold text-fiori-primary">{totalMaterials}</p>
+                </div>
+                <svg className="w-8 h-8 text-fiori-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+                </svg>
+              </div>
+            </div>
+          </div>
+
+          {/* KPI 2 - Fornecedores Ativos */}
+          <div className="card-fiori">
+            <div className="card-fiori-content">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm text-fiori-muted">Fornecedores Ativos</p>
+                  <p className="text-2xl font-bold text-fiori-success">{totalVendors}</p>
+                </div>
+                <svg className="w-8 h-8 text-fiori-success" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                </svg>
+              </div>
+            </div>
+          </div>
+
+          {/* KPI 3 - Pedidos de Compra */}
+          <div className="card-fiori">
+            <div className="card-fiori-content">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm text-fiori-muted">Pedidos de Compra</p>
+                  <p className="text-2xl font-bold text-fiori-info">{totalOrders}</p>
+                </div>
+                <svg className="w-8 h-8 text-fiori-info" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                </svg>
+              </div>
+            </div>
+          </div>
+
+          {/* KPI 4 - Valor Total em Compras */}
+          <div className="card-fiori">
+            <div className="card-fiori-content">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm text-fiori-muted">Valor Total em Compras</p>
+                  <p className="text-2xl font-bold text-fiori-warning">R$ {(totalValue / 100).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
+                </div>
+                <svg className="w-8 h-8 text-fiori-warning" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1" />
+                </svg>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   )

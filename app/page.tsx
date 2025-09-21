@@ -9,6 +9,8 @@ export default async function HomePage() {
   let materials = []
   let vendors = []
   let orders = []
+  let sales = []
+  let inventory = []
   let totalMaterials = 0
   let totalVendors = 0
   let totalOrders = 0
@@ -49,8 +51,8 @@ export default async function HomePage() {
     materials = materialsResult.status === 'fulfilled' ? (materialsResult.value.data || []) : []
     vendors = vendorsResult.status === 'fulfilled' ? (vendorsResult.value.data || []) : []
     orders = ordersResult.status === 'fulfilled' ? (ordersResult.value.data || []) : []
-    const sales = salesResult.status === 'fulfilled' ? (salesResult.value.data || []) : []
-    const inventory = inventoryResult.status === 'fulfilled' ? (inventoryResult.value.data || []) : []
+    sales = salesResult.status === 'fulfilled' ? (salesResult.value.data || []) : []
+    inventory = inventoryResult.status === 'fulfilled' ? (inventoryResult.value.data || []) : []
 
   } catch (error) {
     console.error('Error loading dashboard data:', error)

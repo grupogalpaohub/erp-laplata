@@ -76,6 +76,19 @@ export default function LoginPage() {
           <p className="text-white/70 text-sm text-center mt-4">
             Você será redirecionado para o sistema após o login
           </p>
+
+          {/* Debug info */}
+          <div className="mt-4 p-3 bg-black/20 rounded-lg">
+            <p className="text-white/50 text-xs text-center">
+              Debug: {process.env.NEXT_PUBLIC_SITE_URL || 'SITE_URL não definido'}
+            </p>
+            <p className="text-white/50 text-xs text-center mt-1">
+              Vercel URL: {process.env.VERCEL_URL || 'N/A'}
+            </p>
+            <p className="text-white/50 text-xs text-center mt-1">
+              Ambiente: {process.env.VERCEL_ENV || 'local'}
+            </p>
+          </div>
         </div>
 
         {/* Link para Landing */}

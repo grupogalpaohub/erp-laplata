@@ -1,10 +1,10 @@
 export const dynamic = 'force-dynamic'
 export const runtime = 'nodejs'
 import { NextResponse } from 'next/server'
-import { createClient } from '@/src/lib/supabase/server'
+import { createSupabaseServerClient } from '@/lib/supabase/server'
 
 export async function GET() {
-  const supabase = createClient()
+  const supabase = createSupabaseServerClient()
   const [{ data: price }, { data: change }] = await Promise.all([
     supabase.from('mm_price_log').select('mm_material, old_price, new_price, changed_at, changed_by').order('changed_at', { ascending: false }),
     supabase.from('mm_change_log').select('record_id, field_name, old_value, new_value, changed_at, changed_by').order('changed_at', { ascending: false })

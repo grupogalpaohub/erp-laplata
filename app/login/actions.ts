@@ -1,6 +1,6 @@
 'use server';
-import { createSupabaseServerClient } from '@/src/lib/supabase/server';
-import { ENV } from '@/src/lib/env';
+import { createSupabaseServerClient } from '@/lib/supabase/server';
+import { ENV } from '@/lib/env';
 
 // export const runtime = 'nodejs';
 

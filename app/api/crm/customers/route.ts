@@ -4,12 +4,12 @@ export const fetchCache = 'force-no-store';
 export const runtime = 'nodejs';
 
 import { NextRequest, NextResponse } from 'next/server'
-import { supabaseServer } from '@/src/lib/supabaseServer'
-import { getTenantId } from '@/src/lib/auth'
+import { createSupabaseServerClient } from '@/lib/supabaseServer'
+import { getTenantId } from '@/lib/auth'
 
 export async function POST(request: NextRequest) {
   try {
-    const supabase = supabaseServer()
+    const supabase = createSupabaseServerClient()
     const tenantId = await getTenantId()
     
     const body = await request.json()

@@ -1,14 +1,14 @@
-import { supabaseServer } from '@/src/lib/supabase/server'
+import { createSupabaseServerClient } from '@/lib/supabase/server'
 
 export const revalidate = 0
 
-async function kpiCount(sb: ReturnType<typeof supabaseServer>, table: string) {
+async function kpiCount(sb: ReturnType<typeof createSupabaseServerClient>, table: string) {
   const { count } = await sb.from(table as any).select('*', { count: 'exact', head: true })
   return count ?? 0
 }
 
 export default async function Home() {
-  const sb = supabaseServer()
+  const sb = createSupabaseServerClient()
   const [materials, stockItems, salesOrders] = await Promise.all([
     kpiCount(sb, 'v_material_overview'),
     kpiCount(sb, 'wh_inventory_balance'),

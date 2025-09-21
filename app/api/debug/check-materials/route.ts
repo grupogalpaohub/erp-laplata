@@ -4,12 +4,12 @@ export const fetchCache = 'force-no-store';
 export const runtime = 'nodejs';
 
 import { NextRequest, NextResponse } from 'next/server'
-import { createClient } from '@/src/lib/supabase/server'
-import { getTenantId } from '@/src/lib/auth'
+import { createSupabaseServerClient } from '@/lib/supabase/server'
+import { getTenantId } from '@/lib/auth'
 
 export async function GET(req: NextRequest) {
   try {
-    const supabase = createClient()
+    const supabase = createSupabaseServerClient()
     const tenantId = await getTenantId()
 
     console.log('[debug] Checking materials for tenant:', tenantId)

@@ -1,16 +1,16 @@
 export const dynamic = 'force-dynamic'
 export const revalidate = 0
-import { supabaseServer } from '@/src/lib/supabase/server'
-import { getTenantId } from '@/src/lib/auth'
-import { getVendors } from '@/src/lib/data'
+import { createSupabaseServerClient } from '@/lib/supabase/server'
+import { getTenantId } from '@/lib/auth'
+import { getVendors } from '@/lib/data'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
-import { MATERIAL_TYPES, MATERIAL_CLASSIFICATIONS, UNITS_OF_MEASURE } from '@/src/lib/material-config'
+import { MATERIAL_TYPES, MATERIAL_CLASSIFICATIONS, UNITS_OF_MEASURE } from '@/lib/material-config'
 
 async function createMaterial(formData: FormData) {
   'use server'
   
-  const supabase = supabaseServer()
+  const supabase = createSupabaseServerClient()
   const tenantId = await getTenantId()
 
   const mm_mat_type = formData.get('mm_mat_type') as string

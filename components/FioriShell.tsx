@@ -1,12 +1,12 @@
 import Link from 'next/link'
-import { supabaseServer } from '@/src/lib/supabaseServer'
+import { createSupabaseServerClient } from '@/lib/supabaseServer'
 
 export default async function FioriShell({ children }: { children: React.ReactNode }) {
   let user = null
   let isAuthenticated = false
 
   try {
-    const supabase = supabaseServer()
+    const supabase = createSupabaseServerClient()
     const { data: { user: userData } } = await supabase.auth.getUser()
     user = userData
     isAuthenticated = !!user

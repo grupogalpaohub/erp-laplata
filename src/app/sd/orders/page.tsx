@@ -1,11 +1,11 @@
-import { supabaseServer } from '@/src/lib/supabase/server'
+import { createSupabaseServerClient } from '@/lib/supabase/server'
 import Link from 'next/link'
 import { DataTable } from '@/src/components/DataTable'
 
 export const revalidate = 0
 
 export default async function OrdersList() {
-  const sb = supabaseServer()
+  const sb = createSupabaseServerClient()
 
   // Pedidos
   const { data: orders, error } = await sb

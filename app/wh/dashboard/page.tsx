@@ -1,6 +1,6 @@
 import Link from 'next/link'
-import { supabaseServer } from '@/src/lib/supabaseServer'
-import { getTenantId } from '@/src/lib/auth'
+import { createSupabaseServerClient } from '@/lib/supabaseServer'
+import { getTenantId } from '@/lib/auth'
 import { Package, AlertTriangle, TrendingUp, TrendingDown, BarChart3, PieChart } from 'lucide-react'
 
 export const dynamic = 'force-dynamic'
@@ -20,7 +20,7 @@ export default async function WHDashboardPage() {
   let topCollections: any[] = []
 
   try {
-    const supabase = supabaseServer()
+    const supabase = createSupabaseServerClient()
     const tenantId = await getTenantId()
 
     // Buscar estatísticas de estoque

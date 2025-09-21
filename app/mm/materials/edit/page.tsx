@@ -1,12 +1,12 @@
 export const dynamic = 'force-dynamic'
 export const revalidate = 0
 export const runtime = 'nodejs'
-import { createClient } from '@/src/lib/supabase/server'
+import { createSupabaseServerClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
 
 async function updateField(formData: FormData) {
   'use server'
-  const supabase = createClient()
+  const supabase = createSupabaseServerClient()
   const mm_material = String(formData.get('mm_material') || '')
   const field = String(formData.get('field') || '')
   const value = String(formData.get('value') || '')
@@ -21,7 +21,7 @@ async function updateField(formData: FormData) {
 
 async function changePrice(formData: FormData) {
   'use server'
-  const supabase = createClient()
+  const supabase = createSupabaseServerClient()
   const mm_material = String(formData.get('mm_material') || '')
   const new_price_str = String(formData.get('new_price') || '')
   const new_price_cents = Math.round(Number(new_price_str.replace(',','.')) * 100)
@@ -43,7 +43,7 @@ async function changePrice(formData: FormData) {
 }
 
 export default async function EditMaterialsPage() {
-  const supabase = createClient()
+  const supabase = createSupabaseServerClient()
   const { data, error } = await supabase
     .from('mm_material')
     .select('mm_material, mm_comercial, mm_desc, mm_mat_type, mm_mat_class, lead_time_days, status, mm_vendor_id, mm_price_cents, price_last_updated_at')

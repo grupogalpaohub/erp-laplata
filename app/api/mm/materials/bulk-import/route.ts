@@ -2,12 +2,12 @@ export const dynamic = 'force-dynamic'
 export const runtime = 'nodejs'
 
 import { NextRequest, NextResponse } from 'next/server'
-import { createClient } from '@/src/lib/supabase/server'
-import { MATERIAL_TYPES, MATERIAL_CLASSIFICATIONS, UNITS_OF_MEASURE } from '@/src/lib/material-config'
+import { createSupabaseServerClient } from '@/lib/supabase/server'
+import { MATERIAL_TYPES, MATERIAL_CLASSIFICATIONS, UNITS_OF_MEASURE } from '@/lib/material-config'
 
 export async function POST(req: NextRequest) {
   try {
-    const supabase = createClient()
+    const supabase = createSupabaseServerClient()
     const { materials } = await req.json()
 
     if (!materials || !Array.isArray(materials)) {

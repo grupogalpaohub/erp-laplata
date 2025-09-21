@@ -1,7 +1,7 @@
 import Link from 'next/link'
 import { ArrowLeft } from 'lucide-react'
-import { supabaseServer } from '@/src/lib/supabaseServer'
-import { getTenantId } from '@/src/lib/auth'
+import { createSupabaseServerClient } from '@/lib/supabaseServer'
+import { getTenantId } from '@/lib/auth'
 
 export const dynamic = 'force-dynamic'
 export const revalidate = 0
@@ -17,7 +17,7 @@ export default async function MMIndex() {
   let totalValue = 0
 
   try {
-    const supabase = supabaseServer()
+    const supabase = createSupabaseServerClient()
     const tenantId = await getTenantId()
 
     // Buscar dados para KPIs

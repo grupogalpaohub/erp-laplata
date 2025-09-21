@@ -2,11 +2,11 @@ export const dynamic = 'force-dynamic'
 export const runtime = 'nodejs'
 
 import { NextResponse } from 'next/server'
-import { createClient } from '@/src/lib/supabase/server'
+import { createSupabaseServerClient } from '@/lib/supabase/server'
 
 export async function GET() {
   try {
-    const supabase = createClient()
+    const supabase = createSupabaseServerClient()
 
     const { data, error } = await supabase
       .from('mm_material')

@@ -1,8 +1,8 @@
-import { supabaseServer } from './supabase/server'
+import { createSupabaseServerClient } from './supabase/server'
 import { getTenantId } from './auth'
 
 export async function getVendors() {
-  const supabase = supabaseServer()
+  const supabase = createSupabaseServerClient()
   const tenantId = await getTenantId()
   
   const { data, error } = await supabase
@@ -20,7 +20,7 @@ export async function getVendors() {
 }
 
 export async function getMaterials() {
-  const supabase = supabaseServer()
+  const supabase = createSupabaseServerClient()
   const tenantId = await getTenantId()
   
   const { data, error } = await supabase
@@ -38,7 +38,7 @@ export async function getMaterials() {
 }
 
 export async function getCustomers() {
-  const supabase = supabaseServer()
+  const supabase = createSupabaseServerClient()
   const tenantId = await getTenantId()
   
   const { data, error } = await supabase
@@ -57,7 +57,7 @@ export async function getCustomers() {
 }
 
 export async function getMaterialTypes() {
-  const supabase = supabaseServer()
+  const supabase = createSupabaseServerClient()
   const tenantId = await getTenantId()
   
   const { data, error } = await supabase
@@ -76,7 +76,7 @@ export async function getMaterialTypes() {
 }
 
 export async function getMaterialClassifications() {
-  const supabase = supabaseServer()
+  const supabase = createSupabaseServerClient()
   const tenantId = await getTenantId()
   
   const { data, error } = await supabase

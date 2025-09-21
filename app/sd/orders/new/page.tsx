@@ -1,6 +1,6 @@
 import Link from 'next/link'
-import { supabaseServer } from '@/src/lib/supabaseServer'
-import { getTenantId } from '@/src/lib/auth'
+import { createSupabaseServerClient } from '@/lib/supabaseServer'
+import { getTenantId } from '@/lib/auth'
 import { ArrowLeft, Save, X, Plus, Trash2 } from 'lucide-react'
 import NewSalesOrderForm from './NewSalesOrderForm'
 
@@ -14,7 +14,7 @@ export default async function NewSalesOrderPage() {
   let paymentTerms: any[] = []
 
   try {
-    const supabase = supabaseServer()
+    const supabase = createSupabaseServerClient()
     const tenantId = await getTenantId()
 
     // Buscar dados necessários

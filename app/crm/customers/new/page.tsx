@@ -1,6 +1,6 @@
 import Link from 'next/link'
-import { supabaseServer } from '@/src/lib/supabaseServer'
-import { getTenantId } from '@/src/lib/auth'
+import { createSupabaseServerClient } from '@/lib/supabaseServer'
+import { getTenantId } from '@/lib/auth'
 import { redirect } from 'next/navigation'
 import { ArrowLeft, Save, X } from 'lucide-react'
 
@@ -12,7 +12,7 @@ async function createCustomer(formData: FormData) {
   'use server'
   
   try {
-    const supabase = supabaseServer()
+    const supabase = createSupabaseServerClient()
     const tenantId = await getTenantId()
 
     // Gerar ID único para o cliente
@@ -102,7 +102,7 @@ export default async function NewCustomerPage() {
   // Buscar opções de payment terms
   let paymentTerms: any[] = []
   try {
-    const supabase = supabaseServer()
+    const supabase = createSupabaseServerClient()
     const tenantId = await getTenantId()
 
     const { data } = await supabase

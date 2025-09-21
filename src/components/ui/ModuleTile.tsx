@@ -1,7 +1,7 @@
 'use client'
 import Link from 'next/link'
 import { ReactNode } from 'react'
-import { cn } from '@/src/lib/utils'
+import { cn } from '@/lib/utils'
 import { ArrowRight } from 'lucide-react'
 
 type Props = {

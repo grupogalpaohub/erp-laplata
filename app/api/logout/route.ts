@@ -4,11 +4,11 @@ export const fetchCache = 'force-no-store';
 export const runtime = 'nodejs';
 
 import { NextRequest, NextResponse } from 'next/server'
-import { supabaseServer } from '@/src/lib/supabaseServer'
+import { createSupabaseServerClient } from '@/lib/supabaseServer'
 
 export async function POST(req: NextRequest) {
   try {
-    const supabase = supabaseServer()
+    const supabase = createSupabaseServerClient()
     
     // Fazer logout no Supabase
     await supabase.auth.signOut()

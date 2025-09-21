@@ -1,12 +1,12 @@
-import { createClient } from '@/src/lib/supabase/server'
-import { getTenantId } from '@/src/lib/auth'
+import { createSupabaseServerClient } from '@/lib/supabase/server'
+import { getTenantId } from '@/lib/auth'
 
 export const dynamic = 'force-dynamic'
 export const revalidate = 0
 
 export async function GET() {
   try {
-    const supabase = createClient()
+    const supabase = createSupabaseServerClient()
     const tenantId = await getTenantId()
     
     console.log('Debug vendors - tenantId:', tenantId)

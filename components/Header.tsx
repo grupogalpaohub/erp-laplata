@@ -1,8 +1,8 @@
 import Link from 'next/link'
-import { supabaseServer } from '@/src/lib/supabase/server'
+import { createSupabaseServerClient } from '@/lib/supabase/server'
 
 export default async function Header() {
-  const sb = supabaseServer()
+  const sb = createSupabaseServerClient()
   const { data } = await sb.auth.getUser()
 
   return (

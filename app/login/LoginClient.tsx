@@ -2,7 +2,7 @@
 import Link from 'next/link'
 import { useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import { supabaseBrowser } from '@/src/lib/supabase/client'
+import { supabaseBrowser } from '@/lib/supabase/client'
 
 export default function LoginClient({ next }: { next: string }) {
   const router = useRouter()

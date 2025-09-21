@@ -4,10 +4,10 @@ export const fetchCache = 'force-no-store';
 export const runtime = 'nodejs';
 
 import { NextResponse } from 'next/server'
-import { supabaseServer } from '@/src/lib/supabase/server'
+import { createSupabaseServerClient } from '@/lib/supabase/server'
 
 export async function GET() {
-  const sb = supabaseServer()
+  const sb = createSupabaseServerClient()
   const { data: { session } } = await sb.auth.getSession()
   const token = session?.access_token
   let claims: any = null

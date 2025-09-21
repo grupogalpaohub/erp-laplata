@@ -1,7 +1,7 @@
 export const runtime = 'nodejs'
 
 import { NextResponse, type NextRequest } from 'next/server'
-import { ENV } from '@/src/lib/env'
+import { ENV } from '@/lib/env'
 
 export async function GET(req: NextRequest) {
   try {

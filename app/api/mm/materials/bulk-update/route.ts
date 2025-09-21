@@ -2,7 +2,7 @@ export const dynamic = 'force-dynamic'
 export const runtime = 'nodejs'
 
 import { NextRequest, NextResponse } from 'next/server'
-import { createClient } from '@/src/lib/supabase/server'
+import { createSupabaseServerClient } from '@/lib/supabase/server'
 
 interface MaterialChange {
   mm_material: string
@@ -11,7 +11,7 @@ interface MaterialChange {
 
 export async function POST(req: NextRequest) {
   try {
-    const supabase = createClient()
+    const supabase = createSupabaseServerClient()
     const { changes }: { changes: MaterialChange[] } = await req.json()
 
     if (!changes || !Array.isArray(changes)) {

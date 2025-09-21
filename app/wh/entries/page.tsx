@@ -1,6 +1,6 @@
 import Link from 'next/link'
-import { supabaseServer } from '@/src/lib/supabaseServer'
-import { getTenantId } from '@/src/lib/auth'
+import { createSupabaseServerClient } from '@/lib/supabaseServer'
+import { getTenantId } from '@/lib/auth'
 import { ArrowLeft, Search, Download, Filter, Package, Plus, Eye } from 'lucide-react'
 
 export const dynamic = 'force-dynamic'
@@ -27,7 +27,7 @@ export default async function EntriesPage() {
   let totalCount = 0
 
   try {
-    const supabase = supabaseServer()
+    const supabase = createSupabaseServerClient()
     const tenantId = await getTenantId()
 
     // Buscar entradas de estoque

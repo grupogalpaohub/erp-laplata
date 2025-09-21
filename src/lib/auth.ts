@@ -1,5 +1,5 @@
 import { cookies } from 'next/headers'
-import { supabaseServer } from './supabase/server'
+import { createSupabaseServerClient } from './supabase/server'
 
 export function hasSession(): boolean {
   const c = cookies()
@@ -7,7 +7,7 @@ export function hasSession(): boolean {
 }
 
 export async function getTenantId(): Promise<string> {
-  const supabase = supabaseServer()
+  const supabase = createSupabaseServerClient()
   const { data: { user } } = await supabase.auth.getUser()
   
   if (!user) {

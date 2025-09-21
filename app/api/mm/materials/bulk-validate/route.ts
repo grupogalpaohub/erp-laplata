@@ -2,12 +2,12 @@ export const dynamic = 'force-dynamic'
 export const runtime = 'nodejs'
 
 import { NextRequest, NextResponse } from 'next/server'
-import { createClient } from '@/src/lib/supabase/server'
-import { MATERIAL_TYPES, MATERIAL_CLASSIFICATIONS, UNITS_OF_MEASURE } from '@/src/lib/material-config'
+import { createSupabaseServerClient } from '@/lib/supabase/server'
+import { MATERIAL_TYPES, MATERIAL_CLASSIFICATIONS, UNITS_OF_MEASURE } from '@/lib/material-config'
 
 export async function POST(req: NextRequest) {
   try {
-    const supabase = createClient()
+    const supabase = createSupabaseServerClient()
     const { materials } = await req.json()
 
     console.log('Validação iniciada para', materials?.length || 0, 'materiais')
@@ -41,7 +41,7 @@ export async function POST(req: NextRequest) {
       if (!material.mm_mat_type) {
         materialErrors.push(`Linha ${rowNumber}: Tipo de material é obrigatório`)
       } else {
-        const validTypes = MATERIAL_TYPES.map(t => t.type)
+        const validTypes = MATERIAL_TYPES
         if (!validTypes.includes(material.mm_mat_type)) {
           materialErrors.push(`Linha ${rowNumber}: Tipo de material '${material.mm_mat_type}' inválido. Valores aceitos: ${validTypes.join(', ')}`)
         }
@@ -50,7 +50,7 @@ export async function POST(req: NextRequest) {
       if (!material.mm_mat_class) {
         materialErrors.push(`Linha ${rowNumber}: Classificação é obrigatória`)
       } else {
-        const validClasses = MATERIAL_CLASSIFICATIONS.map(c => c.classification)
+        const validClasses = MATERIAL_CLASSIFICATIONS
         if (!validClasses.includes(material.mm_mat_class)) {
           materialErrors.push(`Linha ${rowNumber}: Classificação '${material.mm_mat_class}' inválida. Valores aceitos: ${validClasses.join(', ')}`)
         }

@@ -3,8 +3,7 @@ import { NextResponse } from 'next/server';
 
 // Rotas públicas que não exigem sessão
 const PUBLIC_PATHS = new Set<string>([
-  '/',             // landing (pode ser sua landing pública)
-  '/landing',      // se usar landing separada
+  '/landing',      // landing pública
   '/login',
   '/auth/callback'
 ]);
@@ -43,8 +42,14 @@ export function middleware(req: NextRequest) {
   const logged = hasSupabaseSessionCookie(req);
   if (!logged) {
     const url = req.nextUrl.clone();
-    url.pathname = '/login';
-    url.searchParams.set('next', pathname || '/');
+    if (pathname === '/') {
+      // Redirecionar para landing se estiver tentando acessar a home
+      url.pathname = '/landing';
+    } else {
+      // Redirecionar para login para outras rotas protegidas
+      url.pathname = '/login';
+      url.searchParams.set('next', pathname);
+    }
     return NextResponse.redirect(url);
   }
 

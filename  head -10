@@ -1,0 +1,5 @@
+[33ma1ac0ad[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32merp-dev[m[33m, [m[1;31morigin/erp-dev[m[33m, [m[1;32merp-git[m[33m)[m fix: Adicionar configurações dinâmicas em todas as rotas API
+[33mc02892d[m[33m ([m[1;31morigin/erp-git[m[33m, [m[1;31morigin/HEAD[m[33m)[m feat: Adicionar workflows GitHub para deploy automático e proteção de branches
+[33m31042e6[m fix: Forçar deployment Preview com variáveis de ambiente corretas
+[33m3e2564c[m config: Desativar deploy automático para Production e forçar apenas Preview
+[33m1bfb559[m test: Forçar deployment Preview para testar variáveis de ambiente

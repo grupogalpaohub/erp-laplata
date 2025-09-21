@@ -1,14 +1,14 @@
 export const runtime = 'nodejs'
 
 import { NextResponse, type NextRequest } from 'next/server'
-import { siteUrl } from '@/src/lib/env'
+import { ENV } from '@/src/lib/env'
 
 export async function GET(req: NextRequest) {
   try {
     const url = new URL(req.url)
     const error = url.searchParams.get('error')
     const nextParam = url.searchParams.get('next')
-    const base = siteUrl()
+    const base = ENV.SITE_URL
 
     if (error) {
       const to = new URL('/login', base)
@@ -21,7 +21,7 @@ export async function GET(req: NextRequest) {
     return NextResponse.redirect(to)
   } catch (error: any) {
     console.error('Auth callback error:', error?.message || String(error))
-    const to = new URL('/login', siteUrl())
+    const to = new URL('/login', ENV.SITE_URL)
     to.searchParams.set('error', 'auth_callback_failed')
     return NextResponse.redirect(to)
   }

@@ -1,64 +1,38 @@
-import type { NextRequest } from 'next/server';
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 
-// Rotas públicas que não exigem sessão
-const PUBLIC_PATHS = new Set<string>([
-  '/landing',      // landing pública
-  '/login',
-  '/auth/callback'
-]);
+export const config = {
+  matcher: ['/((?!_next|assets|public|favicon.ico).*)'],
+};
 
-/**
- * Heurística simples: detecta cookies de sessão do Supabase
- * sem inicializar cliente no middleware (evita erros em build).
- */
-function hasSupabaseSessionCookie(req: NextRequest) {
-  const cookies = req.cookies.getAll().map((c) => c.name);
-  // Formatos típicos: sb-<ref>-auth-token.0 / .1 / -code-verifier
-  return cookies.some((n) => n.startsWith('sb-') && n.includes('auth-token'));
-}
+const PUBLIC = new Set(['/', '/login', '/auth/callback', '/auth/callback/hash', '/landing']);
 
 export function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;
-
-  // Ignorar APIs, estáticos e imagens do Next
-  if (
-    pathname.startsWith('/api') ||
-    pathname.startsWith('/_next') ||
-    pathname.startsWith('/favicon') ||
-    pathname.startsWith('/assets') ||
-    pathname.startsWith('/images') ||
-    pathname.startsWith('/auth/_debug') // caso tenha rotas de debug internas
-  ) {
+  
+  // Permitir assets e arquivos estáticos
+  if (pathname.startsWith('/_next') || pathname.startsWith('/assets') || pathname.startsWith('/public')) {
     return NextResponse.next();
   }
+  
+  // Permitir rotas públicas
+  if (PUBLIC.has(pathname)) return NextResponse.next();
+  
+  // Permitir APIs
+  if (pathname.startsWith('/api/')) return NextResponse.next();
 
-  // Permitir acesso às páginas públicas
-  if (PUBLIC_PATHS.has(pathname)) {
-    return NextResponse.next();
-  }
+  // Verificar se tem sessão (cookies de autenticação)
+  const hasSession =
+    req.cookies.has('sb-access-token') ||
+    req.cookies.has('sb:token') ||
+    req.cookies.has('supabase-auth-token') ||
+    req.cookies.has('sb-gpjcfwjssfvqhppxdudp-auth-token');
 
-  // Checar sessão
-  const logged = hasSupabaseSessionCookie(req);
-  if (!logged) {
+  if (!hasSession) {
     const url = req.nextUrl.clone();
-    if (pathname === '/') {
-      // Redirecionar para landing se estiver tentando acessar a home
-      url.pathname = '/landing';
-    } else {
-      // Redirecionar para login para outras rotas protegidas
-      url.pathname = '/login';
-      url.searchParams.set('next', pathname);
-    }
+    url.pathname = '/login';
+    url.searchParams.set('next', pathname);
     return NextResponse.redirect(url);
   }
-
+  
   return NextResponse.next();
 }
-
-// IMPORTANT: Não intercepte /api e estáticos
-export const config = {
-  matcher: [
-    '/((?!api|_next|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp|ico)).*)',
-  ],
-};

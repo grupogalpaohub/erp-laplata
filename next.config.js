@@ -7,7 +7,7 @@ const nextConfig = {
   },
   experimental: { 
     serverActions: { allowedOrigins: ['*'] },
-    optimizeCss: true,
+    // optimizeCss: true, // Desabilitado temporariamente devido a erro de critters
     optimizePackageImports: ['lucide-react', '@supabase/ssr']
   },
   trailingSlash: false,

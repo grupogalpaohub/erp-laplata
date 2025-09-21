@@ -15,8 +15,7 @@ export function useKpiData() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
-  useEffect(() => {
-    async function fetchKpiData() {
+  async function fetchKpiData() {
       try {
         setLoading(true)
         setError(null)
@@ -86,6 +85,7 @@ export function useKpiData() {
       }
     }
 
+  useEffect(() => {
     fetchKpiData()
   }, [])
 

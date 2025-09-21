@@ -1,39 +1,12 @@
-export const dynamic = 'force-dynamic';
-
-import { headers } from 'next/headers';
+'use client';
+import { useSearchParams } from 'next/navigation';
+import { loginWithGoogle } from './actions';
 import Link from 'next/link';
 
-function getOrigin() {
-  const h = headers();
-  const proto = h.get('x-forwarded-proto') ?? 'https';
-  const host = h.get('x-forwarded-host') ?? h.get('host') ?? '';
-  return `${proto}://${host}`;
-}
-
-export default function LoginPage({
-  searchParams,
-}: {
-  searchParams: { error?: string; next?: string };
-}) {
-  const origin = getOrigin();
-  const error = searchParams.error;
-  const next = searchParams.next || '/';
-
-  // Debug: log das variáveis de ambiente
-  console.log('[login] Environment check:', {
-    NEXT_PUBLIC_SUPABASE_URL: !!process.env.NEXT_PUBLIC_SUPABASE_URL,
-    NEXT_PUBLIC_SUPABASE_ANON_KEY: !!process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
-    origin,
-    error,
-    next
-  });
-
-  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://gpjcfwjssfvqhppxdudp.supabase.co';
-  
-  const googleUrl =
-    `${supabaseUrl}/auth/v1/authorize?provider=google` +
-    `&redirect_to=${encodeURIComponent(`${origin}/auth/callback?next=${encodeURIComponent(next)}`)}` +
-    `&timestamp=${Date.now()}`; // Cache busting
+export default function LoginPage() {
+  const params = useSearchParams();
+  const next = params.get('next') ?? '/';
+  const error = params.get('error');
 
   const getErrorMessage = (error: string) => {
     switch (error) {
@@ -80,8 +53,15 @@ export default function LoginPage({
           )}
 
           {/* Botão Google */}
-          <a
-            href={googleUrl}
+          <button
+            onClick={async () => {
+              try {
+                const url = await loginWithGoogle(next || undefined);
+                if (url) window.location.href = url;
+              } catch (err) {
+                console.error('Login error:', err);
+              }
+            }}
             className="w-full inline-flex items-center justify-center px-6 py-4 bg-white text-fiori-primary font-semibold rounded-xl hover:bg-white/90 transition-colors shadow-lg"
           >
             <svg className="w-5 h-5 mr-3" viewBox="0 0 24 24">
@@ -91,21 +71,11 @@ export default function LoginPage({
               <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
             </svg>
             Entrar com Google
-          </a>
+          </button>
 
           <p className="text-white/70 text-sm text-center mt-4">
             Você será redirecionado para o sistema após o login
           </p>
-
-          {/* Debug info */}
-          <div className="mt-6 p-3 bg-black/20 rounded-lg">
-            <p className="text-white/50 text-xs text-center">
-              Debug: {process.env.NEXT_PUBLIC_SUPABASE_URL ? 'URL OK' : 'URL MISSING'}
-            </p>
-            <p className="text-white/50 text-xs text-center mt-1">
-              Redirect: {origin}/auth/callback
-            </p>
-          </div>
         </div>
 
         {/* Link para Landing */}

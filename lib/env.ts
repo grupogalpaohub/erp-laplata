@@ -1,19 +1,22 @@
-import path from 'node:path';
-import fs from 'node:fs';
 import dotenv from 'dotenv';
 
 /**
- * Carrega .env.local à força do diretório raiz do projeto, mesmo que o Next
- * não tenha carregado automaticamente.
+ * Carrega .env.local no servidor (Node.js) apenas
  */
-const ENV_PATH = path.join(process.cwd(), '.env.local');
-if (fs.existsSync(ENV_PATH)) {
-  dotenv.config({ path: ENV_PATH });
-} else {
-  // Tenta .env como fallback
-  const ENV_FALLBACK = path.join(process.cwd(), '.env');
-  if (fs.existsSync(ENV_FALLBACK)) {
-    dotenv.config({ path: ENV_FALLBACK });
+if (typeof window === 'undefined') {
+  // Apenas no servidor
+  const path = require('path');
+  const fs = require('fs');
+  
+  const ENV_PATH = path.join(process.cwd(), '.env.local');
+  if (fs.existsSync(ENV_PATH)) {
+    dotenv.config({ path: ENV_PATH });
+  } else {
+    // Tenta .env como fallback
+    const ENV_FALLBACK = path.join(process.cwd(), '.env');
+    if (fs.existsSync(ENV_FALLBACK)) {
+      dotenv.config({ path: ENV_FALLBACK });
+    }
   }
 }
 

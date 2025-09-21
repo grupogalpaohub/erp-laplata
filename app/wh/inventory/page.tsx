@@ -19,7 +19,7 @@ interface InventoryItem {
     mm_desc: string
     collection: string
     material_unit: string
-  }
+  }[]
 }
 
 export default async function InventoryPage() {
@@ -39,7 +39,7 @@ export default async function InventoryPage() {
         qty_reserved,
         unit,
         warehouse_id,
-        mm_material!inner(mm_material, mm_comercial, mm_desc, collection, unit as material_unit)
+        mm_material!inner(mm_material, mm_comercial, mm_desc, collection, material_unit)
       `, { count: 'exact' })
       .eq('tenant_id', tenantId)
       .gt('qty_on_hand', 0)
@@ -194,17 +194,17 @@ export default async function InventoryPage() {
                           {getStatusIcon('Ativo')}
                           <div>
                             <div className="font-semibold text-fiori-primary">
-                              {item.mm_material.mm_comercial || item.mm_material.mm_desc}
+                              {item.mm_material[0]?.mm_comercial || item.mm_material[0]?.mm_desc || 'N/A'}
                             </div>
                             <div className="text-xs text-fiori-muted font-mono">
-                              {item.mm_material.mm_material}
+                              {item.mm_material[0]?.mm_material || 'N/A'}
                             </div>
                           </div>
                         </div>
                       </td>
                       <td>
                         <div className="text-sm">
-                          {item.mm_material.collection || '-'}
+                          {item.mm_material[0]?.collection || '-'}
                         </div>
                       </td>
                       <td className="text-right">
@@ -224,7 +224,7 @@ export default async function InventoryPage() {
                       </td>
                       <td>
                         <div className="text-sm">
-                          {item.unit || item.mm_material.material_unit}
+                          {item.unit || item.mm_material[0]?.material_unit || '-'}
                         </div>
                       </td>
                       <td>

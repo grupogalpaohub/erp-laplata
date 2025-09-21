@@ -35,7 +35,7 @@ export default async function CatalogoMateriais() {
               lead_time_days, 
               mm_vendor_id, 
               status,
-              mm_vendor(vendor_name)
+              mm_vendor!left(vendor_name)
             `)
             .eq('tenant_id', tenantId)
             .order('mm_material', { ascending: true })

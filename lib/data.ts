@@ -17,9 +17,9 @@ export async function getVendors() {
   const tenantId = await getTenantId();
   const { data, error } = await supabase
     .from('mm_vendor')
-    .select('vendor_id, vendor_name, is_active')
+    .select('vendor_id, vendor_name, status')
     .eq('tenant_id', tenantId)
-    .eq('is_active', true);
+    .eq('status', 'active');
   if (error) throw error;
   return data || [];
 }

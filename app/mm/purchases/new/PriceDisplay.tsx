@@ -21,7 +21,7 @@ export default function PriceDisplay({ materials, materialIndex }: PriceDisplayP
         if (materialId) {
           const material = materials.find(m => m.mm_material === materialId)
           if (material) {
-            setPrice(material.purchase_price_cents)
+            setPrice(material.mm_price_cents)
           } else {
             setPrice(null)
           }

@@ -44,7 +44,11 @@ export default async function HomePage() {
               .gte('order_date', new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString().split('T')[0]),
             supabase
               .from('wh_inventory_balance')
-              .select('mm_material, on_hand_qty, unit_cost_cents')
+              .select(`
+                mm_material, 
+                on_hand_qty,
+                mm_material!inner(mm_price_cents)
+              `)
               .eq('tenant_id', tenantId)
               .gt('on_hand_qty', 0)
           ])
@@ -65,7 +69,7 @@ export default async function HomePage() {
   totalVendors = vendors.length
   totalOrders = orders.length
   totalSalesValue = sales.reduce((sum, order) => sum + (order.total_final_cents || 0), 0) / 100
-  totalInventoryValue = inventory.reduce((sum, item) => sum + ((item.on_hand_qty || 0) * (item.unit_cost_cents || 0)), 0) / 100
+          totalInventoryValue = inventory.reduce((sum, item) => sum + ((item.on_hand_qty || 0) * (item.mm_material?.mm_price_cents || 0)), 0) / 100
   totalProfit = totalSalesValue - totalInventoryValue
 
   return (

@@ -113,8 +113,37 @@ export default async function NewCustomerPage() {
       .order('description')
 
     paymentTerms = data || []
+    
+    // Se não houver dados, usar dados padrão
+    if (paymentTerms.length === 0) {
+      paymentTerms = [
+        { terms_code: 'A_VISTA', description: 'À Vista' },
+        { terms_code: '30_DIAS', description: '30 Dias' },
+        { terms_code: '60_DIAS', description: '60 Dias' },
+        { terms_code: '90_DIAS', description: '90 Dias' },
+        { terms_code: 'BOLETO', description: 'Boleto Bancário' },
+        { terms_code: 'CARTAO_CREDITO', description: 'Cartão de Crédito' },
+        { terms_code: 'CARTAO_DEBITO', description: 'Cartão de Débito' },
+        { terms_code: 'PIX', description: 'PIX' },
+        { terms_code: 'TRANSFERENCIA', description: 'Transferência Bancária' },
+        { terms_code: 'DINHEIRO', description: 'Dinheiro' }
+      ]
+    }
   } catch (error) {
     console.error('Error loading payment terms:', error)
+    // Usar dados padrão em caso de erro
+    paymentTerms = [
+      { terms_code: 'A_VISTA', description: 'À Vista' },
+      { terms_code: '30_DIAS', description: '30 Dias' },
+      { terms_code: '60_DIAS', description: '60 Dias' },
+      { terms_code: '90_DIAS', description: '90 Dias' },
+      { terms_code: 'BOLETO', description: 'Boleto Bancário' },
+      { terms_code: 'CARTAO_CREDITO', description: 'Cartão de Crédito' },
+      { terms_code: 'CARTAO_DEBITO', description: 'Cartão de Débito' },
+      { terms_code: 'PIX', description: 'PIX' },
+      { terms_code: 'TRANSFERENCIA', description: 'Transferência Bancária' },
+      { terms_code: 'DINHEIRO', description: 'Dinheiro' }
+    ]
   }
 
   return (

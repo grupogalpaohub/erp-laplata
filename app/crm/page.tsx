@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import { supabaseServer } from '@/src/lib/supabaseServer'
 import { getTenantId } from '@/src/lib/auth'
+import { ArrowLeft } from 'lucide-react'
 
 export const dynamic = 'force-dynamic'
 export const revalidate = 0
@@ -45,10 +46,17 @@ export default async function CRMPage() {
   return (
     <div className="space-y-8">
       {/* Header */}
-      <div className="text-center mb-12">
-        <h1 className="text-4xl font-bold text-fiori-primary mb-4">CRM - Gestão de Clientes</h1>
-        <p className="text-xl text-fiori-secondary mb-2">Central de clientes e oportunidades</p>
-        <p className="text-lg text-fiori-muted">Gerencie seus clientes e relacionamentos</p>
+      <div className="flex items-center justify-between mb-8">
+        <Link href="/" className="btn-fiori-outline flex items-center gap-2">
+          <ArrowLeft className="w-4 h-4" />
+          Voltar
+        </Link>
+        <div className="text-center flex-1">
+          <h1 className="text-4xl font-bold text-fiori-primary mb-4">CRM - Gestão de Clientes</h1>
+          <p className="text-xl text-fiori-secondary mb-2">Central de clientes e oportunidades</p>
+          <p className="text-lg text-fiori-muted">Gerencie seus clientes e relacionamentos</p>
+        </div>
+        <div className="w-20"></div> {/* Spacer para centralizar */}
       </div>
 
       {/* Tiles Principais */}

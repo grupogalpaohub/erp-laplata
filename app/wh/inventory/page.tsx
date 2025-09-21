@@ -8,20 +8,18 @@ export const revalidate = 0
 export const fetchCache = 'force-no-store'
 
 interface InventoryItem {
-  mm_material: string
-  mm_comercial: string
-  mm_desc: string
-  collection: string
-  on_hand_qty: number
-  reserved_qty: number
-  available_qty: number
+  material_id: string
+  qty_on_hand: number
+  qty_reserved: number
   unit: string
-  status: string
-  calculated_status: string
-  last_in_date: string
-  last_out_date: string
-  min_stock_qty: number
-  warehouse_name: string
+  warehouse_id: string
+  mm_material: {
+    mm_material: string
+    mm_comercial: string
+    mm_desc: string
+    collection: string
+    material_unit: string
+  }
 }
 
 export default async function InventoryPage() {
@@ -34,25 +32,18 @@ export default async function InventoryPage() {
 
     // Buscar itens de estoque com paginação
     const { data, count, error } = await supabase
-      .from('wh_inventory_position')
+      .from('wh_inventory_balance')
       .select(`
-        mm_material,
-        mm_comercial,
-        mm_desc,
-        collection,
-        on_hand_qty,
-        reserved_qty,
-        available_qty,
+        material_id,
+        qty_on_hand,
+        qty_reserved,
         unit,
-        status,
-        calculated_status,
-        last_in_date,
-        last_out_date,
-        min_stock_qty,
-        warehouse_name
+        warehouse_id,
+        mm_material!inner(mm_material, mm_comercial, mm_desc, collection, unit as material_unit)
       `, { count: 'exact' })
       .eq('tenant_id', tenantId)
-      .order('mm_comercial')
+      .gt('qty_on_hand', 0)
+      .order('mm_material(mm_comercial)')
       .limit(50)
 
     if (error) {
@@ -197,67 +188,62 @@ export default async function InventoryPage() {
                 </thead>
                 <tbody>
                   {items.map((item) => (
-                    <tr key={item.mm_material}>
+                    <tr key={item.material_id}>
                       <td>
                         <div className="flex items-center gap-2">
-                          {getStatusIcon(item.calculated_status)}
+                          {getStatusIcon('Ativo')}
                           <div>
                             <div className="font-semibold text-fiori-primary">
-                              {item.mm_comercial || item.mm_desc}
+                              {item.mm_material.mm_comercial || item.mm_material.mm_desc}
                             </div>
                             <div className="text-xs text-fiori-muted font-mono">
-                              {item.mm_material}
+                              {item.mm_material.mm_material}
                             </div>
                           </div>
                         </div>
                       </td>
                       <td>
                         <div className="text-sm">
-                          {item.collection || '-'}
+                          {item.mm_material.collection || '-'}
                         </div>
                       </td>
                       <td className="text-right">
                         <div className="text-sm font-semibold">
-                          {item.on_hand_qty.toLocaleString('pt-BR')}
+                          {item.qty_on_hand.toLocaleString('pt-BR')}
                         </div>
                       </td>
                       <td className="text-right">
                         <div className="text-sm">
-                          {item.reserved_qty.toLocaleString('pt-BR')}
+                          {item.qty_reserved.toLocaleString('pt-BR')}
                         </div>
                       </td>
                       <td className="text-right">
                         <div className="text-sm font-semibold text-fiori-primary">
-                          {item.available_qty.toLocaleString('pt-BR')}
+                          {(item.qty_on_hand - item.qty_reserved).toLocaleString('pt-BR')}
                         </div>
                       </td>
                       <td>
                         <div className="text-sm">
-                          {item.unit}
+                          {item.unit || item.mm_material.material_unit}
                         </div>
                       </td>
                       <td>
-                        {getStatusBadge(item.calculated_status)}
+                        {getStatusBadge('Ativo')}
                       </td>
                       <td>
                         <div className="text-sm">
-                          {item.warehouse_name}
+                          {item.warehouse_id}
                         </div>
                       </td>
                       <td>
                         <div className="text-sm text-fiori-muted">
-                          {item.last_in_date 
-                            ? new Date(item.last_in_date).toLocaleDateString('pt-BR')
-                            : item.last_out_date
-                            ? new Date(item.last_out_date).toLocaleDateString('pt-BR')
-                            : '-'
-                          }
+                          -
                         </div>
                       </td>
                       <td>
                         <div className="flex gap-2">
                           <Link
-                            href={`/wh/inventory/${item.mm_material}`}
+                            href={`/wh/inventory/${item.material_id}`}
                             className="btn-fiori-outline text-xs"
                           >
                             Ver Detalhes

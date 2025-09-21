@@ -9,38 +9,63 @@ export default async function HomePage() {
   let materials = []
   let vendors = []
   let orders = []
+  let totalMaterials = 0
+  let totalVendors = 0
+  let totalOrders = 0
+  let totalSalesValue = 0
+  let totalInventoryValue = 0
+  let totalProfit = 0
 
   try {
     const supabase = supabaseServer()
     const tenantId = await getTenantId()
 
     // Buscar dados para KPIs com tratamento de erro
-    const [materialsResult, vendorsResult, ordersResult] = await Promise.allSettled([
+    const [materialsResult, vendorsResult, ordersResult, salesResult, inventoryResult] = await Promise.allSettled([
       supabase
         .from('mm_material')
         .select('mm_material, mm_comercial, purchase_price_cents, sale_price_cents')
-        .eq('tenant_id', tenantId)
-        .limit(5),
+        .eq('tenant_id', tenantId),
       supabase
         .from('mm_vendor')
         .select('vendor_id, vendor_name')
-        .eq('tenant_id', tenantId)
-        .limit(5),
+        .eq('tenant_id', tenantId),
       supabase
         .from('mm_purchase_order')
         .select('mm_order, vendor_id, total_amount_cents, status')
+        .eq('tenant_id', tenantId),
+      supabase
+        .from('sd_sales_order')
+        .select('so_id, total_final_cents, order_date')
         .eq('tenant_id', tenantId)
-        .limit(5)
+        .gte('order_date', new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString().split('T')[0]),
+      supabase
+        .from('wh_inventory_balance')
+        .select('material_id, qty_on_hand, unit_cost_cents')
+        .eq('tenant_id', tenantId)
+        .gt('qty_on_hand', 0)
     ])
 
     materials = materialsResult.status === 'fulfilled' ? (materialsResult.value.data || []) : []
     vendors = vendorsResult.status === 'fulfilled' ? (vendorsResult.value.data || []) : []
     orders = ordersResult.status === 'fulfilled' ? (ordersResult.value.data || []) : []
+    const sales = salesResult.status === 'fulfilled' ? (salesResult.value.data || []) : []
+    const inventory = inventoryResult.status === 'fulfilled' ? (inventoryResult.value.data || []) : []
 
   } catch (error) {
     console.error('Error loading dashboard data:', error)
     // Continuar com arrays vazios em caso de erro
   }
+
+  // Calcular KPIs
+  totalMaterials = materials.length
+  totalVendors = vendors.length
+  totalOrders = orders.length
+  const sales = salesResult?.status === 'fulfilled' ? (salesResult.value.data || []) : []
+  const inventory = inventoryResult?.status === 'fulfilled' ? (inventoryResult.value.data || []) : []
+  totalSalesValue = sales.reduce((sum, order) => sum + (order.total_final_cents || 0), 0)
+  totalInventoryValue = inventory.reduce((sum, item) => sum + (item.qty_on_hand * item.unit_cost_cents || 0), 0)
+  totalProfit = totalSalesValue - totalInventoryValue
 
   return (
     <div className="space-y-8">
@@ -163,7 +188,7 @@ export default async function HomePage() {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
               </svg>
             </div>
-            <div className="kpi-fiori kpi-fiori-success">{materials.length}</div>
+            <div className="kpi-fiori kpi-fiori-success">{totalMaterials}</div>
             <p className="tile-fiori-metric-label">Itens cadastrados</p>
           </div>
 
@@ -175,57 +200,46 @@ export default async function HomePage() {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
               </svg>
             </div>
-            <div className="kpi-fiori kpi-fiori-success">{vendors.length}</div>
+            <div className="kpi-fiori kpi-fiori-success">{totalVendors}</div>
             <p className="tile-fiori-metric-label">Fornecedores ativos</p>
           </div>
 
           {/* KPI 3 - Pedidos de Compra (Neutro) */}
           <div className="tile-fiori">
             <div className="flex items-center justify-between mb-4">
-              <h3 className="tile-fiori-title text-sm">Pedidos de Compra</h3>
+              <h3 className="tile-fiori-title text-sm">Valor Total em Estoque</h3>
               <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
               </svg>
             </div>
-            <div className="kpi-fiori kpi-fiori-neutral">{orders.length}</div>
-            <p className="tile-fiori-metric-label">Pedidos em andamento</p>
+            <div className="kpi-fiori kpi-fiori-success">R$ {(totalInventoryValue / 100).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</div>
+            <p className="tile-fiori-metric-label">Valor do inventário</p>
           </div>
 
           {/* KPI 4 - Materiais sem Fornecedor (Vermelho - Ruim) */}
           <div className="tile-fiori">
             <div className="flex items-center justify-between mb-4">
-              <h3 className="tile-fiori-title text-sm">Materiais sem Fornecedor</h3>
+              <h3 className="tile-fiori-title text-sm">Vendas do Mês</h3>
               <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
               </svg>
             </div>
-            <div className="kpi-fiori kpi-fiori-danger">0</div>
-            <p className="tile-fiori-metric-label">Requer atenção</p>
+            <div className="kpi-fiori kpi-fiori-success">R$ {(totalSalesValue / 100).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</div>
+            <p className="tile-fiori-metric-label">Receita do período</p>
           </div>
 
           {/* KPI 5 - Variação de Preços (Amarelo - Atenção) */}
           <div className="tile-fiori">
             <div className="flex items-center justify-between mb-4">
-              <h3 className="tile-fiori-title text-sm">Variação de Preços</h3>
+              <h3 className="tile-fiori-title text-sm">Lucro Total</h3>
               <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
               </svg>
             </div>
-            <div className="kpi-fiori kpi-fiori-warning">12.5%</div>
-            <p className="tile-fiori-metric-label">Últimos 30 dias</p>
+            <div className="kpi-fiori kpi-fiori-success">R$ {(totalProfit / 100).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</div>
+            <p className="tile-fiori-metric-label">Margem de lucro</p>
           </div>
 
-          {/* KPI 6 - Eficiência de Compras (Verde - Bom) */}
-          <div className="tile-fiori">
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="tile-fiori-title text-sm">Eficiência de Compras</h3>
-              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
-            </div>
-            <div className="kpi-fiori kpi-fiori-success">98.2%</div>
-            <p className="tile-fiori-metric-label">Taxa de sucesso</p>
-          </div>
         </div>
       </div>
     </div>

@@ -13,8 +13,6 @@ type Row = {
   received_at: string | null
 }
 
-export const revalidate = 0
-
 export default async function ReceivingPage() {
   const sb = supabaseServer()
   const { data, error } = await sb

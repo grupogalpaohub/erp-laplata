@@ -1,12 +1,39 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
-  images: { unoptimized: true },
+  images: { 
+    unoptimized: true,
+    domains: ['gpjcfwjssfvqhppxdudp.supabase.co']
+  },
   experimental: { 
-    serverActions: { allowedOrigins: ['*'] } 
+    serverActions: { allowedOrigins: ['*'] },
+    optimizeCss: true,
+    optimizePackageImports: ['lucide-react', '@supabase/ssr']
   },
   trailingSlash: false,
-  webpack: (config) => {
+  compress: true,
+  poweredByHeader: false,
+  generateEtags: false,
+  webpack: (config, { dev, isServer }) => {
+    // Otimizações para produção
+    if (!dev && !isServer) {
+      config.optimization.splitChunks = {
+        chunks: 'all',
+        cacheGroups: {
+          vendor: {
+            test: /[\\/]node_modules[\\/]/,
+            name: 'vendors',
+            chunks: 'all',
+          },
+          supabase: {
+            test: /[\\/]node_modules[\\/]@supabase[\\/]/,
+            name: 'supabase',
+            chunks: 'all',
+          },
+        },
+      }
+    }
+    
     config.watchOptions = {
       ...config.watchOptions,
       ignored: ['**/supabase/**', '**/node_modules/**']

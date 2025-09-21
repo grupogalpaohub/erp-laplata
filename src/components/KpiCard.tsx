@@ -6,7 +6,7 @@ interface KpiCardProps {
   comparisonText?: string
   trend?: 'up' | 'down' | 'neutral'
   icon: LucideIcon
-  color?: 'blue' | 'green' | 'purple' | 'red' | 'orange' | 'cyan'
+  color?: 'primary' | 'success' | 'warning' | 'danger' | 'info' | 'neutral'
 }
 
 export default function KpiCard({ 
@@ -15,41 +15,35 @@ export default function KpiCard({
   comparisonText, 
   trend, 
   icon: Icon, 
-  color = 'blue' 
+  color = 'primary' 
 }: KpiCardProps) {
   const colorClasses = {
-    blue: 'text-blue-600 bg-blue-100',
-    green: 'text-green-600 bg-green-100',
-    purple: 'text-purple-600 bg-purple-100',
-    red: 'text-red-600 bg-red-100',
-    orange: 'text-orange-600 bg-orange-100',
-    cyan: 'text-cyan-600 bg-cyan-100'
+    primary: 'kpi-fiori-primary',
+    success: 'kpi-fiori-success',
+    warning: 'kpi-fiori-warning',
+    danger: 'kpi-fiori-danger',
+    info: 'kpi-fiori-info',
+    neutral: 'kpi-fiori-neutral'
   }
 
   const trendClasses = {
-    up: 'text-green-600',
-    down: 'text-red-600',
-    neutral: 'text-gray-600'
+    up: 'text-fiori-success',
+    down: 'text-fiori-danger',
+    neutral: 'text-fiori-muted'
   }
 
   return (
-    <div className="bg-white rounded-lg shadow p-6 hover:shadow-lg transition-shadow duration-200">
-      <div className="flex items-center">
-        <div className="flex-shrink-0">
-          <div className={`p-2 rounded-lg ${colorClasses[color]}`}>
-            <Icon className="h-6 w-6" />
-          </div>
-        </div>
-        <div className="ml-4 flex-1">
-          <p className="text-sm font-medium text-gray-500">{title}</p>
-          <p className="text-2xl font-semibold text-gray-900">{value}</p>
-          {comparisonText && (
-            <p className={`text-xs ${trend ? trendClasses[trend] : 'text-gray-400'}`}>
-              {comparisonText}
-            </p>
-          )}
-        </div>
+    <div className="tile-fiori">
+      <div className="flex items-center justify-between mb-4">
+        <h3 className="tile-fiori-title text-sm">{title}</h3>
+        <Icon className="w-6 h-6" />
       </div>
+      <div className={`kpi-fiori ${colorClasses[color]}`}>{value}</div>
+      {comparisonText && (
+        <p className={`tile-fiori-metric-label ${trend ? trendClasses[trend] : ''}`}>
+          {comparisonText}
+        </p>
+      )}
     </div>
   )
 }

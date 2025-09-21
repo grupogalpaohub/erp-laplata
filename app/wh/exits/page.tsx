@@ -19,7 +19,7 @@ interface ExitItem {
     mm_material: string
     mm_comercial: string
     mm_desc: string
-  }
+  }[]
 }
 
 export default async function ExitsPage() {
@@ -210,10 +210,10 @@ export default async function ExitsPage() {
                       <td>
                         <div>
                           <div className="font-semibold text-fiori-primary">
-                            {exit.mm_material.mm_comercial || exit.mm_material.mm_desc}
+                            {exit.mm_material[0]?.mm_comercial || exit.mm_material[0]?.mm_desc || 'N/A'}
                           </div>
                           <div className="text-xs text-fiori-muted font-mono">
-                            {exit.mm_material.mm_material}
+                            {exit.mm_material[0]?.mm_material || 'N/A'}
                           </div>
                         </div>
                       </td>

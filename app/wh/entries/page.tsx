@@ -19,7 +19,7 @@ interface EntryItem {
     mm_material: string
     mm_comercial: string
     mm_desc: string
-  }
+  }[]
 }
 
 export default async function EntriesPage() {
@@ -210,10 +210,10 @@ export default async function EntriesPage() {
                       <td>
                         <div>
                           <div className="font-semibold text-fiori-primary">
-                            {entry.mm_material.mm_comercial || entry.mm_material.mm_desc}
+                            {entry.mm_material[0]?.mm_comercial || entry.mm_material[0]?.mm_desc || 'N/A'}
                           </div>
                           <div className="text-xs text-fiori-muted font-mono">
-                            {entry.mm_material.mm_material}
+                            {entry.mm_material[0]?.mm_material || 'N/A'}
                           </div>
                         </div>
                       </td>

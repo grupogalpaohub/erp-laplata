@@ -19,11 +19,8 @@ export default function LoginPage() {
     origin
   });
 
-  // Fallback para desenvolvimento se a variável não estiver definida
-  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://gpjcfwjssfvqhppxdudp.supabase.co';
-  
   const googleUrl =
-    `${supabaseUrl}/auth/v1/authorize?provider=google` +
+    `${process.env.NEXT_PUBLIC_SUPABASE_URL}/auth/v1/authorize?provider=google` +
     `&redirect_to=${encodeURIComponent(`${origin}/auth/callback`)}` +
     `&timestamp=${Date.now()}`; // Cache busting
 

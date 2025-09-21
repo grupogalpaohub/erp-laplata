@@ -1,5 +1,6 @@
 import Link from 'next/link'
 import { getUserServer } from '@/lib/auth/getUserServer'
+import { ENV } from '@/lib/env'
 
 export default async function FioriShell({ children }: { children: React.ReactNode }) {
   const user = await getUserServer();
@@ -15,6 +16,11 @@ export default async function FioriShell({ children }: { children: React.ReactNo
                 <span className="text-white font-bold text-sm">E</span>
               </div>
               <span className="text-xl font-semibold text-fiori-primary">ERP LaPlata</span>
+              {ENV.AUTH_DISABLED && (
+                <span className="ml-2 px-2 py-0.5 text-xs rounded bg-yellow-500/20 text-yellow-300 border border-yellow-400/40">
+                  DEV (auth off)
+                </span>
+              )}
             </div>
             <nav className="hidden md:flex items-center gap-1">
               {[
@@ -39,7 +45,11 @@ export default async function FioriShell({ children }: { children: React.ReactNo
             </nav>
           </div>
           <div className="flex items-center gap-4">
-            {isAuthenticated ? (
+            {ENV.AUTH_DISABLED ? (
+              <div className="text-sm text-gray-300">
+                Modo Desenvolvimento
+              </div>
+            ) : isAuthenticated ? (
               <form action="/api/logout" method="POST">
                 <button className="btn-fiori-outline">
                   <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">

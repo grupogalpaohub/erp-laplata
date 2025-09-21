@@ -1,7 +1,7 @@
 export const dynamic = 'force-dynamic'
 export const revalidate = 0
 export const runtime = 'nodejs'
-import { createClient } from '@/src/lib/supabase/server'
+import { supabaseServer } from '@/src/lib/supabaseServer'
 import { getTenantId } from '@/src/lib/auth'
 import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
@@ -10,7 +10,7 @@ import PriceDisplay from './PriceDisplay'
 
 async function createPO(formData: FormData) {
   'use server'
-  const supabase = createClient()
+  const supabase = supabaseServer()
   const tenantId = await getTenantId()
 
   // Header
@@ -60,7 +60,7 @@ async function createPO(formData: FormData) {
 }
 
 export default async function NewPOPage() {
-  const supabase = createClient()
+  const supabase = supabaseServer()
   const tenantId = await getTenantId()
   
   console.log('NewPOPage - tenantId:', tenantId)

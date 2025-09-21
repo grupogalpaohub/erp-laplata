@@ -14,7 +14,7 @@ interface Material {
   mm_material: string
   mm_comercial: string
   mm_desc: string
-  mm_price_cents: number
+  sale_price_cents: number
 }
 
 interface PaymentTerm {
@@ -43,6 +43,14 @@ export default function NewSalesOrderForm({ customers, materials, paymentTerms }
   const [paymentTerm, setPaymentTerm] = useState('')
   const [totalNegotiatedCents, setTotalNegotiatedCents] = useState('')
   const [notes, setNotes] = useState('')
+  const [showNewCustomerForm, setShowNewCustomerForm] = useState(false)
+  const [newCustomer, setNewCustomer] = useState({
+    name: '',
+    contact_email: '',
+    contact_phone: '',
+    document_id: '',
+    customer_type: 'PF'
+  })
   const [items, setItems] = useState<OrderItem[]>([
     {
       temp_id: '1',
@@ -82,8 +90,8 @@ export default function NewSalesOrderForm({ customers, materials, paymentTerms }
           const material = materials.find(m => m.mm_material === value)
           if (material) {
             updatedItem.material_name = material.mm_comercial || material.mm_desc
-            updatedItem.unit_price_cents = material.mm_price_cents
-            updatedItem.line_total_cents = updatedItem.quantity * material.mm_price_cents
+            updatedItem.unit_price_cents = material.sale_price_cents
+            updatedItem.line_total_cents = updatedItem.quantity * material.sale_price_cents
           } else {
             updatedItem.material_name = ''
             updatedItem.unit_price_cents = 0
@@ -103,6 +111,37 @@ export default function NewSalesOrderForm({ customers, materials, paymentTerms }
   }
 
   const totalFinalCents = items.reduce((sum, item) => sum + item.line_total_cents, 0)
+
+  const handleCreateCustomer = async () => {
+    try {
+      const response = await fetch('/api/crm/customers', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(newCustomer),
+      })
+
+      if (response.ok) {
+        const result = await response.json()
+        setSelectedCustomer(result.customerId)
+        setShowNewCustomerForm(false)
+        setNewCustomer({
+          name: '',
+          contact_email: '',
+          contact_phone: '',
+          document_id: '',
+          customer_type: 'PF'
+        })
+        // Recarregar a página para atualizar a lista de clientes
+        window.location.reload()
+      } else {
+        console.error('Error creating customer')
+      }
+    } catch (error) {
+      console.error('Error creating customer:', error)
+    }
+  }
 
   const handleSubmit = async (formData: FormData) => {
     // TODO: Implementar Server Action para criar pedido
@@ -130,21 +169,30 @@ export default function NewSalesOrderForm({ customers, materials, paymentTerms }
               <label htmlFor="customer_id" className="label-fiori">
                 Cliente *
               </label>
-              <select
-                id="customer_id"
-                name="customer_id"
-                required
-                value={selectedCustomer}
-                onChange={(e) => setSelectedCustomer(e.target.value)}
-                className="select-fiori"
-              >
-                <option value="">Selecione um cliente</option>
-                {customers.map((customer) => (
-                  <option key={customer.customer_id} value={customer.customer_id}>
-                    {customer.name} ({customer.contact_email})
-                  </option>
-                ))}
-              </select>
+              <div className="flex gap-2">
+                <select
+                  id="customer_id"
+                  name="customer_id"
+                  required
+                  value={selectedCustomer}
+                  onChange={(e) => setSelectedCustomer(e.target.value)}
+                  className="select-fiori flex-1"
+                >
+                  <option value="">Selecione um cliente</option>
+                  {customers.map((customer) => (
+                    <option key={customer.customer_id} value={customer.customer_id}>
+                      {customer.name} ({customer.contact_email})
+                    </option>
+                  ))}
+                </select>
+                <button
+                  type="button"
+                  onClick={() => setShowNewCustomerForm(!showNewCustomerForm)}
+                  className="btn-fiori-outline"
+                >
+                  {showNewCustomerForm ? 'Cancelar' : 'Novo Cliente'}
+                </button>
+              </div>
             </div>
             <div>
               <label htmlFor="order_date" className="label-fiori">
@@ -183,6 +231,101 @@ export default function NewSalesOrderForm({ customers, materials, paymentTerms }
           </div>
         </div>
       </div>
+
+      {/* Formulário de Novo Cliente */}
+      {showNewCustomerForm && (
+        <div className="card-fiori">
+          <div className="card-fiori-header">
+            <h3 className="card-fiori-title">Criar Novo Cliente</h3>
+          </div>
+          <div className="card-fiori-content">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div>
+                <label htmlFor="new_customer_name" className="label-fiori">
+                  Nome/Razão Social *
+                </label>
+                <input
+                  type="text"
+                  id="new_customer_name"
+                  value={newCustomer.name}
+                  onChange={(e) => setNewCustomer({ ...newCustomer, name: e.target.value })}
+                  className="input-fiori"
+                  required
+                />
+              </div>
+              <div>
+                <label htmlFor="new_customer_type" className="label-fiori">
+                  Tipo de Cliente *
+                </label>
+                <select
+                  id="new_customer_type"
+                  value={newCustomer.customer_type}
+                  onChange={(e) => setNewCustomer({ ...newCustomer, customer_type: e.target.value })}
+                  className="select-fiori"
+                >
+                  <option value="PF">Pessoa Física</option>
+                  <option value="PJ">Pessoa Jurídica</option>
+                </select>
+              </div>
+              <div>
+                <label htmlFor="new_customer_document" className="label-fiori">
+                  {newCustomer.customer_type === 'PF' ? 'CPF' : 'CNPJ'} *
+                </label>
+                <input
+                  type="text"
+                  id="new_customer_document"
+                  value={newCustomer.document_id}
+                  onChange={(e) => setNewCustomer({ ...newCustomer, document_id: e.target.value })}
+                  className="input-fiori"
+                  required
+                />
+              </div>
+              <div>
+                <label htmlFor="new_customer_email" className="label-fiori">
+                  E-mail *
+                </label>
+                <input
+                  type="email"
+                  id="new_customer_email"
+                  value={newCustomer.contact_email}
+                  onChange={(e) => setNewCustomer({ ...newCustomer, contact_email: e.target.value })}
+                  className="input-fiori"
+                  required
+                />
+              </div>
+              <div>
+                <label htmlFor="new_customer_phone" className="label-fiori">
+                  Telefone
+                </label>
+                <input
+                  type="text"
+                  id="new_customer_phone"
+                  value={newCustomer.contact_phone}
+                  onChange={(e) => setNewCustomer({ ...newCustomer, contact_phone: e.target.value })}
+                  className="input-fiori"
+                />
+              </div>
+            </div>
+            <div className="flex gap-2 mt-6">
+              <button
+                type="button"
+                onClick={handleCreateCustomer}
+                className="btn-fiori-primary"
+                disabled={!newCustomer.name || !newCustomer.document_id || !newCustomer.contact_email}
+              >
+                Criar Cliente
+              </button>
+              <button
+                type="button"
+                onClick={() => setShowNewCustomerForm(false)}
+                className="btn-fiori-outline"
+              >
+                Cancelar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Itens do Pedido */}
       <div className="card-fiori">

@@ -1,7 +1,7 @@
 export const dynamic = 'force-dynamic'
 export const revalidate = 0
 export const runtime = 'nodejs'
-import { createClient } from '@/src/lib/supabase/server'
+import { supabaseServer } from '@/src/lib/supabaseServer'
 import { getTenantId } from '@/src/lib/auth'
 import Link from 'next/link'
 
@@ -14,7 +14,7 @@ type PO = {
 }
 
 export default async function PurchaseOrdersPage({ searchParams }: { searchParams: any }) {
-  const supabase = createClient()
+  const supabase = supabaseServer()
   const tenantId = await getTenantId()
   
   let q = supabase

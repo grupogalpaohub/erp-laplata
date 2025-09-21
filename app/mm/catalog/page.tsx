@@ -1,7 +1,6 @@
 export const dynamic = 'force-dynamic'
 export const revalidate = 0
-import { cookies } from 'next/headers'
-import { createServerClient } from '@supabase/ssr'
+import { supabaseServer } from '@/src/lib/supabaseServer'
 import { getTenantId } from '@/src/lib/auth'
 import Link from 'next/link'
 
@@ -20,18 +19,8 @@ type Material = {
 }
 
 export default async function CatalogoMateriais() {
-  const cookieStore = cookies()
+  const supabase = supabaseServer()
   const tenantId = await getTenantId()
-  const supabase = createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    {
-      cookies: {
-        getAll: () => cookieStore.getAll(),
-        setAll: () => {},
-      },
-    }
-  )
 
   const { data, error } = await supabase
     .from('mm_material')

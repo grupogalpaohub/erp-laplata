@@ -61,8 +61,6 @@ export default async function HomePage() {
   totalMaterials = materials.length
   totalVendors = vendors.length
   totalOrders = orders.length
-  const sales = salesResult?.status === 'fulfilled' ? (salesResult.value.data || []) : []
-  const inventory = inventoryResult?.status === 'fulfilled' ? (inventoryResult.value.data || []) : []
   totalSalesValue = sales.reduce((sum, order) => sum + (order.total_final_cents || 0), 0)
   totalInventoryValue = inventory.reduce((sum, item) => sum + (item.qty_on_hand * item.unit_cost_cents || 0), 0)
   totalProfit = totalSalesValue - totalInventoryValue

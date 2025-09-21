@@ -14,15 +14,10 @@ if (missing.length) {
 
 // Detectar ambiente e definir SITE_URL automaticamente
 function getSiteUrl() {
-  // Se NEXT_PUBLIC_SITE_URL estiver definido, usar
-  if (process.env.NEXT_PUBLIC_SITE_URL) {
-    return process.env.NEXT_PUBLIC_SITE_URL;
-  }
-  
-  // Detectar ambiente baseado no VERCEL_URL
+  // Detectar ambiente baseado no VERCEL_URL (prioridade máxima)
   const vercelUrl = process.env.VERCEL_URL;
   if (vercelUrl) {
-    // Preview environment
+    // Preview environment - SEMPRE usar domínio de DEV
     if (vercelUrl.includes('workspace-git-erp-git')) {
       return 'https://workspace-git-erp-git-grupogalpaohubs-projects.vercel.app';
     }
@@ -32,6 +27,11 @@ function getSiteUrl() {
     }
     // Fallback para Vercel URL
     return `https://${vercelUrl}`;
+  }
+  
+  // Se NEXT_PUBLIC_SITE_URL estiver definido e não estivermos no Vercel, usar
+  if (process.env.NEXT_PUBLIC_SITE_URL && !process.env.VERCEL_URL) {
+    return process.env.NEXT_PUBLIC_SITE_URL;
   }
   
   // Fallback para desenvolvimento local
@@ -51,6 +51,8 @@ if (typeof window === 'undefined') {
     VERCEL_ENV: ENV.VERCEL_ENV,
     SITE_URL: ENV.SITE_URL,
     VERCEL_URL: process.env.VERCEL_URL,
-    NEXT_PUBLIC_SITE_URL: process.env.NEXT_PUBLIC_SITE_URL
+    NEXT_PUBLIC_SITE_URL: process.env.NEXT_PUBLIC_SITE_URL,
+    'VERCEL_URL.includes(workspace-git-erp-git)': process.env.VERCEL_URL?.includes('workspace-git-erp-git'),
+    'VERCEL_URL.includes(workspace-mu-livid)': process.env.VERCEL_URL?.includes('workspace-mu-livid')
   });
 }

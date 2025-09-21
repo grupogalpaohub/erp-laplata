@@ -2,6 +2,7 @@ import Link from 'next/link'
 import { createSupabaseServerClient } from '@/lib/supabaseServer'
 import { getTenantId } from '@/lib/auth'
 
+export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic'
 export const revalidate = 0
 

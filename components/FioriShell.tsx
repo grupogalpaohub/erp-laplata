@@ -1,19 +1,9 @@
 import Link from 'next/link'
-import { createSupabaseServerClient } from '@/lib/supabaseServer'
+import { getUserServer } from '@/lib/auth/getUserServer'
 
 export default async function FioriShell({ children }: { children: React.ReactNode }) {
-  let user = null
-  let isAuthenticated = false
-
-  try {
-    const supabase = createSupabaseServerClient()
-    const { data: { user: userData } } = await supabase.auth.getUser()
-    user = userData
-    isAuthenticated = !!user
-  } catch (error) {
-    console.error('Error checking authentication:', error)
-    // Continuar sem usuário em caso de erro
-  }
+  const user = await getUserServer();
+  const isAuthenticated = !!user;
 
   return (
     <div className="min-h-screen bg-fiori-primary">

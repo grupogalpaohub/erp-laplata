@@ -6,11 +6,11 @@ export const dynamic = 'force-dynamic'
 export const revalidate = 0
 
 export default async function HomePage() {
-  let materials = []
-  let vendors = []
-  let orders = []
-  let sales = []
-  let inventory = []
+  let materials: any[] = []
+  let vendors: any[] = []
+  let orders: any[] = []
+  let sales: any[] = []
+  let inventory: any[] = []
   let totalMaterials = 0
   let totalVendors = 0
   let totalOrders = 0

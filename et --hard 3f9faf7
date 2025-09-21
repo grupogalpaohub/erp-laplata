@@ -1,0 +1,5 @@
+[33mc5944d0[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32merp-git[m[33m)[m test
+[33m5ec8eb4[m[33m ([m[1;31morigin/erp-git[m[33m, [m[1;31morigin/HEAD[m[33m)[m fix: Corrigir erro de TypeScript que impedia build no Vercel
+[33mb2126f4[m feat: Implementar edição em massa completa com debug detalhado
+[33m901e16d[m fix: Corrigir todos os problemas reportados pelo usuário
+[33m1f552a9[m fix: Corrigir erros críticos de build no Vercel

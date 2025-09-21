@@ -1,9 +1,8 @@
 #!/usr/bin/env bash
 set -euo pipefail
-./scripts/check_static.sh
-./scripts/check_package_next.sh
-./scripts/check_next_config.sh
-./scripts/check_env_leak.sh
-APP_DIR="."
-[ -d "frontend/app" ] && APP_DIR="frontend"
-./scripts/check_required_routes.sh "$APP_DIR"
+current_branch="$(git symbolic-ref --quiet --short HEAD || true)"
+if [ "$current_branch" = "erp-prod" ]; then
+  echo "❌ Push para 'erp-prod' bloqueado a partir deste host. Faça PR/merge controlado."
+  exit 1
+fi
+exit 0

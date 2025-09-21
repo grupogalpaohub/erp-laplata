@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { createBrowserClient } from '@supabase/ssr'
-import { KpiData } from '@/types'
+import { KpiData } from '../types'
 
 export function useKpiData() {
   const [data, setData] = useState<KpiData>({

@@ -1,26 +1,16 @@
 import dotenv from 'dotenv';
 
 /**
- * Carrega .env.local no servidor (Node.js) apenas
+ * Carrega .env.local/.env em ambientes Node (SSR e API).
+ * No Edge (middleware), este arquivo NÃO deve ser importado.
  */
-if (typeof window === 'undefined') {
-  // Apenas no servidor
-  const path = require('path');
-  const fs = require('fs');
-  
-  const ENV_PATH = path.join(process.cwd(), '.env.local');
-  if (fs.existsSync(ENV_PATH)) {
-    dotenv.config({ path: ENV_PATH });
-  } else {
-    // Tenta .env como fallback
-    const ENV_FALLBACK = path.join(process.cwd(), '.env');
-    if (fs.existsSync(ENV_FALLBACK)) {
-      dotenv.config({ path: ENV_FALLBACK });
-    }
+if (typeof process !== 'undefined' && process.env.NEXT_RUNTIME !== 'edge' && !process.env.NEXT_PUBLIC_SUPABASE_URL) {
+  dotenv.config({ path: '.env.local' });
+  if (!process.env.NEXT_PUBLIC_SUPABASE_URL) {
+    dotenv.config(); // tenta .env como fallback
   }
 }
 
-// Agora lê as variáveis
 const REQUIRED = [
   'NEXT_PUBLIC_SUPABASE_URL',
   'NEXT_PUBLIC_SUPABASE_ANON_KEY',
@@ -29,8 +19,8 @@ const REQUIRED = [
 
 const missing = REQUIRED.filter((k) => !process.env[k]);
 if (missing.length) {
-  // Log curto e objetivo (sem travar dev)
-  console.warn('ENV WARN:', 'faltando ->', missing.join(', '), '| cwd =', process.cwd(), '| envPath =', ENV_PATH);
+  // log enxuto; sem variáveis inexistentes como ENV_PATH
+  console.warn('[ENV WARN] faltando:', missing.join(', '));
 }
 
 export const ENV = {

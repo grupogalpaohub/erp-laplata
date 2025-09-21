@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react'
-import { supabaseServer } from '@/lib/supabaseServer'
-import { getTenantId } from '@/lib/auth'
+import { createBrowserClient } from '@supabase/ssr'
 import { KpiData } from '@/types'
 
 export function useKpiData() {
@@ -22,8 +21,11 @@ export function useKpiData() {
         setLoading(true)
         setError(null)
         
-        const supabase = supabaseServer()
-        const tenantId = await getTenantId()
+        const supabase = createBrowserClient(
+          process.env.NEXT_PUBLIC_SUPABASE_URL!,
+          process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+        )
+        const tenantId = 'LaplataLunaria' // Hardcoded para cliente
 
         // Buscar dados em paralelo
         const [materialsResult, vendorsResult, ordersResult, salesResult, inventoryResult] = await Promise.allSettled([
@@ -87,5 +89,9 @@ export function useKpiData() {
     fetchKpiData()
   }, [])
 
-  return { data, loading, error, refetch: () => fetchKpiData() }
+  const refetch = () => {
+    fetchKpiData()
+  }
+
+  return { data, loading, error, refetch }
 }

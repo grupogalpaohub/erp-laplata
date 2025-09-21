@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 
 export const config = {
-  // NÃO interceptar _next, assets, public, favicon, api
   matcher: ['/((?!_next|assets|public|favicon.ico|api).*)'],
 };
 
@@ -12,7 +11,6 @@ export function middleware(req: NextRequest) {
 
   if (PUBLIC.has(pathname)) return NextResponse.next();
 
-  // check leve por cookies da sessão Supabase
   const hasSession =
     req.cookies.has('sb-access-token') ||
     req.cookies.has('sb:token') ||
@@ -22,7 +20,6 @@ export function middleware(req: NextRequest) {
     const url = req.nextUrl.clone();
     url.pathname = '/login';
     url.searchParams.set('next', pathname);
-    // RELATIVO ao mesmo host
     return NextResponse.redirect(url);
   }
   return NextResponse.next();

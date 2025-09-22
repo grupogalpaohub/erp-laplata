@@ -66,7 +66,7 @@ async function getPurchaseOrderItems(po_id: string): Promise<PurchaseOrderItem[]
       unit_cost_cents,
       line_total_cents,
       notes,
-      mm_material!inner(mm_comercial, mm_desc)
+      mm_material_data:mm_material(mm_comercial, mm_desc)
     `)
     .eq('mm_order', po_id)
     .eq('tenant_id', tenantId)
@@ -81,9 +81,9 @@ async function getPurchaseOrderItems(po_id: string): Promise<PurchaseOrderItem[]
   return (data || []).map((item: any) => ({
     po_item_id: item.po_item_id,
     mm_material: item.mm_material,
-    mm_comercial: (item.mm_material as any)?.mm_comercial || null,
-    mm_desc: (item.mm_material as any)?.mm_desc || null,
-    quantity: item.quantity,
+    mm_comercial: item.mm_material_data?.mm_comercial || null,
+    mm_desc: item.mm_material_data?.mm_desc || null,
+    mm_qtt: item.mm_qtt,
     unit_cost_cents: item.unit_cost_cents,
     line_total_cents: item.line_total_cents,
     notes: item.notes
@@ -234,7 +234,7 @@ export default async function PurchaseOrderDetailPage({ params }: { params: { po
               </div>
               <div className="flex justify-between">
                 <span className="text-gray-600">Quantidade Total:</span>
-                <span className="font-semibold">{items.reduce((sum, item) => sum + item.quantity, 0)}</span>
+                <span className="font-semibold">{items.reduce((sum, item) => sum + item.mm_qtt, 0)}</span>
               </div>
               <div className="border-t pt-3">
                 <div className="flex justify-between text-lg font-semibold">

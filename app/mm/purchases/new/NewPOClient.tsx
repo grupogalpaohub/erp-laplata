@@ -1,7 +1,6 @@
 'use client'
 
 import { useState } from 'react'
-import { createClient } from '@supabase/supabase-js'
 import { Plus, Trash2, Calculator } from 'lucide-react'
 
 interface Material {
@@ -76,48 +75,28 @@ export default function NewPOClient({ vendors, materials }: NewPOClientProps) {
     setError('')
 
     try {
-      const supabase = createClient(
-        process.env.NEXT_PUBLIC_SUPABASE_URL!,
-        process.env.SUPABASE_SERVICE_ROLE_KEY!
-      )
-
-      // Criar header do pedido
-      const header = {
-        mm_order: `PO-${Date.now()}`,
-        vendor_id: selectedVendor,
-        po_date: poDate,
-        status: 'draft' as const,
-        total_amount: Math.round(getTotal() * 10000) // Converter para centavos
-      }
-
-      const { data: headerData, error: headerError } = await supabase
-        .from('mm_purchase_order')
-        .insert(header)
-        .select('mm_order')
-        .single()
-
-      if (headerError) throw headerError
-
-      // Criar itens do pedido
       const validItems = items.filter(item => item.material && item.quantity > 0)
       if (validItems.length === 0) {
         throw new Error('Adicione pelo menos um item ao pedido')
       }
 
-      const orderItems = validItems.map(item => ({
-        mm_order: headerData.mm_order,
-        plant_id: 'DEFAULT',
-        mm_material: item.material,
-        mm_qtt: item.quantity,
-        unit_cost_cents: Math.round(item.unitPrice * 10000),
-        line_total_cents: Math.round(item.total * 10000)
-      }))
+      const response = await fetch('/api/mm/purchases/create', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          vendor_id: selectedVendor,
+          po_date: poDate,
+          items: validItems
+        })
+      })
 
-      const { error: itemsError } = await supabase
-        .from('mm_purchase_order_item')
-        .insert(orderItems)
+      const result = await response.json()
 
-      if (itemsError) throw itemsError
+      if (!response.ok) {
+        throw new Error(result.error || 'Erro ao criar pedido')
+      }
 
       // Redirecionar para lista de pedidos
       window.location.href = '/mm/purchases'

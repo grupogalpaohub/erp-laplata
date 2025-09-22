@@ -1,5 +1,6 @@
 import { cookies, headers } from 'next/headers';
 import { createServerClient } from '@supabase/ssr';
+import { createClient } from '@supabase/supabase-js';
 import { ENV } from '@/lib/env';
 
 export const runtime = 'nodejs';
@@ -7,7 +8,6 @@ export const runtime = 'nodejs';
 export function createSupabaseServerClient() {
   // Se auth está desabilitada, usar service role para bypass RLS
   if (ENV.AUTH_DISABLED && process.env.SUPABASE_SERVICE_ROLE_KEY) {
-    const { createClient } = require('@supabase/supabase-js');
     return createClient(
       ENV.SUPABASE_URL || 'https://gpjcfwjssfvqhppxdudp.supabase.co',
       process.env.SUPABASE_SERVICE_ROLE_KEY

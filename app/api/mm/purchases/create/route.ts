@@ -23,23 +23,45 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Adicione pelo menos um item ao pedido' }, { status: 400 })
     }
 
-    // Gerar ID do pedido
+    // Gerar ID do pedido único
     const generateOrderId = async () => {
-      const { data: lastOrder } = await supabase
-        .from('mm_purchase_order')
-        .select('mm_order')
-        .eq('tenant_id', tenantId)
-        .order('mm_order', { ascending: false })
-        .limit(1)
+      let attempts = 0
+      const maxAttempts = 10
       
-      let nextNum = 1
-      if (lastOrder && lastOrder.length > 0) {
-        const lastId = lastOrder[0].mm_order
-        const lastNum = parseInt(lastId.replace('PO-', ''))
-        nextNum = lastNum + 1
+      while (attempts < maxAttempts) {
+        // Buscar último pedido para este tenant
+        const { data: lastOrder } = await supabase
+          .from('mm_purchase_order')
+          .select('mm_order')
+          .eq('tenant_id', tenantId)
+          .order('mm_order', { ascending: false })
+          .limit(1)
+        
+        let nextNum = 1
+        if (lastOrder && lastOrder.length > 0) {
+          const lastId = lastOrder[0].mm_order
+          const lastNum = parseInt(lastId.replace('PO-', ''))
+          nextNum = lastNum + 1
+        }
+        
+        const candidateId = `PO-${nextNum.toString().padStart(6, '0')}`
+        
+        // Verificar se o ID já existe
+        const { data: existingOrder } = await supabase
+          .from('mm_purchase_order')
+          .select('mm_order')
+          .eq('mm_order', candidateId)
+          .single()
+        
+        if (!existingOrder) {
+          return candidateId
+        }
+        
+        attempts++
       }
       
-      return `PO-${nextNum.toString().padStart(6, '0')}`
+      // Se chegou aqui, usar timestamp como fallback
+      return `PO-${Date.now().toString().slice(-6)}`
     }
 
     const orderId = await generateOrderId()

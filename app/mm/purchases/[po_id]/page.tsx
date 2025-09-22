@@ -1,3 +1,6 @@
+'use client'
+
+import { useState, useEffect } from 'react'
 import { createClient } from '@supabase/supabase-js'
 import { getTenantId } from '@/lib/auth'
 import Link from 'next/link'
@@ -90,11 +93,60 @@ async function getPurchaseOrderItems(po_id: string): Promise<PurchaseOrderItem[]
   }))
 }
 
-export default async function PurchaseOrderDetailPage({ params }: { params: { po_id: string } }) {
-  const [purchaseOrder, items] = await Promise.all([
-    getPurchaseOrder(params.po_id),
-    getPurchaseOrderItems(params.po_id)
-  ])
+export default function PurchaseOrderDetailPage({ params }: { params: { po_id: string } }) {
+  const [purchaseOrder, setPurchaseOrder] = useState<PurchaseOrder | null>(null)
+  const [items, setItems] = useState<PurchaseOrderItem[]>([])
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    loadData()
+  }, [])
+
+  const loadData = async () => {
+    try {
+      const [poData, itemsData] = await Promise.all([
+        getPurchaseOrder(params.po_id),
+        getPurchaseOrderItems(params.po_id)
+      ])
+      setPurchaseOrder(poData)
+      setItems(itemsData)
+    } catch (error) {
+      console.error('Erro ao carregar dados:', error)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const updateStatus = async (newStatus: string) => {
+    try {
+      const response = await fetch(`/api/mm/purchases/${params.po_id}/status`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status: newStatus })
+      })
+      
+      if (response.ok) {
+        loadData() // Recarregar dados
+      } else {
+        const error = await response.json()
+        alert(`Erro: ${error.error}`)
+      }
+    } catch (error) {
+      console.error('Erro ao atualizar status:', error)
+      alert('Erro ao atualizar status')
+    }
+  }
+
+  if (loading) {
+    return (
+      <main className="mx-auto max-w-7xl px-4 py-6">
+        <div className="text-center py-12">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-fiori-primary mx-auto mb-4"></div>
+          <p>Carregando...</p>
+        </div>
+      </main>
+    )
+  }
 
   if (!purchaseOrder) {
     return (
@@ -124,10 +176,13 @@ export default async function PurchaseOrderDetailPage({ params }: { params: { po
           </div>
         </div>
         <div className="flex gap-3">
-          <button className="btn-fiori-outline flex items-center gap-2">
+          <Link 
+            href={`/mm/purchases/${purchaseOrder.mm_order}/edit`}
+            className="btn-fiori-outline flex items-center gap-2"
+          >
             <Edit className="w-4 h-4" />
             Editar
-          </button>
+          </Link>
           <button className="btn-fiori-outline flex items-center gap-2">
             <Printer className="w-4 h-4" />
             Imprimir
@@ -172,7 +227,7 @@ export default async function PurchaseOrderDetailPage({ params }: { params: { po
               )}
               <div>
                 <label className="text-sm font-medium text-gray-500">Valor Total</label>
-                <p className="text-2xl font-bold text-green-600">R$ {(purchaseOrder.total_amount / 100).toFixed(2)}</p>
+                <p className="text-2xl font-bold text-green-600">R$ {(purchaseOrder.total_amount / 10000).toFixed(2)}</p>
               </div>
             </div>
             {purchaseOrder.notes && (
@@ -213,8 +268,8 @@ export default async function PurchaseOrderDetailPage({ params }: { params: { po
                           </div>
                         </td>
                         <td className="text-right">{item.mm_qtt}</td>
-                        <td className="text-right">R$ {(item.unit_cost_cents / 100).toFixed(2)}</td>
-                        <td className="text-right font-medium">R$ {(item.line_total_cents / 100).toFixed(2)}</td>
+                        <td className="text-right">R$ {(item.unit_cost_cents / 10000).toFixed(2)}</td>
+                        <td className="text-right font-medium">R$ {(item.line_total_cents / 10000).toFixed(2)}</td>
                       </tr>
                     ))}
                   </tbody>
@@ -239,8 +294,55 @@ export default async function PurchaseOrderDetailPage({ params }: { params: { po
               <div className="border-t pt-3">
                 <div className="flex justify-between text-lg font-semibold">
                   <span>Valor Total:</span>
-                  <span className="text-green-600">R$ {(purchaseOrder.total_amount / 100).toFixed(2)}</span>
+                  <span className="text-green-600">R$ {(purchaseOrder.total_amount / 10000).toFixed(2)}</span>
                 </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Gerenciamento de Status */}
+          <div className="card-fiori">
+            <h3 className="text-lg font-semibold mb-4">Gerenciar Status</h3>
+            <div className="space-y-3">
+              <div className="flex items-center justify-between">
+                <span className="text-gray-600">Status Atual:</span>
+                <span className={`badge-fiori ${
+                  purchaseOrder.status === 'draft' ? 'badge-fiori-info' :
+                  purchaseOrder.status === 'placed' ? 'badge-fiori-warning' :
+                  purchaseOrder.status === 'received' ? 'badge-fiori-success' :
+                  'badge-fiori-danger'
+                }`}>
+                  {purchaseOrder.status}
+                </span>
+              </div>
+              
+              <div className="space-y-2">
+                {purchaseOrder.status === 'draft' && (
+                  <button
+                    onClick={() => updateStatus('placed')}
+                    className="btn-fiori-primary w-full"
+                  >
+                    Confirmar Pedido
+                  </button>
+                )}
+                
+                {purchaseOrder.status === 'placed' && (
+                  <button
+                    onClick={() => updateStatus('received')}
+                    className="btn-fiori-success w-full"
+                  >
+                    Marcar como Recebido
+                  </button>
+                )}
+                
+                {(purchaseOrder.status === 'draft' || purchaseOrder.status === 'placed') && (
+                  <button
+                    onClick={() => updateStatus('cancelled')}
+                    className="btn-fiori-danger w-full"
+                  >
+                    Cancelar Pedido
+                  </button>
+                )}
               </div>
             </div>
           </div>

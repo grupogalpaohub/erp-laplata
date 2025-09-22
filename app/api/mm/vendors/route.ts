@@ -13,21 +13,21 @@ export async function GET(request: NextRequest) {
     const tenantId = await getTenantId()
 
     const { data, error } = await supabase
-      .from('mm_material')
-      .select('mm_material, mm_comercial, mm_desc, mm_price_cents, mm_purchase_price_cents')
+      .from('mm_vendor')
+      .select('vendor_id, vendor_name')
       .eq('tenant_id', tenantId)
       .eq('status', 'active')
-      .order('mm_material')
+      .order('vendor_name')
 
     if (error) {
-      console.error('Error fetching materials:', error)
-      return NextResponse.json({ error: 'Erro ao buscar materiais' }, { status: 500 })
+      console.error('Error fetching vendors:', error)
+      return NextResponse.json({ error: 'Erro ao buscar fornecedores' }, { status: 500 })
     }
 
     return NextResponse.json(data || [])
 
   } catch (error) {
-    console.error('Error fetching materials:', error)
+    console.error('Error fetching vendors:', error)
     return NextResponse.json({ 
       error: 'Erro interno do servidor' 
     }, { status: 500 })

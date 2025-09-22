@@ -99,25 +99,18 @@ export async function POST(request: NextRequest) {
       currency: 'BRL'
     }))
 
-    // SOLUÇÃO ALTERNATIVA: Criar pedido sem itens por enquanto
-    // O problema é um trigger mal configurado que busca campo 'quantity' inexistente
-    let itemsError = null
-    
-    // Por enquanto, vamos criar apenas o header do pedido
-    // Os itens podem ser adicionados via interface manual ou após correção do trigger
-    console.log('AVISO: Criando pedido sem itens devido a trigger problemático no banco')
-    console.log('Itens planejados:', orderItems.length)
-    
-    // TODO: Corrigir trigger do banco que busca campo 'quantity' inexistente
-    // Após correção, implementar inserção de itens aqui
+    // Inserir itens do pedido
+    const { error: itemsError } = await supabase
+      .from('mm_purchase_order_item')
+      .insert(orderItems)
 
     if (itemsError) {
       console.error('Erro ao inserir itens do pedido:', itemsError)
       return NextResponse.json({ error: `Erro ao inserir itens do pedido: ${itemsError.message}` }, { status: 500 })
     }
 
-    // Atualizar total_amount no cabeçalho do pedido
-    const totalAmount = items.reduce((sum: number, item: any) => sum + (item.total * 10000), 0)
+    // Atualizar total_amount no cabeçalho do pedido (já em centavos)
+    const totalAmount = items.reduce((sum: number, item: any) => sum + Math.round(item.total * 10000), 0)
     const { error: updateError } = await supabase
       .from('mm_purchase_order')
       .update({ total_amount: totalAmount })

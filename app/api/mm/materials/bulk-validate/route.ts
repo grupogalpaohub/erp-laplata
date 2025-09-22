@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createSupabaseServerClient } from '@/lib/supabaseServer'
+import { createClient } from '@supabase/supabase-js'
 import { getTenantId } from '@/lib/auth'
 
 export async function POST(request: NextRequest) {
@@ -10,26 +10,11 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Lista de materiais é obrigatória' }, { status: 400 })
     }
 
-    const supabase = createSupabaseServerClient()
+    const supabase = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.SUPABASE_SERVICE_ROLE_KEY!
+    )
     const tenantId = await getTenantId()
-
-    // Buscar dados de customizing
-    const { data: types } = await supabase
-      .from('customizing')
-      .select('value')
-      .eq('tenant_id', tenantId)
-      .eq('category', 'material_type')
-      .order('value')
-    
-    const { data: classifications } = await supabase
-      .from('customizing')
-      .select('value')
-      .eq('tenant_id', tenantId)
-      .eq('category', 'material_classification')
-      .order('value')
-
-    const validTypes = types?.map(t => t.value) || ['Brinco', 'Cordão', 'Choker', 'Gargantilha', 'Anel', 'Pulseira']
-    const validClassifications = classifications?.map(c => c.value) || ['Elementar', 'Amuleto', 'Protetor', 'Decoração']
 
     // Buscar fornecedores válidos
     const { data: vendors } = await supabase
@@ -40,73 +25,72 @@ export async function POST(request: NextRequest) {
 
     const validVendors = vendors?.map(v => v.vendor_id) || []
 
+    // Tipos e classificações válidos (hardcoded por enquanto)
+    const validTypes = ['Brinco', 'Cordão', 'Choker', 'Gargantilha', 'Anel', 'Pulseira']
+    const validClassifications = ['Elementar', 'Amuleto', 'Protetor', 'Decoração']
+
     const validationResults = materials.map((material, index) => {
       const errors: string[] = []
 
       // Validar campos obrigatórios
+      if (!material.mm_comercial?.trim()) {
+        errors.push('Nome comercial é obrigatório')
+      }
       if (!material.mm_desc?.trim()) {
         errors.push('Descrição é obrigatória')
       }
       if (!material.mm_mat_type?.trim()) {
         errors.push('Tipo de material é obrigatório')
-      } else if (!validTypes.includes(material.mm_mat_type)) {
-        errors.push(`Tipo inválido. Use: ${validTypes.join(', ')}`)
       }
       if (!material.mm_mat_class?.trim()) {
         errors.push('Classificação é obrigatória')
-      } else if (!validClassifications.includes(material.mm_mat_class)) {
-        errors.push(`Classificação inválida. Use: ${validClassifications.join(', ')}`)
       }
       if (!material.mm_vendor_id?.trim()) {
         errors.push('Fornecedor é obrigatório')
-      } else if (!validVendors.includes(material.mm_vendor_id)) {
-        errors.push('Fornecedor não encontrado')
       }
-      if (!material.mm_price_cents || isNaN(Number(material.mm_price_cents))) {
-        errors.push('Preço de venda é obrigatório e deve ser numérico')
+      if (!material.mm_price_cents || material.mm_price_cents <= 0) {
+        errors.push('Preço de venda deve ser maior que zero')
       }
-      if (!material.lead_time_days || isNaN(Number(material.lead_time_days)) || Number(material.lead_time_days) < 0) {
-        errors.push('Lead time deve ser um número maior ou igual a 0')
+      if (!material.mm_purchase_price_cents || material.mm_purchase_price_cents <= 0) {
+        errors.push('Preço de compra deve ser maior que zero')
+      }
+      if (!material.lead_time_days || material.lead_time_days < 0) {
+        errors.push('Lead time deve ser maior ou igual a zero')
+      }
+
+      // Validar valores específicos
+      if (material.mm_mat_type && !validTypes.includes(material.mm_mat_type)) {
+        errors.push(`Tipo de material inválido. Use: ${validTypes.join(', ')}`)
+      }
+      if (material.mm_mat_class && !validClassifications.includes(material.mm_mat_class)) {
+        errors.push(`Classificação inválida. Use: ${validClassifications.join(', ')}`)
+      }
+      if (material.mm_vendor_id && !validVendors.includes(material.mm_vendor_id)) {
+        errors.push('Fornecedor não encontrado ou inativo')
+      }
+
+      // Gerar ID se não fornecido
+      let generatedId = null
+      if (!material.mm_material?.trim()) {
+        const typePrefix = material.mm_mat_type?.charAt(0).toUpperCase() || 'M'
+        const randomNum = Math.floor(Math.random() * 1000).toString().padStart(3, '0')
+        generatedId = `${typePrefix}_${randomNum}`
       }
 
       return {
         row_index: index,
         is_valid: errors.length === 0,
         error_message: errors.length > 0 ? errors.join('; ') : null,
-        generated_id: errors.length === 0 ? generateMaterialId(material.mm_mat_type) : null
+        generated_id: generatedId
       }
     })
 
-    const validCount = validationResults.filter(r => r.is_valid).length
-    const invalidCount = validationResults.filter(r => !r.is_valid).length
-
-    return NextResponse.json({
-      validationResults,
-      summary: {
-        total: materials.length,
-        valid: validCount,
-        invalid: invalidCount,
-        canProceed: validCount > 0 && invalidCount === 0
-      }
-    })
+    return NextResponse.json({ results: validationResults })
 
   } catch (error) {
-    console.error('Error validating materials:', error)
-    return NextResponse.json({ error: 'Erro interno do servidor' }, { status: 500 })
+    console.error('Erro na validação:', error)
+    return NextResponse.json({ 
+      error: error instanceof Error ? error.message : 'Erro interno do servidor' 
+    }, { status: 500 })
   }
-}
-
-function isValidUrl(string: string): boolean {
-  try {
-    new URL(string)
-    return true
-  } catch (_) {
-    return false
-  }
-}
-
-function generateMaterialId(type: string): string {
-  const prefix = type.charAt(0).toUpperCase()
-  const timestamp = Date.now().toString().slice(-6)
-  return `${prefix}_${timestamp}`
 }

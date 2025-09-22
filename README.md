@@ -46,6 +46,23 @@ src/
 
 ## 🗄️ Banco de Dados
 
+### Sistema de IDs de Materiais
+
+O sistema utiliza um padrão específico para identificação de materiais baseado no tipo:
+
+- **B_** - Brincos (ex: B_001, B_175)
+- **G_** - Gargantilhas (ex: G_001, G_184) 
+- **C_** - Cordões (ex: C_001, C_200)
+- **A_** - Anéis (ex: A_001, A_150)
+- **P_** - Pulseiras (ex: P_001, P_300)
+- **Ch_** - Chokers (ex: Ch_001, Ch_100)
+
+**Formato**: `PREFIXO_NUMERO` onde o número é sequencial por tipo.
+
+**Importação em Massa**: 
+- Para **criar** novos materiais: deixe o campo `mm_material` vazio no CSV
+- Para **atualizar** materiais existentes: inclua o ID completo (ex: B_175)
+
 ### Migrações Disponíveis
 
 O sistema inclui migrações SQL completas para todos os módulos:

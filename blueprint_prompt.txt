@@ -18,6 +18,8 @@ RLS: todas as tabelas com policies por tenant_id. Leituras/escritas só do tenan
 
 Numeração: usar doc_numbering (não hardcode). Função atômica next_doc_number.
 
+ID de Materiais: prefixo baseado no tipo (B_ para Brincos, G_ para Gargantilhas, C_ para Cordões, A_ para Anéis, P_ para Pulseiras, Ch_ para Chokers). Formato: PREFIXO_NUMERO (ex: B_001, G_184).
+
 Auth: Supabase Auth (e-mail/password). user_profile.user_id é o UUID do Supabase.
 
 Service Role: apenas nas Edge Functions. Front usa só NEXT_PUBLIC_SUPABASE_ANON_KEY.

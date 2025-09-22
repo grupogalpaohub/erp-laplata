@@ -23,7 +23,7 @@ interface PurchaseOrderItem {
   mm_material: string
   mm_comercial: string | null
   mm_desc: string | null
-  quantity: number
+  mm_qtt: number
   unit_cost_cents: number
   line_total_cents: number
   notes?: string
@@ -63,7 +63,7 @@ async function getPurchaseOrderItems(po_id: string): Promise<PurchaseOrderItem[]
     .select(`
       po_item_id,
       mm_material,
-      quantity,
+      mm_qtt,
       unit_cost_cents,
       line_total_cents,
       notes,
@@ -213,7 +213,7 @@ export default async function PurchaseOrderDetailPage({ params }: { params: { po
                             )}
                           </div>
                         </td>
-                        <td className="text-right">{item.quantity}</td>
+                        <td className="text-right">{item.mm_qtt}</td>
                         <td className="text-right">R$ {(item.unit_cost_cents / 100).toFixed(2)}</td>
                         <td className="text-right font-medium">R$ {(item.line_total_cents / 100).toFixed(2)}</td>
                       </tr>

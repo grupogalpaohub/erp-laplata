@@ -18,7 +18,25 @@ RLS: todas as tabelas com policies por tenant_id. Leituras/escritas só do tenan
 
 Numeração: usar doc_numbering (não hardcode). Função atômica next_doc_number.
 
-ID de Materiais: prefixo baseado no tipo (B_ para Brincos, G_ para Gargantilhas, C_ para Cordões, A_ para Anéis, P_ para Pulseiras, Ch_ para Chokers). Formato: PREFIXO_NUMERO (ex: B_001, G_184).
+Sistema de IDs Sequenciais: TODOS os registros principais devem ter IDs únicos e sequenciais:
+
+ID de Materiais: prefixo baseado no tipo (B_ para Brincos, G_ para Gargantilhas, C_ para Cordões, A_ para Anéis, P_ para Pulseiras, Ch_ para Chokers, K_ para Kits). Formato: PREFIXO_NUMERO (ex: B_001, G_184).
+
+ID de Fornecedores: SUP_00001, SUP_00002... (sequencial) ou V1234567890 (timestamp-based).
+
+ID de Pedidos de Compra: PO-000001, PO-000002... (sequencial) ou PO-YYYYMM-SEQ6 (com data).
+
+ID de Pedidos de Venda: SO-YYYYMM-SEQ6 (ex: SO-202501-000001) via next_doc_number().
+
+ID de Clientes: CUST-1234567890 (timestamp-based) ou CUST-YYYYMM-SEQ6 (com data).
+
+ID de Depósitos: WH-001, WH-002... (sequencial) ou PLANT-001, PLANT-002...
+
+ID de Lançamentos Financeiros: FI-YYYYMM-SEQ6, PAY-YYYYMM-SEQ6, REC-YYYYMM-SEQ6...
+
+ID de Movimentações de Estoque: MOV-YYYYMM-SEQ6, ENT-YYYYMM-SEQ6, SAI-YYYYMM-SEQ6...
+
+Geração Automática: Implementar lógica de geração sequencial para TODOS os módulos, com validação de unicidade e fallback para timestamp em caso de conflito.
 
 Auth: Supabase Auth (e-mail/password). user_profile.user_id é o UUID do Supabase.
 

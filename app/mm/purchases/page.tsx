@@ -95,7 +95,7 @@ export default async function PurchaseOrdersPage({ searchParams }: { searchParam
               {rows.map((r) => (
                 <tr key={r.mm_order}>
                   <td>
-                    <Link href={`/mm/purchases/${r.mm_order}`} className="text-blue-600 hover:text-blue-800 font-medium">{r.mm_order.slice(0,8)}</Link>
+                    <Link href={`/mm/purchases/${r.mm_order}`} className="text-blue-600 hover:text-blue-800 font-medium">{r.mm_order}</Link>
                   </td>
                   <td>{r.mm_vendor?.vendor_name || r.vendor_id}</td>
                   <td>{new Date(r.po_date).toLocaleDateString()}</td>

@@ -46,22 +46,82 @@ src/
 
 ## 🗄️ Banco de Dados
 
-### Sistema de IDs de Materiais
+### Sistema de IDs Sequenciais
 
-O sistema utiliza um padrão específico para identificação de materiais baseado no tipo:
+O sistema utiliza **IDs sequenciais únicos** para todos os registros principais, garantindo unicidade e rastreabilidade:
 
+#### 📦 Materiais (MM)
 - **B_** - Brincos (ex: B_001, B_175)
 - **G_** - Gargantilhas (ex: G_001, G_184) 
 - **C_** - Cordões (ex: C_001, C_200)
 - **A_** - Anéis (ex: A_001, A_150)
 - **P_** - Pulseiras (ex: P_001, P_300)
 - **Ch_** - Chokers (ex: Ch_001, Ch_100)
+- **K_** - Kits (ex: K_001, K_050)
 
 **Formato**: `PREFIXO_NUMERO` onde o número é sequencial por tipo.
 
+#### 🏢 Fornecedores (MM)
+- **SUP_** - Fornecedores (ex: SUP_00001, SUP_00002)
+- **V_** - Fornecedores alternativos (ex: V1234567890)
+
+#### 🛒 Pedidos de Compra (MM)
+- **PO-000001** - Pedidos de compra (ex: PO-000001, PO-000002)
+- **PO-YYYYMM-SEQ6** - Formato alternativo com data
+
+#### 💰 Pedidos de Venda (SD)
+- **SO-YYYYMM-SEQ6** - Pedidos de venda (ex: SO-202501-000001)
+- **SOI001** - Itens de pedido (ex: SOI001, SOI002)
+
+#### 👥 Clientes (CRM)
+- **CUST-1234567890** - Clientes (ex: CUST-1234567890)
+- **CUST-YYYYMM-SEQ6** - Formato alternativo com data
+
+#### 🏭 Depósitos (WH)
+- **WH-001** - Depósitos (ex: WH-001, WH-002)
+- **PLANT-001** - Plantas (ex: PLANT-001, PLANT-002)
+
+#### 💳 Lançamentos Financeiros (FI)
+- **FI-YYYYMM-SEQ6** - Lançamentos (ex: FI-202501-000001)
+- **PAY-YYYYMM-SEQ6** - Pagamentos (ex: PAY-202501-000001)
+- **REC-YYYYMM-SEQ6** - Recebimentos (ex: REC-202501-000001)
+
+#### 📊 Movimentações de Estoque (WH)
+- **MOV-YYYYMM-SEQ6** - Movimentações (ex: MOV-202501-000001)
+- **ENT-YYYYMM-SEQ6** - Entradas (ex: ENT-202501-000001)
+- **SAI-YYYYMM-SEQ6** - Saídas (ex: SAI-202501-000001)
+
+### Geração Automática de IDs
+
+#### ✅ Implementado
+- **Materiais**: Geração baseada no tipo com prefixo automático
+- **Pedidos de Compra**: Sequencial PO-000001, PO-000002...
+- **Pedidos de Venda**: Função `next_doc_number()` com formato SO-YYYYMM-SEQ6
+- **Clientes**: Timestamp-based CUST-1234567890
+- **Fornecedores**: Timestamp-based V1234567890
+
+#### 🔧 Funções de Geração
+- **`generate_material_id(tipo)`** - Gera ID de material baseado no tipo
+- **`next_doc_number(tenant_id, doc_type)`** - Gera números sequenciais para documentos
+- **Validação automática** de unicidade antes da inserção
+- **Fallback para timestamp** em caso de conflito
+
+#### 📋 Tabela de Controle
+```sql
+doc_numbering (
+  tenant_id TEXT,
+  doc_type TEXT,     -- 'SO', 'PO', 'FI', etc.
+  prefix TEXT,       -- 'SO-', 'PO-', 'FI-'
+  format TEXT,       -- 'YYYYMM-SEQ6'
+  next_seq INTEGER,  -- Próximo número da sequência
+  is_active BOOLEAN
+)
+```
+
 **Importação em Massa**: 
-- Para **criar** novos materiais: deixe o campo `mm_material` vazio no CSV
-- Para **atualizar** materiais existentes: inclua o ID completo (ex: B_175)
+- Para **criar** novos registros: deixe o campo ID vazio no CSV
+- Para **atualizar** registros existentes: inclua o ID completo
+- **Validação automática** de formato e unicidade
 
 ### Migrações Disponíveis
 

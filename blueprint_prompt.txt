@@ -424,11 +424,33 @@ Scripts de import: consolidar em uma EF de bootstrap com validação; logs em im
 
 Padronização de campos: nomes canônicos (ex.: mm_material, plant_id, so_id, mm_order), todos em snake_case.
 
-Variáveis de ambiente: usar somente NEXT_PUBLIC_* no front; checagens no next.config.js foram removidas (No more “invalid next.config env”).
+Variáveis de ambiente: usar somente NEXT_PUBLIC_* no front; checagens no next.config.js foram removidas (No more "invalid next.config env").
 
 Bundle Frontend: lazy-load nas páginas de módulos; evitar ícones/packs gigantes.
 
 Queries: todas as tabelas com índices úteis + paginação.
+
+🔐 RLS (Row Level Security) e Bypass para Desenvolvimento:
+
+RLS habilitado em todas as tabelas com políticas por tenant_id.
+
+Desenvolvimento local: AUTH_DISABLED=true permite bypass do RLS usando SUPABASE_SERVICE_ROLE_KEY.
+
+Service role key: deve ser usado apenas no backend para bypassar RLS quando necessário.
+
+Políticas RLS: verificam current_setting('request.jwt.claims', true)::json->>'tenant_id'.
+
+Bypass automático: quando AUTH_DISABLED=true, usar createClient() diretamente com service role key.
+
+🔧 Guardrails e Qualidade de Código:
+
+Pre-commit hooks: verificam arquivos críticos antes do commit.
+
+Preflight script: valida porta, autenticação, banco de dados e TypeScript.
+
+Sincronização automática: script para commit e push com exclusão de .env.local.
+
+Documentação de mudanças: change-intent.json para alterações críticas de schema.
 
 ✅ Checklists de verificação
 Após migrações

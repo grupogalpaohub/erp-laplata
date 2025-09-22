@@ -173,7 +173,7 @@ Configure as variáveis no dashboard do Vercel:
 ## 🛠️ Scripts Disponíveis
 
 ```bash
-# Desenvolvimento
+# Desenvolvimento (porta 3000 forçada)
 npm run dev
 
 # Build para produção
@@ -184,7 +184,31 @@ npm run lint
 
 # Type checking
 npm run type-check
+
+# Sincronização automática com GitHub
+npm run sync
 ```
+
+## 🔧 Guardrails e Qualidade
+
+### Pre-commit Hooks
+- **Verificação automática** de arquivos críticos antes do commit
+- **Bloqueio de .env.local** para evitar vazamento de credenciais
+- **Validação TypeScript** para manter qualidade do código
+- **Preflight script** para verificações hierárquicas
+
+### Preflight Script
+- **Verificação de porta** (deve ser 3000 em desenvolvimento)
+- **Validação de autenticação** e variáveis de ambiente
+- **Teste de conectividade** com banco de dados
+- **Documentação de mudanças** para alterações críticas
+- **Validação TypeScript** com tratamento de erros
+
+### Sincronização Automática
+- **Script de sync** para commit e push automático
+- **Exclusão automática** de `.env.local`
+- **Detecção de branch** e configuração de upstream
+- **Mensagens padronizadas** com timestamp
 
 ## 🚀 Deploy
 
@@ -298,13 +322,27 @@ vercel --prod
 - **A Pagar** - Contas a pagar em aberto
 - **Fluxo de Caixa** - Diferença entre a receber e a pagar
 
-## 🔒 Autenticação
+## 🔒 Autenticação e Segurança
 
+### Autenticação
 - **Supabase Auth** com Google OAuth
 - **Middleware** para proteção de rotas
 - **Callback robusto** com tratamento de erros
 - **Sessão persistente** com cookies seguros
 - **Landing page** antes do login
+
+### RLS (Row Level Security)
+- **RLS habilitado** em todas as tabelas do Supabase
+- **Políticas por tenant_id** para isolamento de dados
+- **Bypass para desenvolvimento** com `AUTH_DISABLED=true`
+- **Service role key** para operações administrativas
+- **Políticas automáticas** para SELECT, INSERT, UPDATE, DELETE
+
+### Desenvolvimento Local
+- **AUTH_DISABLED=true** no `.env.local` para bypass de autenticação
+- **Service role key** para bypass do RLS durante desenvolvimento
+- **Tenant fixo** (`LaplataLunaria`) para testes locais
+- **Middleware inteligente** que detecta modo de desenvolvimento
 
 ## 🎨 UI/UX - SAP Fiori Design System
 
@@ -390,6 +428,9 @@ vercel --prod
 - **Tratamento de erros** em callbacks OAuth
 - **Landing page** antes do acesso ao sistema
 - **RLS (Row Level Security)** no Supabase
+- **Bypass para desenvolvimento** com AUTH_DISABLED
+- **Service role key** para operações administrativas
+- **Políticas automáticas** por tenant_id
 
 ### ✅ Design System Fiori
 - **Tema escuro** consistente em toda aplicação
@@ -409,6 +450,9 @@ vercel --prod
 - **Logs de auditoria** automáticos
 - **Exportação de dados** em CSV
 - **Paginação server-side** para performance
+- **Guardrails automáticos** para qualidade de código
+- **Pre-commit hooks** para validação
+- **Sincronização automática** com GitHub
 
 ## 🐛 Troubleshooting
 

@@ -44,9 +44,43 @@ async function createMaterial(formData: FormData) {
     throw new Error('Preço de compra é obrigatório e deve ser maior ou igual a 0')
   }
 
+  // Gerar ID do material baseado no tipo
+  const generateMaterialId = async (matType: string) => {
+    const prefixMap: { [key: string]: string } = {
+      'Brinco': 'B_',
+      'Cordão': 'C_',
+      'Choker': 'CH_',
+      'Gargantilha': 'G_',
+      'Anel': 'A_',
+      'Pulseira': 'P_'
+    }
+    
+    const prefix = prefixMap[matType] || 'M_'
+    
+    // Buscar próximo número sequencial para este tipo
+    const { data: existingMaterials } = await supabase
+      .from('mm_material')
+      .select('mm_material')
+      .eq('tenant_id', tenantId)
+      .like('mm_material', `${prefix}%`)
+      .order('mm_material', { ascending: false })
+      .limit(1)
+    
+    let nextNum = 1
+    if (existingMaterials && existingMaterials.length > 0) {
+      const lastId = existingMaterials[0].mm_material
+      const lastNum = parseInt(lastId.substring(prefix.length))
+      nextNum = lastNum + 1
+    }
+    
+    return `${prefix}${nextNum.toString().padStart(3, '0')}`
+  }
+
+  const materialId = await generateMaterialId(mm_mat_type)
+
   const materialData = {
     tenant_id: tenantId,
-    // mm_material será gerado automaticamente pelo trigger
+    mm_material: materialId,
     mm_comercial: formData.get('mm_comercial') as string,
     mm_desc: formData.get('mm_desc') as string,
     mm_mat_type: mm_mat_type,

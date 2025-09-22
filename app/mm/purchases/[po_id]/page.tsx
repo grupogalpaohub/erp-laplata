@@ -1,11 +1,10 @@
-export const dynamic = 'force-dynamic'
-export const revalidate = 0
-export const runtime = 'nodejs'
-
 import { createClient } from '@supabase/supabase-js'
 import { getTenantId } from '@/lib/auth'
 import Link from 'next/link'
 import { ArrowLeft, Printer, Edit } from 'lucide-react'
+
+export const dynamic = 'force-dynamic'
+export const revalidate = 0
 
 interface PurchaseOrder {
   mm_order: string

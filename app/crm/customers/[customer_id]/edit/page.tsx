@@ -29,6 +29,13 @@ interface Customer {
   customer_type: string
   created_date: string
   updated_at: string
+  // Campos CRM
+  customer_category: string
+  lead_classification: string
+  sales_channel: string
+  notes: string
+  preferred_payment_method: string
+  preferred_payment_terms: string
 }
 
 interface PageProps {
@@ -75,6 +82,11 @@ async function updateCustomer(formData: FormData) {
       addr_country: String(formData.get('addr_country') || 'BR'),
       is_active: formData.get('is_active') === 'on',
       customer_type: String(formData.get('customer_type') || 'PF'),
+      // Campos CRM
+      customer_category: String(formData.get('customer_category') || ''),
+      lead_classification: String(formData.get('lead_classification') || ''),
+      sales_channel: String(formData.get('sales_channel') || ''),
+      notes: String(formData.get('notes') || ''),
       updated_at: new Date().toISOString()
     }
 
@@ -412,6 +424,100 @@ export default async function EditCustomerPage({ params }: PageProps) {
                   <option value="AR">Argentina</option>
                   <option value="UY">Uruguai</option>
                 </select>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Informações CRM */}
+        <div className="card-fiori">
+          <div className="card-fiori-header">
+            <h3 className="card-fiori-title">Informações CRM</h3>
+          </div>
+          <div className="card-fiori-content">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div>
+                <label htmlFor="customer_category" className="label-fiori">
+                  Categoria do Cliente
+                </label>
+                <select id="customer_category" name="customer_category" defaultValue={customer?.customer_category || ''} className="select-fiori">
+                  <option value="">Selecione...</option>
+                  <option value="VIP">VIP</option>
+                  <option value="REGULAR">Regular</option>
+                  <option value="CORPORATIVO">Corporativo</option>
+                  <option value="PESSOA_FISICA">Pessoa Física</option>
+                  <option value="PESSOA_JURIDICA">Pessoa Jurídica</option>
+                  <option value="DISTRIBUIDOR">Distribuidor</option>
+                  <option value="REVENDEDOR">Revendedor</option>
+                </select>
+              </div>
+              <div>
+                <label htmlFor="lead_classification" className="label-fiori">
+                  Classificação do Lead
+                </label>
+                <select id="lead_classification" name="lead_classification" defaultValue={customer?.lead_classification || ''} className="select-fiori">
+                  <option value="">Selecione...</option>
+                  <option value="novo">Novo</option>
+                  <option value="em_contato">Em Contato</option>
+                  <option value="qualificado">Qualificado</option>
+                  <option value="convertido">Convertido</option>
+                  <option value="perdido">Perdido</option>
+                </select>
+              </div>
+              <div>
+                <label htmlFor="sales_channel" className="label-fiori">
+                  Canal de Vendas
+                </label>
+                <select id="sales_channel" name="sales_channel" defaultValue={customer?.sales_channel || ''} className="select-fiori">
+                  <option value="">Selecione...</option>
+                  <option value="whatsapp">WhatsApp</option>
+                  <option value="instagram">Instagram</option>
+                  <option value="facebook">Facebook</option>
+                  <option value="site">Site</option>
+                  <option value="indicacao">Indicação</option>
+                  <option value="familia_amigos">Família/Amigos</option>
+                </select>
+              </div>
+              <div>
+                <label htmlFor="notes" className="label-fiori">
+                  Observações
+                </label>
+                <textarea
+                  id="notes"
+                  name="notes"
+                  rows={3}
+                  defaultValue={customer?.notes || ''}
+                  className="input-fiori"
+                  placeholder="Observações sobre o cliente..."
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Pagamento Favorito - Somente Leitura */}
+        <div className="card-fiori">
+          <div className="card-fiori-header">
+            <h3 className="card-fiori-title">Pagamento Favorito</h3>
+            <p className="text-sm text-fiori-secondary">Preenchido automaticamente baseado no histórico de pagamentos</p>
+          </div>
+          <div className="card-fiori-content">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div>
+                <label className="label-fiori text-fiori-secondary">
+                  Método de Pagamento Favorito
+                </label>
+                <div className="input-fiori bg-gray-50 text-gray-500">
+                  {customer?.preferred_payment_method || 'Será definido automaticamente'}
+                </div>
+              </div>
+              <div>
+                <label className="label-fiori text-fiori-secondary">
+                  Prazo de Pagamento Favorito
+                </label>
+                <div className="input-fiori bg-gray-50 text-gray-500">
+                  {customer?.preferred_payment_terms || 'Será definido automaticamente'}
+                </div>
               </div>
             </div>
           </div>

@@ -1,7 +1,7 @@
 import Link from 'next/link'
 import { createSupabaseServerClient } from '@/lib/supabaseServer'
 import { getTenantId } from '@/src/lib/auth'
-import { ArrowLeft, Edit, Mail, Phone, MapPin, CreditCard, Calendar, User } from 'lucide-react'
+import { ArrowLeft, Edit, Mail, Phone, MapPin, CreditCard, Calendar, User, Star, Target, ShoppingCart, Tag } from 'lucide-react'
 import { notFound } from 'next/navigation'
 
 export const dynamic = 'force-dynamic'
@@ -28,6 +28,13 @@ interface Customer {
   customer_type: string
   created_date: string
   updated_at: string
+  // Campos CRM
+  customer_category: string
+  lead_classification: string
+  sales_channel: string
+  notes: string
+  preferred_payment_method: string
+  preferred_payment_terms: string
 }
 
 interface PageProps {
@@ -111,6 +118,42 @@ export default async function CustomerDetailPage({ params }: PageProps) {
     return type === 'PJ' ? 'Pessoa Jurídica' : 'Pessoa Física'
   }
 
+  const getCustomerCategoryLabel = (category: string) => {
+    const labels: { [key: string]: string } = {
+      'VIP': 'VIP',
+      'REGULAR': 'Regular',
+      'CORPORATIVO': 'Corporativo',
+      'PESSOA_FISICA': 'Pessoa Física',
+      'PESSOA_JURIDICA': 'Pessoa Jurídica',
+      'DISTRIBUIDOR': 'Distribuidor',
+      'REVENDEDOR': 'Revendedor'
+    }
+    return labels[category] || category
+  }
+
+  const getLeadClassificationLabel = (classification: string) => {
+    const labels: { [key: string]: string } = {
+      'novo': 'Novo',
+      'em_contato': 'Em Contato',
+      'qualificado': 'Qualificado',
+      'convertido': 'Convertido',
+      'perdido': 'Perdido'
+    }
+    return labels[classification] || classification
+  }
+
+  const getSalesChannelLabel = (channel: string) => {
+    const labels: { [key: string]: string } = {
+      'whatsapp': 'WhatsApp',
+      'instagram': 'Instagram',
+      'facebook': 'Facebook',
+      'site': 'Site',
+      'indicacao': 'Indicação',
+      'familia_amigos': 'Família/Amigos'
+    }
+    return labels[channel] || channel
+  }
+
   return (
     <div className="space-y-8">
       {/* Header */}
@@ -189,6 +232,57 @@ export default async function CustomerDetailPage({ params }: PageProps) {
         </div>
       </div>
 
+      {/* Tiles CRM - Segunda Linha */}
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+        <div className="card-fiori">
+          <div className="card-fiori-content text-center">
+            <div className="w-12 h-12 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-3">
+              <CreditCard className="w-6 h-6 text-purple-600" />
+            </div>
+            <h3 className="font-semibold text-fiori-primary">Método de Pagamento Favorito</h3>
+            <p className="text-fiori-secondary mt-1">
+              {customer?.preferred_payment_method || 'Não definido'}
+            </p>
+          </div>
+        </div>
+
+        <div className="card-fiori">
+          <div className="card-fiori-content text-center">
+            <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-3">
+              <ShoppingCart className="w-6 h-6 text-green-600" />
+            </div>
+            <h3 className="font-semibold text-fiori-primary">Canal de Vendas</h3>
+            <p className="text-fiori-secondary mt-1">
+              {customer?.sales_channel ? getSalesChannelLabel(customer.sales_channel) : 'Não definido'}
+            </p>
+          </div>
+        </div>
+
+        <div className="card-fiori">
+          <div className="card-fiori-content text-center">
+            <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-3">
+              <Target className="w-6 h-6 text-blue-600" />
+            </div>
+            <h3 className="font-semibold text-fiori-primary">Classificação do Lead</h3>
+            <p className="text-fiori-secondary mt-1">
+              {customer?.lead_classification ? getLeadClassificationLabel(customer.lead_classification) : 'Não definido'}
+            </p>
+          </div>
+        </div>
+
+        <div className="card-fiori">
+          <div className="card-fiori-content text-center">
+            <div className="w-12 h-12 bg-orange-100 rounded-full flex items-center justify-center mx-auto mb-3">
+              <Tag className="w-6 h-6 text-orange-600" />
+            </div>
+            <h3 className="font-semibold text-fiori-primary">Categoria do Cliente</h3>
+            <p className="text-fiori-secondary mt-1">
+              {customer?.customer_category ? getCustomerCategoryLabel(customer.customer_category) : 'Não definido'}
+            </p>
+          </div>
+        </div>
+      </div>
+
       {/* Informações Detalhadas */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         {/* Dados de Contato */}
@@ -257,6 +351,25 @@ export default async function CustomerDetailPage({ params }: PageProps) {
               </div>
             ) : (
               <p className="text-fiori-muted">Endereço não informado</p>
+            )}
+            
+            {/* Observações */}
+            {customer?.notes && (
+              <div className="mt-4 pt-4 border-t border-fiori-border">
+                <div className="flex items-start gap-3">
+                  <div className="w-5 h-5 text-fiori-muted mt-0.5">
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                    </svg>
+                  </div>
+                  <div>
+                    <p className="text-sm text-fiori-muted mb-1">Observações</p>
+                    <p className="text-sm font-medium text-fiori-text whitespace-pre-wrap">
+                      {customer.notes}
+                    </p>
+                  </div>
+                </div>
+              </div>
             )}
           </div>
         </div>

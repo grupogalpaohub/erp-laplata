@@ -13,7 +13,7 @@ export async function POST(request: NextRequest) {
     const tenantId = await getTenantId()
 
     const body = await request.json()
-    const { vendor_id, po_date, items } = body
+    const { vendor_id, po_date, expected_delivery, notes, items } = body
 
     if (!vendor_id) {
       return NextResponse.json({ error: 'Fornecedor é obrigatório' }, { status: 400 })
@@ -72,6 +72,8 @@ export async function POST(request: NextRequest) {
       mm_order: orderId,
       vendor_id: vendor_id,
       po_date: po_date,
+      expected_delivery: expected_delivery || null,
+      notes: notes || null,
       status: 'draft' as const,
       total_amount: 0, // Será calculado
     }

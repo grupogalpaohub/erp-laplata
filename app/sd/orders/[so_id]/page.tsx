@@ -1,6 +1,6 @@
 import Link from 'next/link'
 import { createSupabaseServerClient } from '@/lib/supabaseServer'
-import { getTenantId } from '@/src/lib/auth'
+import { getTenantId } from '@/lib/auth'
 import { ArrowLeft, Edit, CheckCircle, XCircle, Printer, Mail } from 'lucide-react'
 import { notFound } from 'next/navigation'
 
@@ -58,7 +58,20 @@ export default async function SalesOrderDetailPage({ params }: PageProps) {
     const { data: orderData, error: orderError } = await supabase
       .from('sd_sales_order')
       .select(`
-        *,
+        so_id,
+        doc_no,
+        customer_id,
+        status,
+        order_date,
+        expected_ship,
+        total_cents,
+        total_final_cents,
+        total_negotiated_cents,
+        payment_method,
+        payment_term,
+        notes,
+        created_at,
+        updated_at,
         crm_customer!inner(name, contact_email, contact_phone)
       `)
       .eq('tenant_id', tenantId)
@@ -75,12 +88,14 @@ export default async function SalesOrderDetailPage({ params }: PageProps) {
     const { data: itemsData, error: itemsError } = await supabase
       .from('sd_sales_order_item')
       .select(`
+        sku,
         material_id,
         quantity,
         unit_price_cents,
+        unit_price_cents_at_order,
         line_total_cents,
         row_no,
-        mm_material(mm_comercial, mm_desc)
+        mm_material(mm_material, mm_comercial, mm_desc)
       `)
       .eq('tenant_id', tenantId)
       .eq('so_id', params.so_id)
@@ -239,7 +254,7 @@ export default async function SalesOrderDetailPage({ params }: PageProps) {
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <p className="text-sm text-fiori-muted">Forma de Pagamento</p>
-                <p className="font-medium">{order?.payment_term || '-'}</p>
+                <p className="font-medium">{order?.payment_method || order?.payment_term || '-'}</p>
               </div>
               <div>
                 <p className="text-sm text-fiori-muted">Previsão de Entrega</p>
@@ -268,10 +283,10 @@ export default async function SalesOrderDetailPage({ params }: PageProps) {
             <div className="flex justify-between items-center py-2 border-b border-fiori-border">
               <span className="text-fiori-muted">Valor Final:</span>
               <span className="text-lg font-semibold text-fiori-primary">
-                R$ {((order?.total_final_cents || 0) / 100).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                R$ {((order?.total_final_cents || order?.total_cents || 0) / 100).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
               </span>
             </div>
-            {order?.total_negotiated_cents && order?.total_negotiated_cents !== order?.total_final_cents && (
+            {order?.total_negotiated_cents && order?.total_negotiated_cents !== (order?.total_final_cents || order?.total_cents) && (
               <div className="flex justify-between items-center py-2 border-b border-fiori-border">
                 <span className="text-fiori-muted">Valor Negociado:</span>
                 <span className="text-lg font-semibold text-fiori-warning">
@@ -312,7 +327,7 @@ export default async function SalesOrderDetailPage({ params }: PageProps) {
                           <div className="font-semibold text-fiori-primary">
                             {item.mm_material[0]?.mm_comercial || item.mm_material[0]?.mm_desc || 'N/A'}
                           </div>
-                          <div className="text-xs text-fiori-muted">{item.material_id}</div>
+                          <div className="text-xs text-fiori-muted">{item.sku || item.material_id}</div>
                         </div>
                       </td>
                       <td className="text-right">
@@ -337,7 +352,7 @@ export default async function SalesOrderDetailPage({ params }: PageProps) {
                       Total:
                     </td>
                     <td className="text-right font-bold text-lg text-fiori-primary">
-                      R$ {((order?.total_final_cents || 0) / 100).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                      R$ {((order?.total_final_cents || order?.total_cents || 0) / 100).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
                     </td>
                   </tr>
                 </tfoot>

@@ -5,6 +5,8 @@ import { getTenantId } from '@/lib/auth'
 import { getVendors } from '@/lib/data'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
+import MaterialTypeSelect from '@/components/MaterialTypeSelect'
+import MaterialClassSelect from '@/components/MaterialClassSelect'
 
 // Buscar tipos e classificações do customizing
 async function getCustomizingData() {
@@ -142,19 +144,11 @@ export default async function NewMaterialPage() {
               <label htmlFor="mm_mat_type" className={labelStyle}>
                 Tipo de Material *
               </label>
-              <select
+              <MaterialTypeSelect
                 name="mm_mat_type"
                 id="mm_mat_type"
-                required
                 className={fieldStyle}
-              >
-                <option value="">Selecione o tipo...</option>
-                {materialTypes.map((type) => (
-                  <option key={type} value={type}>
-                    {type}
-                  </option>
-                ))}
-              </select>
+              />
               <p className="mt-1 text-sm text-gray-500">
                 O ID do material será gerado automaticamente baseado no tipo selecionado
               </p>
@@ -192,19 +186,11 @@ export default async function NewMaterialPage() {
                 <label htmlFor="mm_mat_class" className={labelStyle}>
                   Classificação *
                 </label>
-                <select
+                <MaterialClassSelect
                   name="mm_mat_class"
                   id="mm_mat_class"
-                  required
                   className={fieldStyle}
-                >
-                  <option value="">Selecione...</option>
-                  {materialClassifications.map((classification) => (
-                    <option key={classification} value={classification}>
-                      {classification}
-                    </option>
-                  ))}
-                </select>
+                />
               </div>
             </div>
 

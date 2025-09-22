@@ -8,7 +8,12 @@ export const dynamic = 'force-dynamic'
 export const revalidate = 0
 export const fetchCache = 'force-no-store'
 
-export default async function NewSalesOrderPage() {
+interface NewSalesOrderPageProps {
+  searchParams: { customerId?: string }
+}
+
+export default async function NewSalesOrderPage({ searchParams }: NewSalesOrderPageProps) {
+  const selectedCustomerId = searchParams.customerId
   let customers: any[] = []
   let materials: any[] = []
   let paymentTerms: any[] = []
@@ -27,9 +32,9 @@ export default async function NewSalesOrderPage() {
         .order('name'),
       supabase
         .from('mm_material')
-        .select('mm_material, mm_comercial, mm_desc, sale_price_cents')
+        .select('mm_material, mm_comercial, mm_desc, mm_price_cents')
         .eq('tenant_id', tenantId)
-        .eq('is_active', true)
+        .eq('status', 'active')
         .order('mm_comercial'),
       supabase
         .from('fi_payment_terms_def')
@@ -84,6 +89,7 @@ export default async function NewSalesOrderPage() {
         customers={customers}
         materials={materials}
         paymentTerms={paymentTerms}
+        selectedCustomerId={selectedCustomerId}
       />
     </div>
   )

@@ -31,6 +31,8 @@ export default function NewPOClient({ vendors, materials }: NewPOClientProps) {
   const [items, setItems] = useState<OrderItem[]>([{ material: '', quantity: 0, unitPrice: 0, total: 0 }])
   const [selectedVendor, setSelectedVendor] = useState('')
   const [poDate, setPoDate] = useState(new Date().toISOString().slice(0, 10))
+  const [expectedDelivery, setExpectedDelivery] = useState('')
+  const [notes, setNotes] = useState('')
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState('')
 
@@ -88,6 +90,8 @@ export default function NewPOClient({ vendors, materials }: NewPOClientProps) {
         body: JSON.stringify({
           vendor_id: selectedVendor,
           po_date: poDate,
+          expected_delivery: expectedDelivery || null,
+          notes: notes || null,
           items: validItems
         })
       })
@@ -145,6 +149,25 @@ export default function NewPOClient({ vendors, materials }: NewPOClientProps) {
                 onChange={(e) => setPoDate(e.target.value)}
                 required
                 className="input-fiori"
+              />
+            </div>
+            <div>
+              <label className="label-fiori">Expectativa de Recebimento</label>
+              <input
+                type="date"
+                value={expectedDelivery}
+                onChange={(e) => setExpectedDelivery(e.target.value)}
+                className="input-fiori"
+              />
+            </div>
+            <div className="md:col-span-2">
+              <label className="label-fiori">Comentários</label>
+              <textarea
+                value={notes}
+                onChange={(e) => setNotes(e.target.value)}
+                rows={3}
+                className="input-fiori"
+                placeholder="Observações sobre o pedido..."
               />
             </div>
           </div>

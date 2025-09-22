@@ -1,8 +1,3 @@
-export const dynamic = 'force-dynamic';
-export const revalidate = 0;
-export const fetchCache = 'force-no-store';
-export const runtime = 'nodejs';
-
 import { NextRequest, NextResponse } from 'next/server'
 import { createSupabaseServerClient } from '@/lib/supabaseServer'
 import { getTenantId } from '@/lib/auth'
@@ -13,7 +8,18 @@ export async function POST(request: NextRequest) {
     const tenantId = await getTenantId()
     
     const body = await request.json()
-    const { name, contact_email, contact_phone, document_id, customer_type } = body
+    const {
+      name,
+      contact_email,
+      contact_phone,
+      document_id,
+      customer_type,
+      address,
+      city,
+      state,
+      zip_code,
+      country
+    } = body
 
     // Validar dados obrigatórios
     if (!name || !contact_email || !document_id) {
@@ -23,24 +29,43 @@ export async function POST(request: NextRequest) {
       )
     }
 
+    // Gerar ID sequencial do cliente
+    const { data: lastCustomer } = await supabase
+      .from('crm_customer')
+      .select('customer_id')
+      .eq('tenant_id', tenantId)
+      .order('created_at', { ascending: false })
+      .limit(1)
+
+    const lastCustomerNumber = lastCustomer?.[0]?.customer_id || 'C2025-000'
+    const nextNumber = parseInt(lastCustomerNumber.split('-')[1]) + 1
+    const newCustomerId = `C2025-${nextNumber.toString().padStart(3, '0')}`
+
     // Criar cliente
-    const { data, error } = await supabase
+    const { data: customer, error: customerError } = await supabase
       .from('crm_customer')
       .insert({
+        customer_id: newCustomerId,
         tenant_id: tenantId,
         name,
         contact_email,
         contact_phone: contact_phone || null,
         document_id,
         customer_type: customer_type || 'PF',
+        address: address || null,
+        city: city || null,
+        state: state || null,
+        zip_code: zip_code || null,
+        country: country || 'Brasil',
         is_active: true,
-        created_date: new Date().toISOString()
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
       })
-      .select('customer_id')
+      .select()
       .single()
 
-    if (error) {
-      console.error('Error creating customer:', error)
+    if (customerError) {
+      console.error('Error creating customer:', customerError)
       return NextResponse.json(
         { error: 'Erro ao criar cliente' },
         { status: 500 }
@@ -49,11 +74,12 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({
       success: true,
-      customerId: data.customer_id
+      customer,
+      message: 'Cliente criado com sucesso'
     })
 
   } catch (error) {
-    console.error('Error in customer creation API:', error)
+    console.error('Error in customer creation:', error)
     return NextResponse.json(
       { error: 'Erro interno do servidor' },
       { status: 500 }

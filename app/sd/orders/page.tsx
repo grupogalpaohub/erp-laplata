@@ -9,15 +9,15 @@ export const fetchCache = 'force-no-store'
 
 interface SalesOrder {
   so_id: string
-  doc_no: string
   customer_id: string
   status: string
   order_date: string
   expected_ship: string
-  total_final_cents: number
-  total_negotiated_cents: number
-  payment_term: string
-  notes: string
+  total_cents: number
+  total_negotiated_cents?: number
+  payment_method?: string
+  payment_term?: string
+  notes?: string
   created_at: string
   crm_customer: {
     name: string
@@ -32,18 +32,19 @@ export default async function SalesOrdersPage() {
     const supabase = createSupabaseServerClient()
     const tenantId = await getTenantId()
 
-    // Buscar pedidos com paginação
+    // Buscar pedidos com paginação (com todos os campos disponíveis)
     const { data, count, error } = await supabase
       .from('sd_sales_order')
       .select(`
         so_id,
-        doc_no,
         customer_id,
         status,
         order_date,
         expected_ship,
+        total_cents,
         total_final_cents,
         total_negotiated_cents,
+        payment_method,
         payment_term,
         notes,
         created_at,
@@ -233,7 +234,7 @@ export default async function SalesOrdersPage() {
                     <th>Nº Pedido</th>
                     <th>Cliente</th>
                     <th>Data</th>
-                    <th>Valor Final (R$)</th>
+                    <th>Valor Total (R$)</th>
                     <th>Valor Negociado (R$)</th>
                     <th>Forma de Pagamento</th>
                     <th>Status</th>
@@ -245,12 +246,14 @@ export default async function SalesOrdersPage() {
                     <tr key={order.so_id}>
                       <td>
                         <span className="font-mono text-sm text-fiori-primary">
-                          {order.doc_no || order.so_id}
+                          {order.so_id}
                         </span>
                       </td>
                       <td>
                         <div>
-                          <div className="font-semibold text-fiori-primary">{order.crm_customer[0]?.name || 'N/A'}</div>
+                          <div className="font-semibold text-fiori-primary">
+                            {order.crm_customer?.[0]?.name || 'Cliente não encontrado'}
+                          </div>
                           <div className="text-xs text-fiori-muted">{order.customer_id}</div>
                         </div>
                       </td>
@@ -261,7 +264,7 @@ export default async function SalesOrdersPage() {
                       </td>
                       <td>
                         <div className="text-sm font-semibold">
-                          R$ {((order.total_final_cents || 0) / 100).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                          R$ {((order.total_cents || 0) / 100).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
                         </div>
                       </td>
                       <td>
@@ -274,7 +277,7 @@ export default async function SalesOrdersPage() {
                       </td>
                       <td>
                         <div className="text-sm">
-                          {order.payment_term || '-'}
+                          {order.payment_method || order.payment_term || '-'}
                         </div>
                       </td>
                       <td>

@@ -1,10 +1,10 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { createClient } from '@supabase/supabase-js'
-import { getTenantId } from '@/lib/auth'
+import { createSupabaseClient } from '@/lib/supabaseClient'
 import Link from 'next/link'
 import { ArrowLeft, Printer, Edit } from 'lucide-react'
+import StatusUpdateButton from '../StatusUpdateButton'
 
 export const dynamic = 'force-dynamic'
 export const revalidate = 0
@@ -32,11 +32,8 @@ interface PurchaseOrderItem {
 }
 
 async function getPurchaseOrder(po_id: string): Promise<PurchaseOrder | null> {
-  const supabase = createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!
-  )
-  const tenantId = await getTenantId()
+  const supabase = createSupabaseClient()
+  const tenantId = 'LaplataLunaria'
   
   const { data, error } = await supabase
     .from('mm_purchase_order')
@@ -54,11 +51,8 @@ async function getPurchaseOrder(po_id: string): Promise<PurchaseOrder | null> {
 }
 
 async function getPurchaseOrderItems(po_id: string): Promise<PurchaseOrderItem[]> {
-  const supabase = createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!
-  )
-  const tenantId = await getTenantId()
+  const supabase = createSupabaseClient()
+  const tenantId = 'LaplataLunaria'
   
   const { data, error } = await supabase
     .from('mm_purchase_order_item')
@@ -176,6 +170,7 @@ export default function PurchaseOrderDetailPage({ params }: { params: { po_id: s
           </div>
         </div>
         <div className="flex gap-3">
+          <StatusUpdateButton poId={purchaseOrder.mm_order} currentStatus={purchaseOrder.status} />
           <Link 
             href={`/mm/purchases/${purchaseOrder.mm_order}/edit`}
             className="btn-fiori-outline flex items-center gap-2"

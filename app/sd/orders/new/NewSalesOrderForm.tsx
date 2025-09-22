@@ -14,7 +14,7 @@ interface Material {
   mm_material: string
   mm_comercial: string
   mm_desc: string
-  sale_price_cents: number
+  mm_price_cents: number
 }
 
 interface PaymentTerm {
@@ -35,13 +35,15 @@ interface NewSalesOrderFormProps {
   customers: Customer[]
   materials: Material[]
   paymentTerms: PaymentTerm[]
+  selectedCustomerId?: string
 }
 
-export default function NewSalesOrderForm({ customers, materials, paymentTerms }: NewSalesOrderFormProps) {
-  const [selectedCustomer, setSelectedCustomer] = useState('')
+export default function NewSalesOrderForm({ customers, materials, paymentTerms, selectedCustomerId }: NewSalesOrderFormProps) {
+  const [selectedCustomer, setSelectedCustomer] = useState(selectedCustomerId || '')
   const [orderDate, setOrderDate] = useState(new Date().toISOString().split('T')[0])
+  const [paymentMethod, setPaymentMethod] = useState('')
   const [paymentTerm, setPaymentTerm] = useState('')
-  const [totalNegotiatedCents, setTotalNegotiatedCents] = useState('')
+  const [totalNegotiatedReais, setTotalNegotiatedReais] = useState('')
   const [notes, setNotes] = useState('')
   const [showNewCustomerForm, setShowNewCustomerForm] = useState(false)
   const [newCustomer, setNewCustomer] = useState({
@@ -90,8 +92,8 @@ export default function NewSalesOrderForm({ customers, materials, paymentTerms }
           const material = materials.find(m => m.mm_material === value)
           if (material) {
             updatedItem.material_name = material.mm_comercial || material.mm_desc
-            updatedItem.unit_price_cents = material.sale_price_cents
-            updatedItem.line_total_cents = updatedItem.quantity * material.sale_price_cents
+            updatedItem.unit_price_cents = material.mm_price_cents
+            updatedItem.line_total_cents = updatedItem.quantity * material.mm_price_cents
           } else {
             updatedItem.material_name = ''
             updatedItem.unit_price_cents = 0
@@ -110,7 +112,6 @@ export default function NewSalesOrderForm({ customers, materials, paymentTerms }
     }))
   }
 
-  const totalFinalCents = items.reduce((sum, item) => sum + item.line_total_cents, 0)
 
   const handleCreateCustomer = async () => {
     try {
@@ -143,17 +144,75 @@ export default function NewSalesOrderForm({ customers, materials, paymentTerms }
     }
   }
 
+  // Validações
+  const isValid = () => {
+    if (!selectedCustomer) {
+      alert('Selecione um cliente')
+      return false
+    }
+    if (!paymentMethod) {
+      alert('Selecione a forma de pagamento')
+      return false
+    }
+    if (!paymentTerm) {
+      alert('Selecione a condição/prazo')
+      return false
+    }
+    if (items.length === 0) {
+      alert('Adicione pelo menos um item')
+      return false
+    }
+    if (items.some(item => !item.material_id || item.quantity <= 0)) {
+      alert('Todos os itens devem ter material selecionado e quantidade maior que zero')
+      return false
+    }
+    return true
+  }
+
+  // Cálculo de totais
+  const totalItemsCents = items.reduce((sum, item) => sum + item.line_total_cents, 0)
+  // Valor Final sempre é a soma dos itens (não muda)
+  const totalFinalCents = totalItemsCents
+
   const handleSubmit = async (formData: FormData) => {
-    // TODO: Implementar Server Action para criar pedido
-    console.log('Creating sales order...', {
-      selectedCustomer,
-      orderDate,
-      paymentTerm,
-      totalNegotiatedCents,
-      notes,
-      items,
-      totalFinalCents
-    })
+    if (!isValid()) return
+
+    // Converter total negociado para centavos se preenchido
+    const totalNegotiatedCents = totalNegotiatedReais ? 
+      Math.round(parseFloat(totalNegotiatedReais.replace(',', '.')) * 100) : 
+      totalFinalCents // Se não preenchido, usa o valor final
+
+    try {
+      const response = await fetch('/api/sd/orders', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          selectedCustomer,
+          orderDate,
+          paymentMethod,
+          paymentTerm,
+          totalNegotiatedCents,
+          notes,
+          items,
+          totalFinalCents: totalFinalCents // Sempre o valor calculado dos itens
+        })
+      })
+
+      const result = await response.json()
+
+      if (response.ok) {
+        alert(`Pedido ${result.so_id} criado com sucesso!`)
+        // Redirecionar para a lista de pedidos
+        window.location.href = '/sd/orders'
+      } else {
+        alert(`Erro: ${result.error}`)
+      }
+    } catch (error) {
+      console.error('Error creating sales order:', error)
+      alert('Erro ao criar pedido de venda')
+    }
   }
 
   return (
@@ -185,13 +244,12 @@ export default function NewSalesOrderForm({ customers, materials, paymentTerms }
                     </option>
                   ))}
                 </select>
-                <button
-                  type="button"
-                  onClick={() => setShowNewCustomerForm(!showNewCustomerForm)}
+                <Link
+                  href="/crm/customers/new?returnTo=/sd/orders/new"
                   className="btn-fiori-outline"
                 >
-                  {showNewCustomerForm ? 'Cancelar' : 'Novo Cliente'}
-                </button>
+                  Novo Cliente
+                </Link>
               </div>
             </div>
             <div>
@@ -209,8 +267,29 @@ export default function NewSalesOrderForm({ customers, materials, paymentTerms }
               />
             </div>
             <div>
-              <label htmlFor="payment_term" className="label-fiori">
+              <label htmlFor="payment_method" className="label-fiori">
                 Forma de Pagamento *
+              </label>
+              <select
+                id="payment_method"
+                name="payment_method"
+                required
+                value={paymentMethod}
+                onChange={(e) => setPaymentMethod(e.target.value)}
+                className="select-fiori"
+              >
+                <option value="">Selecione a forma de pagamento...</option>
+                <option value="PIX">PIX</option>
+                <option value="CARTAO">Cartão de Crédito/Débito</option>
+                <option value="BOLETO">Boleto Bancário</option>
+                <option value="TRANSFERENCIA">Transferência Bancária</option>
+                <option value="DINHEIRO">Dinheiro</option>
+                <option value="OUTROS">Outros</option>
+              </select>
+            </div>
+            <div>
+              <label htmlFor="payment_term" className="label-fiori">
+                Condição/Prazo *
               </label>
               <select
                 id="payment_term"
@@ -220,7 +299,7 @@ export default function NewSalesOrderForm({ customers, materials, paymentTerms }
                 onChange={(e) => setPaymentTerm(e.target.value)}
                 className="select-fiori"
               >
-                <option value="">Selecione uma forma</option>
+                <option value="">Selecione uma condição</option>
                 {paymentTerms.map((term) => (
                   <option key={term.terms_code} value={term.terms_code}>
                     {term.description}
@@ -364,7 +443,7 @@ export default function NewSalesOrderForm({ customers, materials, paymentTerms }
                         <option value="">Selecione um material</option>
                         {materials.map((material) => (
                           <option key={material.mm_material} value={material.mm_material}>
-                            {material.mm_comercial || material.mm_desc}
+                            {material.mm_material} - {material.mm_comercial || material.mm_desc}
                           </option>
                         ))}
                       </select>
@@ -432,7 +511,7 @@ export default function NewSalesOrderForm({ customers, materials, paymentTerms }
                 className="input-fiori bg-fiori-bg-secondary"
               />
               <p className="text-xs text-fiori-muted mt-1">
-                Calculado automaticamente pela soma dos itens
+                Calculado automaticamente pela soma dos itens (não altera)
               </p>
             </div>
             <div>
@@ -443,13 +522,13 @@ export default function NewSalesOrderForm({ customers, materials, paymentTerms }
                 type="text"
                 id="total_negotiated_cents"
                 name="total_negotiated_cents"
-                value={totalNegotiatedCents}
-                onChange={(e) => setTotalNegotiatedCents(e.target.value)}
+                value={totalNegotiatedReais}
+                onChange={(e) => setTotalNegotiatedReais(e.target.value)}
                 placeholder="0,00"
                 className="input-fiori"
               />
               <p className="text-xs text-fiori-muted mt-1">
-                Valor efetivamente negociado (opcional)
+                Valor efetivamente negociado (opcional) - Deixe vazio para usar o valor final
               </p>
             </div>
           </div>

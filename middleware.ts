@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { ENV } from '@/lib/env';
 
 export const runtime = 'experimental-edge';
 export const config = {
@@ -9,7 +10,7 @@ const PUBLIC = new Set(['/', '/login']);
 
 export async function middleware(req: NextRequest) {
   // Bypass total quando auth está desativada em dev
-  if (process.env.NEXT_PUBLIC_AUTH_DISABLED === 'true' || process.env.NEXT_PUBLIC_AUTH_DISABLED === '1') {
+  if (ENV.AUTH_DISABLED) {
     return NextResponse.next();
   }
 

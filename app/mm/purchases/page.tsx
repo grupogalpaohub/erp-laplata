@@ -5,6 +5,7 @@ import { createClient } from '@supabase/supabase-js'
 import { getTenantId } from '@/lib/auth'
 import Link from 'next/link'
 import ExportCSVButton from './ExportCSVButton'
+import StatusUpdateButton from './StatusUpdateButton'
 
 type PO = {
   mm_order: string
@@ -89,13 +90,14 @@ export default async function PurchaseOrdersPage({ searchParams }: { searchParam
                 <th>Data</th>
                 <th>Status</th>
                 <th>Total</th>
+                <th>Ações</th>
               </tr>
             </thead>
             <tbody>
               {rows.map((r) => (
                 <tr key={r.mm_order}>
                   <td>
-                    <Link href={`/mm/purchases/${r.mm_order}`} className="text-blue-600 hover:text-blue-800 font-medium">{r.mm_order}</Link>
+                    <Link href={`/mm/purchases/${r.mm_order}`} className="text-blue-600 hover:text-blue-800 font-medium font-mono text-sm">{r.mm_order}</Link>
                   </td>
                   <td>{r.mm_vendor?.vendor_name || r.vendor_id}</td>
                   <td>{new Date(r.po_date).toLocaleDateString()}</td>
@@ -111,10 +113,18 @@ export default async function PurchaseOrdersPage({ searchParams }: { searchParam
                     </span>
                   </td>
                   <td className="text-right font-medium">R$ {(r.total_amount/10000).toFixed(2)}</td>
+                  <td>
+                    <div className="flex gap-2">
+                      <Link href={`/mm/purchases/${r.mm_order}`} className="btn-fiori-outline btn-sm">
+                        Ver
+                      </Link>
+                      <StatusUpdateButton poId={r.mm_order} currentStatus={r.status} />
+                    </div>
+                  </td>
                 </tr>
               ))}
               {rows.length === 0 && (
-                <tr><td className="p-8 text-center text-fiori-secondary" colSpan={5}>Nenhum pedido encontrado.</td></tr>
+                <tr><td className="p-8 text-center text-fiori-secondary" colSpan={6}>Nenhum pedido encontrado.</td></tr>
               )}
             </tbody>
           </table>

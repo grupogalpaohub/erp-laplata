@@ -3,6 +3,7 @@ export const revalidate = 0
 import { createClient } from '@supabase/supabase-js'
 import { getTenantId } from '@/lib/auth'
 import Link from 'next/link'
+import { CheckCircle, XCircle } from 'lucide-react'
 import ExportCSVButton from './ExportCSVButton'
 
 type Material = {
@@ -19,7 +20,7 @@ type Material = {
   mm_vendor?: { vendor_name: string }
 }
 
-export default async function CatalogoMateriais() {
+export default async function CatalogoMateriais({ searchParams }: { searchParams: { success?: string; error?: string } }) {
   // Usar service role key diretamente para bypass RLS
   const supabase = createClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -88,6 +89,21 @@ export default async function CatalogoMateriais() {
         <p className="text-lg text-fiori-muted">Visualize e gerencie todos os materiais cadastrados</p>
       </div>
 
+      {/* Messages */}
+      {searchParams.success && (
+        <div className="bg-green-50 border border-green-200 rounded-lg p-4 flex items-center gap-3">
+          <CheckCircle className="w-5 h-5 text-green-600" />
+          <p className="text-green-800 font-medium">{searchParams.success}</p>
+        </div>
+      )}
+
+      {searchParams.error && (
+        <div className="bg-red-50 border border-red-200 rounded-lg p-4 flex items-center gap-3">
+          <XCircle className="w-5 h-5 text-red-600" />
+          <p className="text-red-800 font-medium">{searchParams.error}</p>
+        </div>
+      )}
+
       {/* Actions */}
       <div className="flex justify-center gap-4 mb-8">
         <Link href="/mm/materials/new" className="btn-fiori-primary">Novo Material</Link>
@@ -116,6 +132,7 @@ export default async function CatalogoMateriais() {
                   <th>Link de Compra</th>
                   <th>Status</th>
                   <th>Lead Time</th>
+                  <th>Ações</th>
                 </tr>
               </thead>
               <tbody>
@@ -160,6 +177,16 @@ export default async function CatalogoMateriais() {
                     </td>
                     <td className="text-right">
                       {material.lead_time_days != null ? `${material.lead_time_days} dias` : "-"}
+                    </td>
+                    <td>
+                      <div className="flex gap-2">
+                        <Link 
+                          href={`/mm/materials/${material.mm_material}/edit`}
+                          className="btn-fiori-outline btn-sm"
+                        >
+                          Editar
+                        </Link>
+                      </div>
                     </td>
                   </tr>
                 ))}

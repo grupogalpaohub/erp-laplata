@@ -1,7 +1,7 @@
 export const dynamic = 'force-dynamic'
 export const revalidate = 0
 export const runtime = 'nodejs'
-import { createSupabaseServerClient } from '@/lib/supabaseServer'
+import { createClient } from '@supabase/supabase-js'
 import { getTenantId } from '@/lib/auth'
 import Link from 'next/link'
 import ExportCSVButton from './ExportCSVButton'
@@ -12,15 +12,28 @@ type PO = {
   po_date: string
   status: string
   total_amount: number
+  mm_vendor?: {
+    vendor_name: string
+  }
 }
 
 export default async function PurchaseOrdersPage({ searchParams }: { searchParams: any }) {
-  const supabase = createSupabaseServerClient()
+  const supabase = createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!
+  )
   const tenantId = await getTenantId()
   
   let q = supabase
     .from('mm_purchase_order')
-    .select('mm_order, vendor_id, po_date, status, total_amount')
+    .select(`
+      mm_order, 
+      vendor_id, 
+      po_date, 
+      status, 
+      total_amount,
+      mm_vendor!left(vendor_name)
+    `)
     .eq('tenant_id', tenantId)
     .order('po_date', { ascending: false })
 
@@ -84,7 +97,7 @@ export default async function PurchaseOrdersPage({ searchParams }: { searchParam
                   <td>
                     <Link href={`/mm/purchases/${r.mm_order}`} className="text-blue-600 hover:text-blue-800 font-medium">{r.mm_order.slice(0,8)}</Link>
                   </td>
-                  <td>{r.vendor_id}</td>
+                  <td>{r.mm_vendor?.vendor_name || r.vendor_id}</td>
                   <td>{new Date(r.po_date).toLocaleDateString()}</td>
                   <td>
                     <span className={`badge-fiori ${
@@ -97,7 +110,7 @@ export default async function PurchaseOrdersPage({ searchParams }: { searchParam
                       {r.status}
                     </span>
                   </td>
-                  <td className="text-right font-medium">R$ {(r.total_amount/100).toFixed(2)}</td>
+                  <td className="text-right font-medium">R$ {(r.total_amount/10000).toFixed(2)}</td>
                 </tr>
               ))}
               {rows.length === 0 && (

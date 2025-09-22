@@ -21,7 +21,7 @@ export default function PriceDisplay({ materials, materialIndex }: PriceDisplayP
         if (materialId) {
           const material = materials.find(m => m.mm_material === materialId)
           if (material) {
-            setPrice(material.mm_price_cents)
+            setPrice(material.mm_purchase_price_cents)
           } else {
             setPrice(null)
           }
@@ -37,7 +37,7 @@ export default function PriceDisplay({ materials, materialIndex }: PriceDisplayP
 
   return (
     <div className="text-right text-sm text-gray-600">
-      {price !== null ? `R$ ${(price / 100).toFixed(2)}` : '—'}
+      {price !== null ? `R$ ${(price / 10000).toFixed(2)}` : '—'}
     </div>
   )
 }

@@ -1,7 +1,7 @@
 export const dynamic = 'force-dynamic'
 export const revalidate = 0
 export const runtime = 'nodejs'
-import { createSupabaseServerClient } from '@/lib/supabaseServer'
+import { createClient } from '@supabase/supabase-js'
 import { getTenantId } from '@/lib/auth'
 import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
@@ -10,7 +10,10 @@ import PriceDisplay from './PriceDisplay'
 
 async function createPO(formData: FormData) {
   'use server'
-  const supabase = createSupabaseServerClient()
+  const supabase = createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!
+  )
   const tenantId = await getTenantId()
 
   // Header
@@ -60,7 +63,10 @@ async function createPO(formData: FormData) {
 }
 
 export default async function NewPOPage() {
-  const supabase = createSupabaseServerClient()
+  const supabase = createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!
+  )
   const tenantId = await getTenantId()
   
   console.log('NewPOPage - tenantId:', tenantId)
@@ -73,7 +79,7 @@ export default async function NewPOPage() {
   
   const { data: materials, error: materialError } = await supabase
     .from('mm_material')
-    .select('mm_material, mm_comercial, mm_desc, mm_price_cents, mm_vendor_id')
+    .select('mm_material, mm_comercial, mm_desc, mm_price_cents, mm_purchase_price_cents, mm_vendor_id')
     .eq('tenant_id', tenantId)
     .order('mm_material')
 

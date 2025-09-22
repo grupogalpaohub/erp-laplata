@@ -29,10 +29,16 @@ async function createMaterial(formData: FormData) {
   }
 
   const lead_time_days = formData.get('lead_time_days') as string
+  const mm_purchase_price_cents = formData.get('mm_purchase_price_cents') as string
   
   // Validar lead time obrigatório
   if (!lead_time_days || parseInt(lead_time_days) < 0) {
     throw new Error('Lead Time é obrigatório e deve ser maior ou igual a 0')
+  }
+  
+  // Validar preço de compra obrigatório
+  if (!mm_purchase_price_cents || parseFloat(mm_purchase_price_cents) < 0) {
+    throw new Error('Preço de compra é obrigatório e deve ser maior ou igual a 0')
   }
 
   const materialData = {
@@ -44,6 +50,7 @@ async function createMaterial(formData: FormData) {
     mm_mat_class: formData.get('mm_mat_class') as string,
     mm_vendor_id: formData.get('mm_vendor_id') as string,
     mm_price_cents: Math.round(parseFloat(formData.get('mm_price_cents') as string) * 100),
+    mm_purchase_price_cents: Math.round(parseFloat(formData.get('mm_purchase_price_cents') as string) * 10000),
     lead_time_days: parseInt(lead_time_days),
     status: 'active'
   }
@@ -190,20 +197,38 @@ export default async function NewMaterialPage() {
               </select>
             </div>
 
-            <div>
-              <label htmlFor="mm_price_cents" className={labelStyle}>
-                Preço de Venda (R$) *
-              </label>
-              <input
-                type="number"
-                name="mm_price_cents"
-                id="mm_price_cents"
-                step="0.01"
-                min="0"
-                required
-                className={fieldStyle}
-                placeholder="0.00"
-              />
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div>
+                <label htmlFor="mm_price_cents" className={labelStyle}>
+                  Preço de Venda (R$) *
+                </label>
+                <input
+                  type="number"
+                  name="mm_price_cents"
+                  id="mm_price_cents"
+                  step="0.01"
+                  min="0"
+                  required
+                  className={fieldStyle}
+                  placeholder="0.00"
+                />
+              </div>
+              
+              <div>
+                <label htmlFor="mm_purchase_price_cents" className={labelStyle}>
+                  Preço de Compra (R$) *
+                </label>
+                <input
+                  type="number"
+                  name="mm_purchase_price_cents"
+                  id="mm_purchase_price_cents"
+                  step="0.01"
+                  min="0"
+                  required
+                  className={fieldStyle}
+                  placeholder="0.00"
+                />
+              </div>
             </div>
 
             <div>

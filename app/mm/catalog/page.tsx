@@ -129,7 +129,7 @@ export default async function CatalogoMateriais() {
                     <td>{material.mm_mat_type || "-"}</td>
                     <td>{material.mm_mat_class || "-"}</td>
                     <td className="text-right font-medium">
-                      {material.mm_purchase_price_cents != null ? `R$ ${(material.mm_purchase_price_cents / 100).toFixed(2)}` : "-"}
+                      {material.mm_purchase_price_cents != null ? `R$ ${(material.mm_purchase_price_cents / 10000).toFixed(2)}` : "-"}
                     </td>
                     <td className="text-right font-medium">
                       {material.mm_price_cents != null ? `R$ ${(material.mm_price_cents / 100).toFixed(2)}` : "-"}

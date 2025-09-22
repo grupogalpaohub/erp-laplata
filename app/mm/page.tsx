@@ -24,7 +24,7 @@ export default async function MMIndex() {
     const tenantId = await getTenantId()
 
     // Buscar dados para KPIs
-    const [materialsResult, vendorsResult, ordersResult] = await Promise.allSettled([
+    const [materialsResult, vendorsResult, ordersResult, monthlyOrdersResult] = await Promise.allSettled([
       supabase
         .from('mm_material')
         .select('mm_material, mm_comercial, mm_purchase_price_cents, mm_price_cents')
@@ -35,19 +35,27 @@ export default async function MMIndex() {
         .eq('tenant_id', tenantId),
       supabase
         .from('mm_purchase_order')
-        .select('mm_order, total_amount, status')
+        .select('mm_order, total_amount, status, po_date')
+        .eq('tenant_id', tenantId),
+      supabase
+        .from('mm_purchase_order')
+        .select('mm_order, total_amount, status, po_date')
         .eq('tenant_id', tenantId)
+        .gte('po_date', new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString().split('T')[0])
+        .lte('po_date', new Date(new Date().getFullYear(), new Date().getMonth() + 1, 0).toISOString().split('T')[0])
     ])
 
     materials = materialsResult.status === 'fulfilled' ? (materialsResult.value.data || []) : []
     vendors = vendorsResult.status === 'fulfilled' ? (vendorsResult.value.data || []) : []
     purchaseOrders = ordersResult.status === 'fulfilled' ? (ordersResult.value.data || []) : []
+    const monthlyOrders = monthlyOrdersResult.status === 'fulfilled' ? (monthlyOrdersResult.value.data || []) : []
 
     // Calcular KPIs
     totalMaterials = materials.length
     totalVendors = vendors.filter(v => v.status === 'active').length
     totalOrders = purchaseOrders.length
     totalValue = purchaseOrders.reduce((sum, order) => sum + (order.total_amount || 0), 0)
+    const monthlyValue = monthlyOrders.reduce((sum, order) => sum + (order.total_amount || 0), 0)
 
   } catch (error) {
     console.error('Error loading MM data:', error)
@@ -159,7 +167,7 @@ export default async function MMIndex() {
       {/* Visão Geral */}
       <div className="mt-12">
         <h2 className="text-2xl font-semibold text-fiori-primary mb-6">Visão Geral</h2>
-        <div className="grid-fiori-4">
+        <div className="grid-fiori-5">
           {/* KPI 1 - Total de Materiais */}
           <div className="tile-fiori">
             <div className="flex items-center justify-between mb-4">
@@ -196,18 +204,32 @@ export default async function MMIndex() {
             <p className="tile-fiori-metric-label">Pedidos de compra</p>
           </div>
 
-          {/* KPI 4 - Valor Total em Compras */}
+          {/* KPI 4 - Valor Mensal em Compras */}
           <div className="tile-fiori">
             <div className="flex items-center justify-between mb-4">
-              <h3 className="tile-fiori-title text-sm">Valor Total em Compras</h3>
+              <h3 className="tile-fiori-title text-sm">Compras do Mês</h3>
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+              </svg>
+            </div>
+            <div className="kpi-fiori kpi-fiori-warning">
+              R$ {(monthlyValue / 10000).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+            </div>
+            <p className="tile-fiori-metric-label">Valor do mês atual</p>
+          </div>
+
+          {/* KPI 5 - Valor Acumulado Total */}
+          <div className="tile-fiori">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="tile-fiori-title text-sm">Acumulado Total</h3>
               <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1" />
               </svg>
             </div>
-            <div className="kpi-fiori kpi-fiori-warning">
+            <div className="kpi-fiori kpi-fiori-info">
               R$ {(totalValue / 10000).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
             </div>
-            <p className="tile-fiori-metric-label">Valor total em compras</p>
+            <p className="tile-fiori-metric-label">Valor total histórico</p>
           </div>
         </div>
       </div>

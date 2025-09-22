@@ -1,6 +1,6 @@
 export const dynamic = 'force-dynamic'
 export const revalidate = 0
-import { createSupabaseServerClient } from '@/lib/supabaseServer'
+import { createClient } from '@supabase/supabase-js'
 import { getTenantId } from '@/lib/auth'
 import { getVendors } from '@/lib/data'
 import { redirect } from 'next/navigation'
@@ -18,7 +18,10 @@ async function getCustomizingData() {
 async function createMaterial(formData: FormData) {
   'use server'
   
-  const supabase = createSupabaseServerClient()
+  const supabase = createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!
+  )
   const tenantId = await getTenantId()
 
   const mm_mat_type = formData.get('mm_mat_type') as string

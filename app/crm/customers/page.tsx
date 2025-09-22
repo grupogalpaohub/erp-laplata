@@ -16,7 +16,7 @@ export default async function CustomersPage() {
 
     const { data, error } = await supabase
       .from('crm_customer')
-      .select('customer_id, name, contact_email, contact_phone, customer_type, created_at')
+      .select('customer_id, name, contact_email, contact_phone, customer_type, created_date')
       .eq('tenant_id', tenantId)
       .eq('is_active', true)
       .order('name')
@@ -91,7 +91,7 @@ export default async function CustomersPage() {
                         </span>
                       </td>
                       <td>
-                        {new Date(customer.created_at).toLocaleDateString('pt-BR')}
+                        {new Date(customer.created_date).toLocaleDateString('pt-BR')}
                       </td>
                       <td>
                         <div className="flex gap-2">

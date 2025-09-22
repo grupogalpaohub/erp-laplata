@@ -26,6 +26,7 @@ async function createCustomer(formData: FormData) {
       contact_email: String(formData.get('contact_email') || ''),
       contact_phone: String(formData.get('contact_phone') || ''),
       phone_country: String(formData.get('phone_country') || 'BR'),
+      contact_name: String(formData.get('contact_name') || ''),
       document_id: String(formData.get('document_id') || ''),
       addr_street: String(formData.get('addr_street') || ''),
       addr_number: String(formData.get('addr_number') || ''),
@@ -84,8 +85,8 @@ async function createCustomer(formData: FormData) {
         created_at: new Date().toISOString()
       })
 
-    // Redirecionar após sucesso
-    redirect(`/crm/customers/${customerId}`)
+    // Redirecionar após sucesso com mensagem
+    redirect(`/crm/customers?success=Cliente criado com sucesso! ID: ${customerId}`)
 
   } catch (error) {
     console.error('Error creating customer:', error)

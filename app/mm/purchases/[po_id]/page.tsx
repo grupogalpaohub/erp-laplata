@@ -23,7 +23,7 @@ interface PurchaseOrderItem {
   mm_material: string
   mm_comercial: string | null
   mm_desc: string | null
-  mm_qtt: number
+  quantity: number
   unit_cost_cents: number
   line_total_cents: number
   notes?: string
@@ -49,7 +49,7 @@ async function getPurchaseOrder(po_id: string): Promise<PurchaseOrder | null> {
 }
 
 async function getPurchaseOrderItems(po_id: string): Promise<PurchaseOrderItem[]> {
-  const supabase = createClient()
+  const supabase = createSupabaseServerClient()
   const tenantId = await getTenantId()
   
   const { data, error } = await supabase
@@ -57,7 +57,7 @@ async function getPurchaseOrderItems(po_id: string): Promise<PurchaseOrderItem[]
     .select(`
       po_item_id,
       mm_material,
-      mm_qtt,
+      quantity,
       unit_cost_cents,
       line_total_cents,
       notes,
@@ -78,7 +78,7 @@ async function getPurchaseOrderItems(po_id: string): Promise<PurchaseOrderItem[]
     mm_material: item.mm_material,
     mm_comercial: (item.mm_material as any)?.mm_comercial || null,
     mm_desc: (item.mm_material as any)?.mm_desc || null,
-    mm_qtt: item.mm_qtt,
+    quantity: item.quantity,
     unit_cost_cents: item.unit_cost_cents,
     line_total_cents: item.line_total_cents,
     notes: item.notes
@@ -207,7 +207,7 @@ export default async function PurchaseOrderDetailPage({ params }: { params: { po
                             )}
                           </div>
                         </td>
-                        <td className="text-right">{item.mm_qtt}</td>
+                        <td className="text-right">{item.quantity}</td>
                         <td className="text-right">R$ {(item.unit_cost_cents / 100).toFixed(2)}</td>
                         <td className="text-right font-medium">R$ {(item.line_total_cents / 100).toFixed(2)}</td>
                       </tr>
@@ -229,7 +229,7 @@ export default async function PurchaseOrderDetailPage({ params }: { params: { po
               </div>
               <div className="flex justify-between">
                 <span className="text-gray-600">Quantidade Total:</span>
-                <span className="font-semibold">{items.reduce((sum, item) => sum + item.mm_qtt, 0)}</span>
+                <span className="font-semibold">{items.reduce((sum, item) => sum + item.quantity, 0)}</span>
               </div>
               <div className="border-t pt-3">
                 <div className="flex justify-between text-lg font-semibold">

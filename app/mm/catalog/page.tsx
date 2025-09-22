@@ -4,6 +4,50 @@ import { createSupabaseServerClient } from '@/lib/supabaseServer'
 import { getTenantId } from '@/lib/auth'
 import Link from 'next/link'
 
+// Função para exportar CSV
+function exportToCSV(materiais: Material[]) {
+  const headers = [
+    'SKU',
+    'Nome Comercial', 
+    'Descrição',
+    'Tipo',
+    'Classe',
+    'Preço Venda (R$)',
+    'Preço Compra (R$)',
+    'Fornecedor',
+    'Status',
+    'Lead Time (dias)',
+    'Link Catálogo'
+  ]
+  
+  const csvContent = [
+    headers.join(','),
+    ...materiais.map(material => [
+      material.mm_material,
+      `"${(material.mm_comercial || material.commercial_name || '').replace(/"/g, '""')}"`,
+      `"${material.mm_desc.replace(/"/g, '""')}"`,
+      material.mm_mat_type || '',
+      material.mm_mat_class || '',
+      material.mm_price_cents ? (material.mm_price_cents / 100).toFixed(2) : '',
+      material.purchase_price_cents ? (material.purchase_price_cents / 100).toFixed(2) : '',
+      `"${(material.mm_vendor?.[0]?.vendor_name ?? material.mm_vendor_id ?? '').replace(/"/g, '""')}"`,
+      material.status || 'active',
+      material.lead_time_days || '',
+      material.catalog_url || ''
+    ].join(','))
+  ].join('\n')
+  
+  const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' })
+  const link = document.createElement('a')
+  const url = URL.createObjectURL(blob)
+  link.setAttribute('href', url)
+  link.setAttribute('download', `materiais_${new Date().toISOString().split('T')[0]}.csv`)
+  link.style.visibility = 'hidden'
+  document.body.appendChild(link)
+  link.click()
+  document.body.removeChild(link)
+}
+
 type Material = {
   mm_material: string
   mm_comercial: string | null
@@ -11,6 +55,8 @@ type Material = {
   mm_mat_type: string | null
   mm_mat_class: string | null
   mm_price_cents: number | null
+  purchase_price_cents: number | null
+  catalog_url: string | null
   commercial_name: string | null
   lead_time_days: number | null
   mm_vendor_id: string | null
@@ -31,6 +77,8 @@ export default async function CatalogoMateriais() {
               mm_mat_type, 
               mm_mat_class, 
               mm_price_cents, 
+              purchase_price_cents,
+              catalog_url,
               commercial_name, 
               lead_time_days, 
               mm_vendor_id, 
@@ -68,8 +116,14 @@ export default async function CatalogoMateriais() {
       </div>
 
       {/* Actions */}
-      <div className="flex justify-center mb-8">
+      <div className="flex justify-center gap-4 mb-8">
         <Link href="/mm/materials/new" className="btn-fiori-primary">Novo Material</Link>
+        <button 
+          onClick={() => exportToCSV(materiais)}
+          className="btn-fiori-outline"
+        >
+          Exportar CSV
+        </button>
       </div>
 
       {materiais.length === 0 ? (
@@ -93,6 +147,7 @@ export default async function CatalogoMateriais() {
                   <th>Fornecedor</th>
                   <th>Status</th>
                   <th>Lead Time</th>
+                  <th>Link Catálogo</th>
                 </tr>
               </thead>
               <tbody>
@@ -109,7 +164,7 @@ export default async function CatalogoMateriais() {
                       {material.mm_price_cents != null ? `R$ ${(material.mm_price_cents / 100).toFixed(2)}` : "-"}
                     </td>
                     <td className="text-right font-medium">
-                      {material.mm_price_cents != null ? `R$ ${(material.mm_price_cents / 100 * 0.8).toFixed(2)}` : "-"}
+                      {material.purchase_price_cents != null ? `R$ ${(material.purchase_price_cents / 100).toFixed(2)}` : "-"}
                     </td>
                     <td>
                       {(material.mm_vendor?.[0]?.vendor_name ?? material.mm_vendor_id ?? "-")}
@@ -125,6 +180,18 @@ export default async function CatalogoMateriais() {
                     </td>
                     <td className="text-right">
                       {material.lead_time_days != null ? `${material.lead_time_days} dias` : "-"}
+                    </td>
+                    <td>
+                      {material.catalog_url ? (
+                        <a 
+                          href={material.catalog_url} 
+                          target="_blank" 
+                          rel="noopener noreferrer"
+                          className="text-blue-600 hover:text-blue-800 underline text-sm"
+                        >
+                          Ver
+                        </a>
+                      ) : "-"}
                     </td>
                   </tr>
                 ))}

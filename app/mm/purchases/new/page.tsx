@@ -36,14 +36,14 @@ async function createPO(formData: FormData) {
   for (let i=0;i<count;i++){
     const material = String(formData.get(`item_${i}_mm_material`) || '')
     const qttStr = String(formData.get(`item_${i}_mm_qtt`) || '')
-    const mm_qtt = Number(qttStr)
-    if (material && mm_qtt > 0) {
+    const quantity = Number(qttStr)
+    if (material && quantity > 0) {
       items.push({ 
         tenant_id: tenantId,
         mm_order: h.mm_order, 
         plant_id: 'DEFAULT', // Usar depósito padrão
         mm_material: material, 
-        mm_qtt: mm_qtt,
+        quantity: quantity,
         unit_cost_cents: 0, // Será preenchido pelo trigger
         line_total_cents: 0 // Será calculado pelo trigger
       })
@@ -73,7 +73,7 @@ export default async function NewPOPage() {
   
   const { data: materials, error: materialError } = await supabase
     .from('mm_material')
-    .select('mm_material, mm_comercial, mm_desc, mm_price_cents, mm_vendor_id')
+    .select('mm_material, mm_comercial, mm_desc, mm_price_cents, purchase_price_cents, mm_vendor_id')
     .eq('tenant_id', tenantId)
     .order('mm_material')
 

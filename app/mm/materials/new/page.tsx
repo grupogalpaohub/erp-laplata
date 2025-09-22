@@ -5,7 +5,31 @@ import { getTenantId } from '@/lib/auth'
 import { getVendors } from '@/lib/data'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
-import { MATERIAL_TYPES, MATERIAL_CLASSIFICATIONS, UNITS_OF_MEASURE } from '@/lib/material-config'
+
+// Buscar tipos e classificações do customizing
+async function getCustomizingData() {
+  const supabase = createSupabaseServerClient()
+  const tenantId = await getTenantId()
+  
+  const { data: types } = await supabase
+    .from('customizing')
+    .select('value')
+    .eq('tenant_id', tenantId)
+    .eq('category', 'material_type')
+    .order('value')
+  
+  const { data: classifications } = await supabase
+    .from('customizing')
+    .select('value')
+    .eq('tenant_id', tenantId)
+    .eq('category', 'material_classification')
+    .order('value')
+  
+  return {
+    types: types?.map(t => t.value) || ['Brinco', 'Cordão', 'Choker', 'Gargantilha', 'Anel', 'Pulseira'],
+    classifications: classifications?.map(c => c.value) || ['Elementar', 'Amuleto', 'Protetor', 'Decoração']
+  }
+}
 
 async function createMaterial(formData: FormData) {
   'use server'
@@ -36,7 +60,8 @@ async function createMaterial(formData: FormData) {
     mm_mat_class: formData.get('mm_mat_class') as string,
     mm_vendor_id: formData.get('mm_vendor_id') as string,
     mm_price_cents: Math.round(parseFloat(formData.get('mm_price_cents') as string) * 100),
-    barcode: formData.get('barcode') as string,
+    purchase_price_cents: Math.round(parseFloat(formData.get('purchase_price_cents') as string) * 100),
+    catalog_url: formData.get('catalog_url') as string,
     lead_time_days: parseInt(lead_time_days),
     status: 'active'
   }
@@ -62,14 +87,14 @@ async function createMaterial(formData: FormData) {
 }
 
 export default async function NewMaterialPage() {
-  const [vendors] = await Promise.all([
-    getVendors()
-  ]) as [{ vendor_id: string; vendor_name: string; }[]]
+  const [vendors, customizingData] = await Promise.all([
+    getVendors(),
+    getCustomizingData()
+  ]) as [{ vendor_id: string; vendor_name: string; }[], { types: string[]; classifications: string[] }]
 
-  // Valores fixos para tipos e classificações
-  // Usar configuração centralizada do customizing
-  const materialTypes = MATERIAL_TYPES
-  const materialClassifications = MATERIAL_CLASSIFICATIONS
+  // Usar dados do customizing
+  const materialTypes = customizingData.types
+  const materialClassifications = customizingData.classifications
 
   // Estilo consistente para campos
   const fieldStyle = "input-fiori"
@@ -183,20 +208,38 @@ export default async function NewMaterialPage() {
               </select>
             </div>
 
-            <div>
-              <label htmlFor="mm_price_cents" className={labelStyle}>
-                Preço (R$) *
-              </label>
-              <input
-                type="number"
-                name="mm_price_cents"
-                id="mm_price_cents"
-                step="0.01"
-                min="0"
-                required
-                className={fieldStyle}
-                placeholder="0.00"
-              />
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div>
+                <label htmlFor="mm_price_cents" className={labelStyle}>
+                  Preço de Venda (R$) *
+                </label>
+                <input
+                  type="number"
+                  name="mm_price_cents"
+                  id="mm_price_cents"
+                  step="0.01"
+                  min="0"
+                  required
+                  className={fieldStyle}
+                  placeholder="0.00"
+                />
+              </div>
+              
+              <div>
+                <label htmlFor="purchase_price_cents" className={labelStyle}>
+                  Preço de Compra (R$) *
+                </label>
+                <input
+                  type="number"
+                  name="purchase_price_cents"
+                  id="purchase_price_cents"
+                  step="0.01"
+                  min="0"
+                  required
+                  className={fieldStyle}
+                  placeholder="0.00"
+                />
+              </div>
             </div>
 
             <div>
@@ -215,16 +258,20 @@ export default async function NewMaterialPage() {
             </div>
 
             <div>
-              <label htmlFor="barcode" className={labelStyle}>
-                Código de Barras
+              <label htmlFor="catalog_url" className={labelStyle}>
+                Link do Catálogo Online *
               </label>
               <input
-                type="text"
-                name="barcode"
-                id="barcode"
+                type="url"
+                name="catalog_url"
+                id="catalog_url"
+                required
                 className={fieldStyle}
-                placeholder="Ex: 7891234567890"
+                placeholder="https://fornecedor.com/produto/123"
               />
+              <p className="mt-1 text-sm text-gray-500">
+                URL do fornecedor para este SKU
+              </p>
             </div>
           </div>
         </div>

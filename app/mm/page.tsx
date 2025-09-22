@@ -15,6 +15,7 @@ export default async function MMIndex() {
   let totalVendors = 0
   let totalOrders = 0
   let totalValue = 0
+  let monthlyValue = 0
 
   try {
     const supabase = createClient(
@@ -55,7 +56,7 @@ export default async function MMIndex() {
     totalVendors = vendors.filter(v => v.status === 'active').length
     totalOrders = purchaseOrders.length
     totalValue = purchaseOrders.reduce((sum, order) => sum + (order.total_amount || 0), 0)
-    const monthlyValue = monthlyOrders.reduce((sum, order) => sum + (order.total_amount || 0), 0)
+    monthlyValue = monthlyOrders.reduce((sum, order) => sum + (order.total_amount || 0), 0)
 
   } catch (error) {
     console.error('Error loading MM data:', error)

@@ -44,6 +44,7 @@ export default function EditSalesOrderForm({ order, customers, materials }: Edit
   const [notes, setNotes] = useState(order.notes || '')
   const [items, setItems] = useState<OrderItem[]>([])
   const [isLoading, setIsLoading] = useState(false)
+  const [isLoadingItems, setIsLoadingItems] = useState(true)
   const [error, setError] = useState('')
   const [successMessage, setSuccessMessage] = useState('')
 
@@ -54,8 +55,12 @@ export default function EditSalesOrderForm({ order, customers, materials }: Edit
 
   const loadOrderItems = async () => {
     try {
+      setIsLoadingItems(true)
+      console.log('Loading items for order:', order.so_id)
       const response = await fetch(`/api/sd/orders/${order.so_id}/items`)
       const result = await response.json()
+      
+      console.log('Items API response:', result)
       
       if (response.ok) {
         const orderItems = result.items.map((item: any, index: number) => ({
@@ -65,12 +70,17 @@ export default function EditSalesOrderForm({ order, customers, materials }: Edit
           unit_price_cents: item.unit_price_cents,
           line_total_cents: item.line_total_cents
         }))
+        console.log('Mapped order items:', orderItems)
         setItems(orderItems)
       } else {
         console.error('Error loading order items:', result.error)
+        setError(`Erro ao carregar itens: ${result.error}`)
       }
     } catch (error) {
       console.error('Error loading order items:', error)
+      setError(`Erro ao carregar itens: ${error}`)
+    } finally {
+      setIsLoadingItems(false)
     }
   }
 
@@ -256,7 +266,23 @@ export default function EditSalesOrderForm({ order, customers, materials }: Edit
                 </tr>
               </thead>
               <tbody>
-                {items.map((item) => (
+                {isLoadingItems ? (
+                  <tr>
+                    <td colSpan={5} className="text-center py-8">
+                      <div className="flex items-center justify-center gap-2">
+                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-fiori-primary"></div>
+                        <span>Carregando itens...</span>
+                      </div>
+                    </td>
+                  </tr>
+                ) : items.length === 0 ? (
+                  <tr>
+                    <td colSpan={5} className="text-center py-8 text-fiori-muted">
+                      Nenhum item encontrado
+                    </td>
+                  </tr>
+                ) : (
+                  items.map((item) => (
                   <tr key={item.temp_id}>
                     <td>
                       <select
@@ -310,7 +336,8 @@ export default function EditSalesOrderForm({ order, customers, materials }: Edit
                       </button>
                     </td>
                   </tr>
-                ))}
+                  ))
+                )}
               </tbody>
             </table>
           </div>

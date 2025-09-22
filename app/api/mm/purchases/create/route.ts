@@ -23,9 +23,31 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Adicione pelo menos um item ao pedido' }, { status: 400 })
     }
 
+    // Gerar ID do pedido
+    const generateOrderId = async () => {
+      const { data: lastOrder } = await supabase
+        .from('mm_purchase_order')
+        .select('mm_order')
+        .eq('tenant_id', tenantId)
+        .order('mm_order', { ascending: false })
+        .limit(1)
+      
+      let nextNum = 1
+      if (lastOrder && lastOrder.length > 0) {
+        const lastId = lastOrder[0].mm_order
+        const lastNum = parseInt(lastId.replace('PO-', ''))
+        nextNum = lastNum + 1
+      }
+      
+      return `PO-${nextNum.toString().padStart(6, '0')}`
+    }
+
+    const orderId = await generateOrderId()
+
     // Criar header do pedido
     const header = {
       tenant_id: tenantId,
+      mm_order: orderId,
       vendor_id: vendor_id,
       po_date: po_date,
       status: 'draft' as const,

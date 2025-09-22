@@ -11,12 +11,19 @@ export const fetchCache = 'force-no-store'
 async function createCustomer(formData: FormData) {
   'use server'
   
+  console.log('=== SERVER ACTION EXECUTADA ===')
+  console.log('FormData recebido:', Object.fromEntries(formData.entries()))
+  
   try {
     const supabase = createSupabaseServerClient()
     const tenantId = await getTenantId()
+    
+    console.log('Tenant ID:', tenantId)
+    console.log('Supabase client criado')
 
     // Gerar ID único para o cliente
     const customerId = `CUST-${Date.now()}`
+    console.log('Customer ID gerado:', customerId)
 
     // Extrair dados do formulário
     const customerData = {
@@ -42,6 +49,8 @@ async function createCustomer(formData: FormData) {
       updated_at: new Date().toISOString()
     }
 
+    console.log('Dados do cliente preparados:', customerData)
+
     // Validações
     if (!customerData.name) {
       throw new Error('Nome é obrigatório')
@@ -63,14 +72,19 @@ async function createCustomer(formData: FormData) {
     }
 
     // Inserir cliente
-    const { error } = await supabase
+    console.log('Tentando inserir cliente no banco...')
+    const { data: insertData, error } = await supabase
       .from('crm_customer')
       .insert(customerData)
+      .select('customer_id')
+      .single()
 
     if (error) {
       console.error('Error creating customer:', error)
       throw new Error('Erro ao criar cliente: ' + error.message)
     }
+
+    console.log('Cliente inserido com sucesso:', insertData)
 
     // Registrar auditoria
     await supabase

@@ -7,11 +7,12 @@ export async function GET(request: NextRequest) {
     const supabase = createSupabaseServerClient()
     const tenantId = await getTenantId()
     
-    // Buscar pedidos de venda (com todos os campos disponíveis)
+    // Buscar pedidos de venda (incluir doc_no e campos de valor)
     const { data: orders, error } = await supabase
       .from('sd_sales_order')
       .select(`
         so_id,
+        doc_no,
         customer_id,
         status,
         order_date,
@@ -84,35 +85,16 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Gerar ID sequencial do pedido
-    const { data: lastOrder } = await supabase
-      .from('sd_sales_order')
-      .select('so_id')
-      .eq('tenant_id', tenantId)
-      .order('created_at', { ascending: false })
-      .limit(1)
-
-    const lastOrderNumber = lastOrder?.[0]?.so_id || 'SO-2025-000'
-    const nextNumber = parseInt(lastOrderNumber.split('-')[2]) + 1
-    const newSoId = `SO-2025-${nextNumber.toString().padStart(3, '0')}`
-
-    // Criar pedido de venda (com todos os campos disponíveis)
+    // Criar pedido de venda (trigger vai gerar so_id automaticamente)
     const { data: salesOrder, error: orderError } = await supabase
       .from('sd_sales_order')
       .insert({
-        so_id: newSoId,
         tenant_id: tenantId,
         customer_id: selectedCustomer,
         order_date: orderDate,
-        payment_method: paymentMethod,
-        payment_term: paymentTerm,
         total_cents: totalNegotiatedCents || totalFinalCents,
-        total_final_cents: totalFinalCents,
         total_negotiated_cents: totalNegotiatedCents,
-        notes: notes || null,
-        status: 'draft',
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString()
+        status: 'draft'
       })
       .select()
       .single()
@@ -125,15 +107,13 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Criar itens do pedido (com todos os campos disponíveis)
+    // Criar itens do pedido (usar so_id gerado pelo trigger)
     const orderItems = items.map((item: any, index: number) => ({
-      so_id: newSoId,
+      so_id: salesOrder.so_id,
       tenant_id: tenantId,
       sku: item.material_id,
-      material_id: item.material_id,
       quantity: item.quantity,
       unit_price_cents: item.unit_price_cents,
-      unit_price_cents_at_order: item.unit_price_cents,
       line_total_cents: item.line_total_cents,
       row_no: index + 1
     }))
@@ -159,8 +139,9 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({
       success: true,
-      so_id: newSoId,
-      message: 'Pedido de venda criado com sucesso'
+      so_id: salesOrder.so_id,
+      message: 'Pedido de venda criado com sucesso',
+      order: salesOrder
     })
 
   } catch (error) {

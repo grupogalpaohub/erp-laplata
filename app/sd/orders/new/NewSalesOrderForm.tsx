@@ -1,74 +1,39 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { Save, X, Plus, Trash2 } from 'lucide-react'
-
-interface Customer {
-  customer_id: string
-  name: string
-  contact_email: string
-}
-
-interface Material {
-  mm_material: string
-  mm_comercial: string
-  mm_desc: string
-  mm_price_cents: number
-}
-
-interface PaymentTerm {
-  terms_code: string
-  description: string
-}
 
 interface OrderItem {
   temp_id: string
   material_id: string
-  material_name: string
   quantity: number
   unit_price_cents: number
   line_total_cents: number
 }
 
 interface NewSalesOrderFormProps {
-  customers: Customer[]
-  materials: Material[]
-  paymentTerms: PaymentTerm[]
+  customers: any[]
+  materials: any[]
   selectedCustomerId?: string
 }
 
-export default function NewSalesOrderForm({ customers, materials, paymentTerms, selectedCustomerId }: NewSalesOrderFormProps) {
+export default function NewSalesOrderForm({ customers, materials, selectedCustomerId }: NewSalesOrderFormProps) {
+  const router = useRouter()
+  
   const [selectedCustomer, setSelectedCustomer] = useState(selectedCustomerId || '')
   const [orderDate, setOrderDate] = useState(new Date().toISOString().split('T')[0])
-  const [paymentMethod, setPaymentMethod] = useState('')
-  const [paymentTerm, setPaymentTerm] = useState('')
   const [totalNegotiatedReais, setTotalNegotiatedReais] = useState('')
-  const [notes, setNotes] = useState('')
-  const [showNewCustomerForm, setShowNewCustomerForm] = useState(false)
-  const [newCustomer, setNewCustomer] = useState({
-    name: '',
-    contact_email: '',
-    contact_phone: '',
-    document_id: '',
-    customer_type: 'PF'
-  })
-  const [items, setItems] = useState<OrderItem[]>([
-    {
-      temp_id: '1',
-      material_id: '',
-      material_name: '',
-      quantity: 1,
-      unit_price_cents: 0,
-      line_total_cents: 0
-    }
-  ])
+  const [successMessage, setSuccessMessage] = useState('')
+  const [items, setItems] = useState<OrderItem[]>([])
+  const [isLoading, setIsLoading] = useState(false)
+  const [error, setError] = useState('')
 
   const addItem = () => {
     const newItem: OrderItem = {
-      temp_id: Date.now().toString(),
+      temp_id: `item_${Date.now()}`,
       material_id: '',
-      material_name: '',
       quantity: 1,
       unit_price_cents: 0,
       line_total_cents: 0
@@ -77,9 +42,7 @@ export default function NewSalesOrderForm({ customers, materials, paymentTerms, 
   }
 
   const removeItem = (tempId: string) => {
-    if (items.length > 1) {
-      setItems(items.filter(item => item.temp_id !== tempId))
-    }
+    setItems(items.filter(item => item.temp_id !== tempId))
   }
 
   const updateItem = (tempId: string, field: keyof OrderItem, value: any) => {
@@ -87,23 +50,9 @@ export default function NewSalesOrderForm({ customers, materials, paymentTerms, 
       if (item.temp_id === tempId) {
         const updatedItem = { ...item, [field]: value }
         
-        // Se mudou o material, buscar preço
-        if (field === 'material_id') {
-          const material = materials.find(m => m.mm_material === value)
-          if (material) {
-            updatedItem.material_name = material.mm_comercial || material.mm_desc
-            updatedItem.unit_price_cents = material.mm_price_cents
-            updatedItem.line_total_cents = updatedItem.quantity * material.mm_price_cents
-          } else {
-            updatedItem.material_name = ''
-            updatedItem.unit_price_cents = 0
-            updatedItem.line_total_cents = 0
-          }
-        }
-        
-        // Se mudou a quantidade, recalcular total
-        if (field === 'quantity') {
-          updatedItem.line_total_cents = Number(value) * updatedItem.unit_price_cents
+        // Recalcular total da linha se quantidade ou preço mudaram
+        if (field === 'quantity' || field === 'unit_price_cents') {
+          updatedItem.line_total_cents = updatedItem.quantity * updatedItem.unit_price_cents
         }
         
         return updatedItem
@@ -112,70 +61,28 @@ export default function NewSalesOrderForm({ customers, materials, paymentTerms, 
     }))
   }
 
-
-  const handleCreateCustomer = async () => {
-    try {
-      const response = await fetch('/api/crm/customers', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(newCustomer),
-      })
-
-      if (response.ok) {
-        const result = await response.json()
-        setSelectedCustomer(result.customerId)
-        setShowNewCustomerForm(false)
-        setNewCustomer({
-          name: '',
-          contact_email: '',
-          contact_phone: '',
-          document_id: '',
-          customer_type: 'PF'
-        })
-        // Recarregar a página para atualizar a lista de clientes
-        window.location.reload()
-      } else {
-        console.error('Error creating customer')
-      }
-    } catch (error) {
-      console.error('Error creating customer:', error)
-    }
-  }
-
-  // Validações
   const isValid = () => {
     if (!selectedCustomer) {
       alert('Selecione um cliente')
-      return false
-    }
-    if (!paymentMethod) {
-      alert('Selecione a forma de pagamento')
-      return false
-    }
-    if (!paymentTerm) {
-      alert('Selecione a condição/prazo')
       return false
     }
     if (items.length === 0) {
       alert('Adicione pelo menos um item')
       return false
     }
-    if (items.some(item => !item.material_id || item.quantity <= 0)) {
-      alert('Todos os itens devem ter material selecionado e quantidade maior que zero')
-      return false
-    }
-    return true
+    return items.every(item => item.material_id && item.quantity > 0)
   }
 
   // Cálculo de totais
   const totalItemsCents = items.reduce((sum, item) => sum + item.line_total_cents, 0)
-  // Valor Final sempre é a soma dos itens (não muda)
   const totalFinalCents = totalItemsCents
 
-  const handleSubmit = async (formData: FormData) => {
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
     if (!isValid()) return
+
+    setIsLoading(true)
+    setError('')
 
     // Converter total negociado para centavos se preenchido
     const totalNegotiatedCents = totalNegotiatedReais ? 
@@ -191,10 +98,7 @@ export default function NewSalesOrderForm({ customers, materials, paymentTerms, 
         body: JSON.stringify({
           selectedCustomer,
           orderDate,
-          paymentMethod,
-          paymentTerm,
           totalNegotiatedCents,
-          notes,
           items,
           totalFinalCents: totalFinalCents // Sempre o valor calculado dos itens
         })
@@ -203,35 +107,58 @@ export default function NewSalesOrderForm({ customers, materials, paymentTerms, 
       const result = await response.json()
 
       if (response.ok) {
-        alert(`Pedido ${result.so_id} criado com sucesso!`)
-        // Redirecionar para a lista de pedidos
-        window.location.href = '/sd/orders'
+        setSuccessMessage(`Pedido criado com sucesso! Número: ${result.order?.so_id || 'N/A'}`)
+        setError('')
+        // Limpar formulário
+        setSelectedCustomer('')
+        setOrderDate(new Date().toISOString().split('T')[0])
+        setTotalNegotiatedReais('')
+        setItems([])
+        // Redirecionar após 2 segundos
+        setTimeout(() => {
+          router.push('/sd/orders')
+        }, 2000)
       } else {
-        alert(`Erro: ${result.error}`)
+        setError(result.error || 'Erro ao criar pedido')
+        setSuccessMessage('')
       }
     } catch (error) {
-      console.error('Error creating sales order:', error)
-      alert('Erro ao criar pedido de venda')
+      console.error('Error creating order:', error)
+      setError('Erro ao criar pedido')
+    } finally {
+      setIsLoading(false)
     }
   }
 
   return (
-    <form action={handleSubmit} className="space-y-8">
-      {/* Header do Pedido */}
+    <form onSubmit={handleSubmit} className="space-y-6">
+      {error && (
+        <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded">
+          {error}
+        </div>
+      )}
+
+      {successMessage && (
+        <div className="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded">
+          {successMessage}
+        </div>
+      )}
+
+      {/* Informações do Pedido */}
       <div className="card-fiori">
         <div className="card-fiori-header">
-          <h3 className="card-fiori-title">Dados do Pedido</h3>
+          <h3 className="card-fiori-title">Informações do Pedido</h3>
         </div>
         <div className="card-fiori-content">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
-              <label htmlFor="customer_id" className="label-fiori">
+              <label htmlFor="customer" className="label-fiori">
                 Cliente *
               </label>
               <div className="flex gap-2">
                 <select
-                  id="customer_id"
-                  name="customer_id"
+                  id="customer"
+                  name="customer"
                   required
                   value={selectedCustomer}
                   onChange={(e) => setSelectedCustomer(e.target.value)}
@@ -252,6 +179,7 @@ export default function NewSalesOrderForm({ customers, materials, paymentTerms, 
                 </Link>
               </div>
             </div>
+
             <div>
               <label htmlFor="order_date" className="label-fiori">
                 Data do Pedido *
@@ -266,145 +194,9 @@ export default function NewSalesOrderForm({ customers, materials, paymentTerms, 
                 className="input-fiori"
               />
             </div>
-            <div>
-              <label htmlFor="payment_method" className="label-fiori">
-                Forma de Pagamento *
-              </label>
-              <select
-                id="payment_method"
-                name="payment_method"
-                required
-                value={paymentMethod}
-                onChange={(e) => setPaymentMethod(e.target.value)}
-                className="select-fiori"
-              >
-                <option value="">Selecione a forma de pagamento...</option>
-                <option value="PIX">PIX</option>
-                <option value="CARTAO">Cartão de Crédito/Débito</option>
-                <option value="BOLETO">Boleto Bancário</option>
-                <option value="TRANSFERENCIA">Transferência Bancária</option>
-                <option value="DINHEIRO">Dinheiro</option>
-                <option value="OUTROS">Outros</option>
-              </select>
-            </div>
-            <div>
-              <label htmlFor="payment_term" className="label-fiori">
-                Condição/Prazo *
-              </label>
-              <select
-                id="payment_term"
-                name="payment_term"
-                required
-                value={paymentTerm}
-                onChange={(e) => setPaymentTerm(e.target.value)}
-                className="select-fiori"
-              >
-                <option value="">Selecione uma condição</option>
-                {paymentTerms.map((term) => (
-                  <option key={term.terms_code} value={term.terms_code}>
-                    {term.description}
-                  </option>
-                ))}
-              </select>
-            </div>
           </div>
         </div>
       </div>
-
-      {/* Formulário de Novo Cliente */}
-      {showNewCustomerForm && (
-        <div className="card-fiori">
-          <div className="card-fiori-header">
-            <h3 className="card-fiori-title">Criar Novo Cliente</h3>
-          </div>
-          <div className="card-fiori-content">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div>
-                <label htmlFor="new_customer_name" className="label-fiori">
-                  Nome/Razão Social *
-                </label>
-                <input
-                  type="text"
-                  id="new_customer_name"
-                  value={newCustomer.name}
-                  onChange={(e) => setNewCustomer({ ...newCustomer, name: e.target.value })}
-                  className="input-fiori"
-                  required
-                />
-              </div>
-              <div>
-                <label htmlFor="new_customer_type" className="label-fiori">
-                  Tipo de Cliente *
-                </label>
-                <select
-                  id="new_customer_type"
-                  value={newCustomer.customer_type}
-                  onChange={(e) => setNewCustomer({ ...newCustomer, customer_type: e.target.value })}
-                  className="select-fiori"
-                >
-                  <option value="PF">Pessoa Física</option>
-                  <option value="PJ">Pessoa Jurídica</option>
-                </select>
-              </div>
-              <div>
-                <label htmlFor="new_customer_document" className="label-fiori">
-                  {newCustomer.customer_type === 'PF' ? 'CPF' : 'CNPJ'} *
-                </label>
-                <input
-                  type="text"
-                  id="new_customer_document"
-                  value={newCustomer.document_id}
-                  onChange={(e) => setNewCustomer({ ...newCustomer, document_id: e.target.value })}
-                  className="input-fiori"
-                  required
-                />
-              </div>
-              <div>
-                <label htmlFor="new_customer_email" className="label-fiori">
-                  E-mail *
-                </label>
-                <input
-                  type="email"
-                  id="new_customer_email"
-                  value={newCustomer.contact_email}
-                  onChange={(e) => setNewCustomer({ ...newCustomer, contact_email: e.target.value })}
-                  className="input-fiori"
-                  required
-                />
-              </div>
-              <div>
-                <label htmlFor="new_customer_phone" className="label-fiori">
-                  Telefone
-                </label>
-                <input
-                  type="text"
-                  id="new_customer_phone"
-                  value={newCustomer.contact_phone}
-                  onChange={(e) => setNewCustomer({ ...newCustomer, contact_phone: e.target.value })}
-                  className="input-fiori"
-                />
-              </div>
-            </div>
-            <div className="flex gap-2 mt-6">
-              <button
-                type="button"
-                onClick={handleCreateCustomer}
-                className="btn-fiori-primary"
-                disabled={!newCustomer.name || !newCustomer.document_id || !newCustomer.contact_email}
-              >
-                Criar Cliente
-              </button>
-              <button
-                type="button"
-                onClick={() => setShowNewCustomerForm(false)}
-                className="btn-fiori-outline"
-              >
-                Cancelar
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
 
       {/* Itens do Pedido */}
       <div className="card-fiori">
@@ -447,38 +239,40 @@ export default function NewSalesOrderForm({ customers, materials, paymentTerms, 
                           </option>
                         ))}
                       </select>
-                      {item.material_name && (
-                        <div className="text-xs text-fiori-muted mt-1">
-                          {item.material_name}
-                        </div>
-                      )}
                     </td>
-                    <td className="text-right">
+                    <td>
                       <input
                         type="number"
                         min="0.01"
                         step="0.01"
                         value={item.quantity}
-                        onChange={(e) => updateItem(item.temp_id, 'quantity', Number(e.target.value))}
+                        onChange={(e) => updateItem(item.temp_id, 'quantity', parseFloat(e.target.value) || 0)}
                         className="input-fiori w-24 text-right"
                       />
                     </td>
-                    <td className="text-right">
-                      <div className="text-sm font-mono">
-                        R$ {(item.unit_price_cents / 100).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
-                      </div>
+                    <td>
+                      <input
+                        type="number"
+                        min="0"
+                        step="0.01"
+                        value={(item.unit_price_cents / 100).toFixed(2)}
+                        onChange={(e) => updateItem(item.temp_id, 'unit_price_cents', Math.round((parseFloat(e.target.value) || 0) * 100))}
+                        className="input-fiori w-24 text-right"
+                      />
                     </td>
-                    <td className="text-right">
-                      <div className="text-sm font-semibold">
-                        R$ {(item.line_total_cents / 100).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
-                      </div>
+                    <td>
+                      <input
+                        type="text"
+                        value={(item.line_total_cents / 100).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                        readOnly
+                        className="input-fiori bg-fiori-bg-secondary w-24 text-right"
+                      />
                     </td>
                     <td>
                       <button
                         type="button"
                         onClick={() => removeItem(item.temp_id)}
-                        disabled={items.length === 1}
-                        className="btn-fiori-danger-outline text-xs disabled:opacity-50"
+                        className="btn-fiori-outline btn-sm text-red-600 hover:bg-red-50"
                       >
                         <Trash2 className="w-3 h-3" />
                       </button>
@@ -535,33 +329,24 @@ export default function NewSalesOrderForm({ customers, materials, paymentTerms, 
         </div>
       </div>
 
-      {/* Observações */}
-      <div className="card-fiori">
-        <div className="card-fiori-header">
-          <h3 className="card-fiori-title">Observações</h3>
-        </div>
-        <div className="card-fiori-content">
-          <textarea
-            id="notes"
-            name="notes"
-            value={notes}
-            onChange={(e) => setNotes(e.target.value)}
-            rows={3}
-            className="input-fiori"
-            placeholder="Observações adicionais sobre o pedido..."
-          />
-        </div>
-      </div>
+      {/* Botões */}
+      <div className="flex gap-4">
+        <button
+          type="submit"
+          disabled={isLoading || !isValid()}
+          className="btn-fiori flex items-center gap-2"
+        >
+          <Save className="w-4 h-4" />
+          {isLoading ? 'Criando...' : 'Criar Pedido'}
+        </button>
 
-      {/* Botões de Ação */}
-      <div className="flex justify-end gap-4">
-        <Link href="/sd/orders" className="btn-fiori-outline flex items-center gap-2">
+        <button
+          type="button"
+          onClick={() => router.push('/sd/orders')}
+          className="btn-fiori-outline flex items-center gap-2"
+        >
           <X className="w-4 h-4" />
           Cancelar
-        </Link>
-        <button type="submit" className="btn-fiori-primary flex items-center gap-2">
-          <Save className="w-4 h-4" />
-          Salvar Pedido (Rascunho)
         </button>
       </div>
     </form>

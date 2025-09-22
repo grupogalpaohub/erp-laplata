@@ -2,10 +2,6 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createSupabaseServerClient } from '@/lib/supabaseServer'
 import { getTenantId } from '@/lib/auth'
 
-export const dynamic = 'force-dynamic'
-export const revalidate = 0
-export const fetchCache = 'force-no-store'
-
 export async function GET(
   request: NextRequest,
   { params }: { params: { so_id: string } }
@@ -13,9 +9,9 @@ export async function GET(
   try {
     const supabase = createSupabaseServerClient()
     const tenantId = await getTenantId()
-    const soId = params.so_id
+    const { so_id } = params
 
-    // Buscar itens do pedido (apenas campos existentes)
+    // Buscar itens do pedido
     const { data: items, error } = await supabase
       .from('sd_sales_order_item')
       .select(`
@@ -24,10 +20,11 @@ export async function GET(
         quantity,
         unit_price_cents,
         line_total_cents,
-        row_no
+        row_no,
+        mm_material(mm_material, mm_comercial, mm_desc)
       `)
       .eq('tenant_id', tenantId)
-      .eq('so_id', soId)
+      .eq('so_id', so_id)
       .order('row_no')
 
     if (error) {
@@ -44,7 +41,7 @@ export async function GET(
     })
 
   } catch (error) {
-    console.error('Error in order items API:', error)
+    console.error('Error in order items GET:', error)
     return NextResponse.json(
       { error: 'Erro interno do servidor' },
       { status: 500 }

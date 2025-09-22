@@ -2,10 +2,6 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createSupabaseServerClient } from '@/lib/supabaseServer'
 import { getTenantId } from '@/lib/auth'
 
-export const dynamic = 'force-dynamic'
-export const revalidate = 0
-export const fetchCache = 'force-no-store'
-
 export async function PUT(
   request: NextRequest,
   { params }: { params: { so_id: string } }
@@ -13,21 +9,20 @@ export async function PUT(
   try {
     const supabase = createSupabaseServerClient()
     const tenantId = await getTenantId()
-    const soId = params.so_id
-
+    const { so_id } = params
+    
+    const body = await request.json()
     const {
       selectedCustomer,
       orderDate,
-      paymentMethod,
-      paymentTerm,
       totalNegotiatedCents,
       notes,
       items,
       totalFinalCents
-    } = await request.json()
+    } = body
 
     // Validar dados obrigatórios
-    if (!selectedCustomer || !orderDate || !paymentMethod || !paymentTerm) {
+    if (!selectedCustomer || !orderDate) {
       return NextResponse.json(
         { error: 'Dados obrigatórios não fornecidos' },
         { status: 400 }
@@ -36,21 +31,25 @@ export async function PUT(
 
     if (!items || items.length === 0) {
       return NextResponse.json(
-        { error: 'Pelo menos um item é obrigatório' },
+        { error: 'Adicione pelo menos um item' },
         { status: 400 }
       )
     }
 
-    // Atualizar pedido de venda (usar apenas campos existentes)
-    const { error: orderError } = await supabase
+    // Atualizar pedido de venda
+    const { data: salesOrder, error: orderError } = await supabase
       .from('sd_sales_order')
       .update({
         customer_id: selectedCustomer,
         order_date: orderDate,
-        total_cents: totalNegotiatedCents || totalFinalCents
+        total_cents: totalNegotiatedCents || totalFinalCents,
+        total_negotiated_cents: totalNegotiatedCents,
+        notes: notes || null
       })
       .eq('tenant_id', tenantId)
-      .eq('so_id', soId)
+      .eq('so_id', so_id)
+      .select()
+      .single()
 
     if (orderError) {
       console.error('Error updating sales order:', orderError)
@@ -60,26 +59,26 @@ export async function PUT(
       )
     }
 
-    // Deletar itens existentes
+    // Remover itens existentes
     const { error: deleteError } = await supabase
       .from('sd_sales_order_item')
       .delete()
       .eq('tenant_id', tenantId)
-      .eq('so_id', soId)
+      .eq('so_id', so_id)
 
     if (deleteError) {
-      console.error('Error deleting existing items:', deleteError)
+      console.error('Error deleting order items:', deleteError)
       return NextResponse.json(
-        { error: 'Erro ao atualizar itens do pedido' },
+        { error: 'Erro ao remover itens do pedido' },
         { status: 500 }
       )
     }
 
-    // Criar novos itens (usar apenas campos existentes)
+    // Criar novos itens do pedido
     const orderItems = items.map((item: any, index: number) => ({
-      so_id: soId,
+      so_id: so_id,
       tenant_id: tenantId,
-      sku: item.material_id, // Usar material_id como sku
+      sku: item.material_id,
       quantity: item.quantity,
       unit_price_cents: item.unit_price_cents,
       line_total_cents: item.line_total_cents,
@@ -100,11 +99,12 @@ export async function PUT(
 
     return NextResponse.json({
       success: true,
-      message: 'Pedido atualizado com sucesso'
+      message: 'Pedido de venda atualizado com sucesso',
+      order: salesOrder
     })
 
   } catch (error) {
-    console.error('Error in update order API:', error)
+    console.error('Error in sales order update:', error)
     return NextResponse.json(
       { error: 'Erro interno do servidor' },
       { status: 500 }

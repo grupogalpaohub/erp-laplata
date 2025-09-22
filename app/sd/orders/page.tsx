@@ -9,11 +9,13 @@ export const fetchCache = 'force-no-store'
 
 interface SalesOrder {
   so_id: string
+  doc_no?: string
   customer_id: string
   status: string
   order_date: string
   expected_ship: string
   total_cents: number
+  total_final_cents?: number
   total_negotiated_cents?: number
   payment_method?: string
   payment_term?: string
@@ -32,11 +34,12 @@ export default async function SalesOrdersPage() {
     const supabase = createSupabaseServerClient()
     const tenantId = await getTenantId()
 
-    // Buscar pedidos com paginação (com todos os campos disponíveis)
+    // Buscar pedidos com paginação (incluir doc_no)
     const { data, count, error } = await supabase
       .from('sd_sales_order')
       .select(`
         so_id,
+        doc_no,
         customer_id,
         status,
         order_date,
@@ -246,7 +249,7 @@ export default async function SalesOrdersPage() {
                     <tr key={order.so_id}>
                       <td>
                         <span className="font-mono text-sm text-fiori-primary">
-                          {order.so_id}
+                          {order.doc_no || order.so_id}
                         </span>
                       </td>
                       <td>

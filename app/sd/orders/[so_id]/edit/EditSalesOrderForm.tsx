@@ -12,51 +12,65 @@ interface OrderItem {
   line_total_cents: number
 }
 
-interface EditSalesOrderFormProps {
-  order: any
-  customers: any[]
-  materials: any[]
-  paymentTerms: any[]
+interface SalesOrder {
+  so_id: string
+  doc_no?: string
+  customer_id: string
+  status: string
+  order_date: string
+  total_cents: number
+  total_final_cents?: number
+  total_negotiated_cents?: number
+  notes?: string
+  crm_customer: {
+    name: string
+  }[]
 }
 
-export default function EditSalesOrderForm({ order, customers, materials, paymentTerms }: EditSalesOrderFormProps) {
+interface EditSalesOrderFormProps {
+  order: SalesOrder
+  customers: any[]
+  materials: any[]
+}
+
+export default function EditSalesOrderForm({ order, customers, materials }: EditSalesOrderFormProps) {
   const router = useRouter()
   
-  const [selectedCustomer, setSelectedCustomer] = useState(order.customer_id || '')
-  const [orderDate, setOrderDate] = useState(order.order_date || '')
-  const [totalNegotiatedReais, setTotalNegotiatedReais] = useState('')
+  const [selectedCustomer, setSelectedCustomer] = useState(order.customer_id)
+  const [orderDate, setOrderDate] = useState(order.order_date)
+  const [totalNegotiatedReais, setTotalNegotiatedReais] = useState(
+    order.total_negotiated_cents ? (order.total_negotiated_cents / 100).toFixed(2) : ''
+  )
+  const [notes, setNotes] = useState(order.notes || '')
   const [items, setItems] = useState<OrderItem[]>([])
   const [isLoading, setIsLoading] = useState(false)
-  const [isLoadingItems, setIsLoadingItems] = useState(true)
   const [error, setError] = useState('')
+  const [successMessage, setSuccessMessage] = useState('')
 
   // Carregar itens do pedido
   useEffect(() => {
-    if (order?.so_id) {
-      loadOrderItems()
-    }
-  }, [order?.so_id])
+    loadOrderItems()
+  }, [order.so_id])
 
   const loadOrderItems = async () => {
     try {
-      setIsLoadingItems(true)
       const response = await fetch(`/api/sd/orders/${order.so_id}/items`)
       const result = await response.json()
       
-      if (result.success) {
+      if (response.ok) {
         const orderItems = result.items.map((item: any, index: number) => ({
-          temp_id: `item_${index}`,
+          temp_id: `item_${Date.now()}_${index}`,
           material_id: item.sku,
           quantity: item.quantity,
           unit_price_cents: item.unit_price_cents,
           line_total_cents: item.line_total_cents
         }))
         setItems(orderItems)
+      } else {
+        console.error('Error loading order items:', result.error)
       }
     } catch (error) {
       console.error('Error loading order items:', error)
-    } finally {
-      setIsLoadingItems(false)
     }
   }
 
@@ -80,6 +94,7 @@ export default function EditSalesOrderForm({ order, customers, materials, paymen
       if (item.temp_id === tempId) {
         const updatedItem = { ...item, [field]: value }
         
+        // Recalcular total da linha se quantidade ou preço mudaram
         if (field === 'quantity' || field === 'unit_price_cents') {
           updatedItem.line_total_cents = updatedItem.quantity * updatedItem.unit_price_cents
         }
@@ -91,10 +106,12 @@ export default function EditSalesOrderForm({ order, customers, materials, paymen
   }
 
   const isValid = () => {
-    if (!selectedCustomer || !orderDate) {
+    if (!selectedCustomer) {
+      alert('Selecione um cliente')
       return false
     }
     if (items.length === 0) {
+      alert('Adicione pelo menos um item')
       return false
     }
     return items.every(item => item.material_id && item.quantity > 0)
@@ -111,11 +128,12 @@ export default function EditSalesOrderForm({ order, customers, materials, paymen
     setIsLoading(true)
     setError('')
 
-    try {
-      const totalNegotiatedCents = totalNegotiatedReais ? 
-        Math.round(parseFloat(totalNegotiatedReais.replace(',', '.')) * 100) : 
-        totalFinalCents
+    // Converter total negociado para centavos se preenchido
+    const totalNegotiatedCents = totalNegotiatedReais ? 
+      Math.round(parseFloat(totalNegotiatedReais.replace(',', '.')) * 100) : 
+      totalFinalCents
 
+    try {
       const response = await fetch(`/api/sd/orders/${order.so_id}`, {
         method: 'PUT',
         headers: {
@@ -125,6 +143,7 @@ export default function EditSalesOrderForm({ order, customers, materials, paymen
           selectedCustomer,
           orderDate,
           totalNegotiatedCents,
+          notes,
           items,
           totalFinalCents
         })
@@ -133,9 +152,15 @@ export default function EditSalesOrderForm({ order, customers, materials, paymen
       const result = await response.json()
 
       if (response.ok) {
-        router.push(`/sd/orders?success=Pedido+atualizado+com+sucesso`)
+        setSuccessMessage('Pedido atualizado com sucesso!')
+        setError('')
+        // Redirecionar após 1 segundo
+        setTimeout(() => {
+          router.push(`/sd/orders/${order.so_id}`)
+        }, 1000)
       } else {
         setError(result.error || 'Erro ao atualizar pedido')
+        setSuccessMessage('')
       }
     } catch (error) {
       console.error('Error updating order:', error)
@@ -150,6 +175,12 @@ export default function EditSalesOrderForm({ order, customers, materials, paymen
       {error && (
         <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded">
           {error}
+        </div>
+      )}
+
+      {successMessage && (
+        <div className="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded">
+          {successMessage}
         </div>
       )}
 
@@ -213,83 +244,76 @@ export default function EditSalesOrderForm({ order, customers, materials, paymen
           </button>
         </div>
         <div className="card-fiori-content p-0">
-          {isLoadingItems ? (
-            <div className="text-center py-8">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-fiori-primary mx-auto"></div>
-              <p className="text-fiori-muted mt-2">Carregando itens...</p>
-            </div>
-          ) : (
-            <div className="overflow-x-auto">
-              <table className="table-fiori">
-                <thead>
-                  <tr>
-                    <th>Material</th>
-                    <th className="text-right">Quantidade</th>
-                    <th className="text-right">Preço (R$)</th>
-                    <th className="text-right">Total (R$)</th>
-                    <th className="w-12">Ações</th>
+          <div className="overflow-x-auto">
+            <table className="table-fiori">
+              <thead>
+                <tr>
+                  <th>Material</th>
+                  <th className="text-right">Quantidade</th>
+                  <th className="text-right">Preço (R$)</th>
+                  <th className="text-right">Total (R$)</th>
+                  <th className="w-12">Ações</th>
+                </tr>
+              </thead>
+              <tbody>
+                {items.map((item) => (
+                  <tr key={item.temp_id}>
+                    <td>
+                      <select
+                        value={item.material_id}
+                        onChange={(e) => updateItem(item.temp_id, 'material_id', e.target.value)}
+                        className="select-fiori"
+                      >
+                        <option value="">Selecione um material</option>
+                        {materials.map((material) => (
+                          <option key={material.mm_material} value={material.mm_material}>
+                            {material.mm_material} - {material.mm_comercial || material.mm_desc}
+                          </option>
+                        ))}
+                      </select>
+                    </td>
+                    <td>
+                      <input
+                        type="number"
+                        min="0.01"
+                        step="0.01"
+                        value={item.quantity}
+                        onChange={(e) => updateItem(item.temp_id, 'quantity', parseFloat(e.target.value) || 0)}
+                        className="input-fiori w-24 text-right"
+                      />
+                    </td>
+                    <td>
+                      <input
+                        type="number"
+                        min="0"
+                        step="0.01"
+                        value={(item.unit_price_cents / 100).toFixed(2)}
+                        onChange={(e) => updateItem(item.temp_id, 'unit_price_cents', Math.round((parseFloat(e.target.value) || 0) * 100))}
+                        className="input-fiori w-24 text-right"
+                      />
+                    </td>
+                    <td>
+                      <input
+                        type="text"
+                        value={(item.line_total_cents / 100).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                        readOnly
+                        className="input-fiori bg-fiori-bg-secondary w-24 text-right"
+                      />
+                    </td>
+                    <td>
+                      <button
+                        type="button"
+                        onClick={() => removeItem(item.temp_id)}
+                        className="btn-fiori-outline btn-sm text-red-600 hover:bg-red-50"
+                      >
+                        <Trash2 className="w-3 h-3" />
+                      </button>
+                    </td>
                   </tr>
-                </thead>
-                <tbody>
-                  {items.map((item) => (
-                    <tr key={item.temp_id}>
-                      <td>
-                        <select
-                          value={item.material_id}
-                          onChange={(e) => updateItem(item.temp_id, 'material_id', e.target.value)}
-                          className="select-fiori"
-                        >
-                          <option value="">Selecione um material</option>
-                          {materials.map((material) => (
-                            <option key={material.mm_material} value={material.mm_material}>
-                              {material.mm_material} - {material.mm_comercial || material.mm_desc}
-                            </option>
-                          ))}
-                        </select>
-                      </td>
-                      <td>
-                        <input
-                          type="number"
-                          min="0.01"
-                          step="0.01"
-                          value={item.quantity}
-                          onChange={(e) => updateItem(item.temp_id, 'quantity', parseFloat(e.target.value) || 0)}
-                          className="input-fiori w-24 text-right"
-                        />
-                      </td>
-                      <td>
-                        <input
-                          type="number"
-                          min="0"
-                          step="0.01"
-                          value={(item.unit_price_cents / 100).toFixed(2)}
-                          onChange={(e) => updateItem(item.temp_id, 'unit_price_cents', Math.round((parseFloat(e.target.value) || 0) * 100))}
-                          className="input-fiori w-24 text-right"
-                        />
-                      </td>
-                      <td>
-                        <input
-                          type="text"
-                          value={(item.line_total_cents / 100).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
-                          readOnly
-                          className="input-fiori bg-fiori-bg-secondary w-24 text-right"
-                        />
-                      </td>
-                      <td>
-                        <button
-                          type="button"
-                          onClick={() => removeItem(item.temp_id)}
-                          className="btn-fiori-outline btn-sm text-red-600 hover:bg-red-50"
-                        >
-                          <Trash2 className="w-3 h-3" />
-                        </button>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          )}
+                ))}
+              </tbody>
+            </table>
+          </div>
         </div>
       </div>
 
@@ -337,6 +361,22 @@ export default function EditSalesOrderForm({ order, customers, materials, paymen
         </div>
       </div>
 
+      {/* Observações */}
+      <div className="card-fiori">
+        <div className="card-fiori-header">
+          <h3 className="card-fiori-title">Observações</h3>
+        </div>
+        <div className="card-fiori-content">
+          <textarea
+            value={notes}
+            onChange={(e) => setNotes(e.target.value)}
+            className="input-fiori"
+            rows={3}
+            placeholder="Observações adicionais sobre o pedido..."
+          />
+        </div>
+      </div>
+
       {/* Botões */}
       <div className="flex gap-4">
         <button
@@ -350,7 +390,7 @@ export default function EditSalesOrderForm({ order, customers, materials, paymen
 
         <button
           type="button"
-          onClick={() => router.push('/sd/orders')}
+          onClick={() => router.push(`/sd/orders/${order.so_id}`)}
           className="btn-fiori-outline flex items-center gap-2"
         >
           <X className="w-4 h-4" />

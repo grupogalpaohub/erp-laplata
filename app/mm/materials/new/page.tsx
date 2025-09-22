@@ -46,16 +46,8 @@ async function createMaterial(formData: FormData) {
 
   // Gerar ID do material baseado no tipo
   const generateMaterialId = async (matType: string) => {
-    const prefixMap: { [key: string]: string } = {
-      'Brinco': 'B_',
-      'Cordão': 'C_',
-      'Choker': 'CH_',
-      'Gargantilha': 'G_',
-      'Anel': 'A_',
-      'Pulseira': 'P_'
-    }
-    
-    const prefix = prefixMap[matType] || 'M_'
+    // Pegar primeiro caractere do tipo e converter para maiúsculo
+    const prefix = `${matType.charAt(0).toUpperCase()}_`
     
     // Buscar próximo número sequencial para este tipo
     const { data: existingMaterials } = await supabase

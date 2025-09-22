@@ -24,7 +24,6 @@ interface Customer {
   addr_state: string
   addr_zip: string
   addr_country: string
-  payment_terms: string
   is_active: boolean
   customer_type: string
   created_date: string
@@ -223,13 +222,6 @@ export default async function CustomerDetailPage({ params }: PageProps) {
                 </div>
               </div>
             )}
-            <div className="flex items-center gap-3">
-              <CreditCard className="w-5 h-5 text-fiori-muted" />
-              <div>
-                <p className="text-sm text-fiori-muted">Forma de Pagamento</p>
-                <p className="font-medium">{customer?.payment_terms || '-'}</p>
-              </div>
-            </div>
           </div>
         </div>
 

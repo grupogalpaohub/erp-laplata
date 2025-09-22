@@ -40,7 +40,6 @@ export default async function CustomersPage() {
         phone_country,
         addr_city,
         addr_state,
-        payment_terms,
         is_active,
         created_date,
         updated_at
@@ -129,16 +128,6 @@ export default async function CustomersPage() {
               </select>
             </div>
             <div>
-              <label className="label-fiori">Forma de Pagamento</label>
-              <select className="select-fiori">
-                <option value="">Todas</option>
-                <option value="PIX">PIX</option>
-                <option value="TRANSFERENCIA">Transferência</option>
-                <option value="BOLETO">Boleto</option>
-                <option value="CARTAO">Cartão</option>
-              </select>
-            </div>
-            <div>
               <label className="label-fiori">Cidade/UF</label>
               <input
                 type="text"
@@ -174,7 +163,6 @@ export default async function CustomersPage() {
                     <th>Email</th>
                     <th>Telefone</th>
                     <th>Cidade/UF</th>
-                    <th>Forma de Pagamento</th>
                     <th>Status</th>
                     <th>Cadastrado em</th>
                     <th>Ações</th>
@@ -211,7 +199,6 @@ export default async function CustomersPage() {
                       </td>
                       <td>
                         <div className="text-sm">
-                          {customer.payment_terms || '-'}
                         </div>
                       </td>
                       <td>

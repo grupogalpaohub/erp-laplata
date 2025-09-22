@@ -35,7 +35,6 @@ async function createCustomer(formData: FormData) {
       addr_state: String(formData.get('addr_state') || ''),
       addr_zip: String(formData.get('addr_zip') || ''),
       addr_country: String(formData.get('addr_country') || 'BR'),
-      payment_terms: String(formData.get('payment_terms') || ''),
       is_active: formData.get('is_active') === 'on',
       customer_type: String(formData.get('customer_type') || 'PF'),
       created_date: new Date().toISOString().split('T')[0],
@@ -48,9 +47,6 @@ async function createCustomer(formData: FormData) {
     }
     if (!customerData.contact_email) {
       throw new Error('Email é obrigatório')
-    }
-    if (!customerData.payment_terms) {
-      throw new Error('Forma de pagamento é obrigatória')
     }
 
     // Verificar se email já existe
@@ -99,52 +95,6 @@ async function createCustomer(formData: FormData) {
 }
 
 export default async function NewCustomerPage() {
-  // Buscar opções de payment terms
-  let paymentTerms: any[] = []
-  try {
-    const supabase = createSupabaseServerClient()
-    const tenantId = await getTenantId()
-
-    const { data } = await supabase
-      .from('fi_payment_terms_def')
-      .select('terms_code, description')
-      .eq('tenant_id', tenantId)
-      .eq('is_active', true)
-      .order('description')
-
-    paymentTerms = data || []
-    
-    // Se não houver dados, usar dados padrão
-    if (paymentTerms.length === 0) {
-      paymentTerms = [
-        { terms_code: 'A_VISTA', description: 'À Vista' },
-        { terms_code: '30_DIAS', description: '30 Dias' },
-        { terms_code: '60_DIAS', description: '60 Dias' },
-        { terms_code: '90_DIAS', description: '90 Dias' },
-        { terms_code: 'BOLETO', description: 'Boleto Bancário' },
-        { terms_code: 'CARTAO_CREDITO', description: 'Cartão de Crédito' },
-        { terms_code: 'CARTAO_DEBITO', description: 'Cartão de Débito' },
-        { terms_code: 'PIX', description: 'PIX' },
-        { terms_code: 'TRANSFERENCIA', description: 'Transferência Bancária' },
-        { terms_code: 'DINHEIRO', description: 'Dinheiro' }
-      ]
-    }
-  } catch (error) {
-    console.error('Error loading payment terms:', error)
-    // Usar dados padrão em caso de erro
-    paymentTerms = [
-      { terms_code: 'A_VISTA', description: 'À Vista' },
-      { terms_code: '30_DIAS', description: '30 Dias' },
-      { terms_code: '60_DIAS', description: '60 Dias' },
-      { terms_code: '90_DIAS', description: '90 Dias' },
-      { terms_code: 'BOLETO', description: 'Boleto Bancário' },
-      { terms_code: 'CARTAO_CREDITO', description: 'Cartão de Crédito' },
-      { terms_code: 'CARTAO_DEBITO', description: 'Cartão de Débito' },
-      { terms_code: 'PIX', description: 'PIX' },
-      { terms_code: 'TRANSFERENCIA', description: 'Transferência Bancária' },
-      { terms_code: 'DINHEIRO', description: 'Dinheiro' }
-    ]
-  }
 
   return (
     <div className="space-y-8">
@@ -375,38 +325,23 @@ export default async function NewCustomerPage() {
           </div>
         </div>
 
-        {/* Pagamento e Status */}
+        {/* Status */}
         <div className="card-fiori">
           <div className="card-fiori-header">
-            <h3 className="card-fiori-title">Pagamento e Status</h3>
+            <h3 className="card-fiori-title">Status</h3>
           </div>
           <div className="card-fiori-content">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div>
-                <label htmlFor="payment_terms" className="label-fiori">
-                  Forma de Pagamento *
-                </label>
-                <select id="payment_terms" name="payment_terms" required className="select-fiori">
-                  <option value="">Selecione uma forma de pagamento</option>
-                  {paymentTerms.map((term) => (
-                    <option key={term.terms_code} value={term.terms_code}>
-                      {term.description}
-                    </option>
-                  ))}
-                </select>
-              </div>
-              <div className="flex items-center">
-                <input
-                  type="checkbox"
-                  id="is_active"
-                  name="is_active"
-                  defaultChecked
-                  className="checkbox-fiori"
-                />
-                <label htmlFor="is_active" className="label-fiori ml-2">
-                  Cliente ativo
-                </label>
-              </div>
+            <div className="flex items-center">
+              <input
+                type="checkbox"
+                id="is_active"
+                name="is_active"
+                defaultChecked
+                className="checkbox-fiori"
+              />
+              <label htmlFor="is_active" className="label-fiori ml-2">
+                Cliente ativo
+              </label>
             </div>
           </div>
         </div>

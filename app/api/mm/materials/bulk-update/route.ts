@@ -1,111 +1,72 @@
-export const dynamic = 'force-dynamic'
-export const runtime = 'nodejs'
-
 import { NextRequest, NextResponse } from 'next/server'
-import { createSupabaseServerClient } from '@/lib/supabase/server'
+import { createSupabaseServerClient } from '@/lib/supabaseServer'
+import { getTenantId } from '@/lib/auth'
 
-interface MaterialChange {
-  mm_material: string
-  changes: Record<string, { old: any, new: any }>
-}
-
-export async function POST(req: NextRequest) {
+export async function POST(request: NextRequest) {
   try {
-    const supabase = createSupabaseServerClient()
-    const { changes }: { changes: MaterialChange[] } = await req.json()
-
+    const { changes } = await request.json()
+    
     if (!changes || !Array.isArray(changes)) {
-      return NextResponse.json(
-        { error: 'Lista de mudanças é obrigatória' },
-        { status: 400 }
-      )
+      return NextResponse.json({ error: 'Lista de alterações é obrigatória' }, { status: 400 })
     }
 
-    const results = []
-    const errors = []
+    const supabase = createSupabaseServerClient()
+    const tenantId = await getTenantId()
 
-    // Processar cada material
-    for (const materialChange of changes) {
+    let updated = 0
+    const errors: string[] = []
+
+    for (const change of changes) {
       try {
-        const { mm_material, changes: fieldChanges } = materialChange
+        const { mm_material, changes: materialChanges } = change
         
-        // Preparar dados para update (remover campos que não devem ser alterados)
+        // Preparar dados para atualização
         const updateData: any = {}
-        Object.keys(fieldChanges).forEach(field => {
-          if (field !== 'mm_material') { // mm_material é imutável
-            updateData[field] = fieldChanges[field].new
-          }
+        Object.keys(materialChanges).forEach(field => {
+          updateData[field] = materialChanges[field].new
         })
 
-        // Executar update
-        const { data, error: updateError } = await supabase
+        // Converter preços se necessário
+        if (updateData.mm_price_cents !== undefined) {
+          updateData.mm_price_cents = Math.round(Number(updateData.mm_price_cents))
+        }
+        if (updateData.purchase_price_cents !== undefined) {
+          updateData.purchase_price_cents = Math.round(Number(updateData.purchase_price_cents))
+        }
+
+        const { error } = await supabase
           .from('mm_material')
           .update(updateData)
           .eq('mm_material', mm_material)
-          .select('mm_material, mm_comercial')
+          .eq('tenant_id', tenantId)
 
-        if (updateError) {
-          errors.push({
-            mm_material,
-            error: updateError.message
-          })
-          continue
+        if (error) {
+          errors.push(`Erro ao atualizar ${mm_material}: ${error.message}`)
+        } else {
+          updated++
         }
-
-        // Registrar logs de mudanças
-        for (const [field, change] of Object.entries(fieldChanges)) {
-          if (field !== 'mm_material' && change.old !== change.new) {
-            // Log genérico de mudança
-            await supabase
-              .from('mm_change_log')
-              .insert({
-                table_name: 'mm_material',
-                record_id: mm_material,
-                field_name: field,
-                old_value: change.old?.toString() || null,
-                new_value: change.new?.toString() || null
-              })
-
-            // Se for mudança de preço, registrar no log específico
-            if (field === 'mm_price_cents') {
-              await supabase
-                .from('mm_price_log')
-                .insert({
-                  mm_material,
-                  old_price: change.old,
-                  new_price: change.new
-                })
-            }
-          }
-        }
-
-        results.push({
-          mm_material,
-          success: true,
-          data: data?.[0]
-        })
-
       } catch (error) {
-        errors.push({
-          mm_material: materialChange.mm_material,
-          error: error instanceof Error ? error.message : 'Erro desconhecido'
-        })
+        errors.push(`Erro ao processar ${change.mm_material}: ${error instanceof Error ? error.message : 'Erro desconhecido'}`)
       }
     }
 
+    if (errors.length > 0) {
+      return NextResponse.json({ 
+        success: false, 
+        error: errors.join('; '),
+        updated,
+        errors: errors.length
+      }, { status: 400 })
+    }
+
     return NextResponse.json({
-      success: errors.length === 0,
-      updated: results.length,
-      errorCount: errors.length,
-      results,
-      errors: errors.length > 0 ? errors : undefined
+      success: true,
+      updated,
+      message: `${updated} materiais atualizados com sucesso`
     })
 
   } catch (error) {
-    console.error('Erro na API de atualização em lote:', error)
-    return NextResponse.json(
-      { error: 'Erro interno do servidor' },
-      { status: 500 }
-    )
+    console.error('Error updating materials:', error)
+    return NextResponse.json({ error: 'Erro interno do servidor' }, { status: 500 })
   }
 }

@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { Save, X, CheckCircle, AlertCircle } from 'lucide-react'
-import { MATERIAL_TYPES, MATERIAL_CLASSIFICATIONS, UNITS_OF_MEASURE } from '@/lib/material-config'
+// Removido import hardcoded - usar dados do customizing
 
 interface Material {
   mm_material: string
@@ -12,6 +12,8 @@ interface Material {
   mm_mat_type: string | null
   mm_mat_class: string | null
   mm_price_cents: number | null
+  purchase_price_cents: number | null
+  catalog_url: string | null
   commercial_name: string | null
   lead_time_days: number | null
   mm_vendor_id: string | null
@@ -110,9 +112,19 @@ export default function BulkEditPage() {
   const [showModal, setShowModal] = useState(false)
   const [isProcessing, setIsProcessing] = useState(false)
   const [message, setMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null)
+  const [customizingData, setCustomizingData] = useState<{
+    types: string[]
+    classifications: string[]
+    vendors: { vendor_id: string; vendor_name: string }[]
+  }>({
+    types: ['Brinco', 'Cordão', 'Choker', 'Gargantilha', 'Anel', 'Pulseira'],
+    classifications: ['Elementar', 'Amuleto', 'Protetor', 'Decoração'],
+    vendors: []
+  })
 
   useEffect(() => {
     fetchMaterials()
+    fetchCustomizingData()
   }, [])
 
   const fetchMaterials = async () => {
@@ -123,6 +135,18 @@ export default function BulkEditPage() {
       setOriginalMaterials(JSON.parse(JSON.stringify(data))) // Deep clone
     } catch (error) {
       console.error('Erro ao carregar materiais:', error)
+    }
+  }
+
+  const fetchCustomizingData = async () => {
+    try {
+      const response = await fetch('/api/mm/materials/customizing')
+      const data = await response.json()
+      if (data.success) {
+        setCustomizingData(data.data)
+      }
+    } catch (error) {
+      console.error('Erro ao carregar dados de customizing:', error)
     }
   }
 
@@ -245,7 +269,10 @@ export default function BulkEditPage() {
                 <th>Descrição</th>
                 <th>Tipo</th>
                 <th>Classe</th>
-                <th>Preço (R$)</th>
+                <th>Preço Venda (R$)</th>
+                <th>Preço Compra (R$)</th>
+                <th>Link Catálogo</th>
+                <th>Fornecedor</th>
                 <th>Status</th>
               </tr>
             </thead>
@@ -276,8 +303,8 @@ export default function BulkEditPage() {
                       className="input-fiori text-sm"
                     >
                       <option value="">Selecione...</option>
-                      {MATERIAL_TYPES.map((type) => (
-                        <option key={type.type} value={type.type}>{type.name}</option>
+                      {customizingData.types.map((type) => (
+                        <option key={type} value={type}>{type}</option>
                       ))}
                     </select>
                   </td>
@@ -288,8 +315,8 @@ export default function BulkEditPage() {
                       className="input-fiori text-sm"
                     >
                       <option value="">Selecione...</option>
-                      {MATERIAL_CLASSIFICATIONS.map((classification) => (
-                        <option key={classification.classification} value={classification.classification}>{classification.name}</option>
+                      {customizingData.classifications.map((classification) => (
+                        <option key={classification} value={classification}>{classification}</option>
                       ))}
                     </select>
                   </td>
@@ -303,6 +330,38 @@ export default function BulkEditPage() {
                       className="input-fiori text-sm"
                       step="0.01"
                     />
+                  </td>
+                  <td className="px-4 py-3">
+                    <input
+                      type="number"
+                      value={material.purchase_price_cents ? (material.purchase_price_cents / 100).toFixed(2) : ''}
+                      onChange={(e) => handleFieldChange(material.mm_material, 'purchase_price_cents', 
+                        e.target.value ? Math.round(parseFloat(e.target.value) * 100) : null
+                      )}
+                      className="input-fiori text-sm"
+                      step="0.01"
+                    />
+                  </td>
+                  <td className="px-4 py-3">
+                    <input
+                      type="url"
+                      value={material.catalog_url || ''}
+                      onChange={(e) => handleFieldChange(material.mm_material, 'catalog_url', e.target.value)}
+                      className="input-fiori text-sm"
+                      placeholder="https://fornecedor.com/produto"
+                    />
+                  </td>
+                  <td className="px-4 py-3">
+                    <select
+                      value={material.mm_vendor_id || ''}
+                      onChange={(e) => handleFieldChange(material.mm_material, 'mm_vendor_id', e.target.value)}
+                      className="input-fiori text-sm"
+                    >
+                      <option value="">Selecione...</option>
+                      {customizingData.vendors.map((vendor) => (
+                        <option key={vendor.vendor_id} value={vendor.vendor_id}>{vendor.vendor_name}</option>
+                      ))}
+                    </select>
                   </td>
                   <td className="px-4 py-3">
                     <select

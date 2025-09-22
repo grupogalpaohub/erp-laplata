@@ -1,85 +1,59 @@
-export const dynamic = 'force-dynamic'
-export const runtime = 'nodejs'
-
 import { NextRequest, NextResponse } from 'next/server'
-import { createSupabaseServerClient } from '@/lib/supabase/server'
-import { MATERIAL_TYPES, MATERIAL_CLASSIFICATIONS, UNITS_OF_MEASURE } from '@/lib/material-config'
+import { createSupabaseServerClient } from '@/lib/supabaseServer'
+import { getTenantId } from '@/lib/auth'
 
-export async function POST(req: NextRequest) {
+export async function POST(request: NextRequest) {
   try {
-    const supabase = createSupabaseServerClient()
-    const { materials } = await req.json()
-
+    const { materials } = await request.json()
+    
     if (!materials || !Array.isArray(materials)) {
-      return NextResponse.json(
-        { error: 'Lista de materiais é obrigatória' },
-        { status: 400 }
-      )
+      return NextResponse.json({ error: 'Lista de materiais é obrigatória' }, { status: 400 })
     }
 
-    // Primeiro validar todos os materiais
-    const { data: validationResults, error: validationError } = await supabase
-      .rpc('validate_bulk_materials', { materials })
+    const supabase = createSupabaseServerClient()
+    const tenantId = await getTenantId()
 
-    if (validationError) {
-      console.error('Erro na validação:', validationError)
-      return NextResponse.json(
-        { error: 'Erro na validação dos materiais' },
-        { status: 500 }
-      )
-    }
+    // Preparar dados para inserção
+    const materialsToInsert = materials.map(material => ({
+      tenant_id: tenantId,
+      mm_material: generateMaterialId(material.mm_mat_type),
+      mm_comercial: material.mm_comercial?.trim() || null,
+      mm_desc: material.mm_desc.trim(),
+      mm_mat_type: material.mm_mat_type.trim(),
+      mm_mat_class: material.mm_mat_class.trim(),
+      mm_vendor_id: material.mm_vendor_id.trim(),
+      mm_price_cents: Math.round(Number(material.mm_price_cents)),
+      purchase_price_cents: Math.round(Number(material.purchase_price_cents)),
+      catalog_url: material.catalog_url.trim(),
+      lead_time_days: Number(material.lead_time_days),
+      status: 'active'
+    }))
 
-    const validMaterials = validationResults.filter((r: any) => r.is_valid)
-    const invalidMaterials = validationResults.filter((r: any) => !r.is_valid)
-
-    if (invalidMaterials.length > 0) {
-      return NextResponse.json(
-        { 
-          error: 'Materiais inválidos encontrados',
-          validationResults,
-          invalidCount: invalidMaterials.length
-        },
-        { status: 400 }
-      )
-    }
-
-    // Preparar dados para inserção (remover mm_material se vazio, será gerado pelo trigger)
-    const materialsToInsert = materials.map((material, index) => {
-      const validation = validationResults[index]
-      return {
-        ...material,
-        mm_material: validation.generated_id || material.mm_material,
-        tenant_id: 'LaplataLunaria', // Usar tenant fixo por enquanto
-        status: 'active'
-      }
-    })
-
-    // Inserir materiais em lote
-    const { data: insertedMaterials, error: insertError } = await supabase
+    // Inserir materiais
+    const { data, error } = await supabase
       .from('mm_material')
       .insert(materialsToInsert)
-      .select('mm_material, mm_comercial, mm_mat_type')
+      .select('mm_material')
 
-    if (insertError) {
-      console.error('Erro na inserção:', insertError)
-      return NextResponse.json(
-        { error: 'Erro ao inserir materiais' },
-        { status: 500 }
-      )
+    if (error) {
+      console.error('Error inserting materials:', error)
+      return NextResponse.json({ error: 'Erro ao inserir materiais: ' + error.message }, { status: 500 })
     }
 
     return NextResponse.json({
       success: true,
-      inserted: insertedMaterials.length,
-      materials: insertedMaterials,
-      message: `${insertedMaterials.length} materiais importados com sucesso`
+      imported: data.length,
+      materials: data.map(m => m.mm_material)
     })
 
   } catch (error) {
-    console.error('Erro na API de importação:', error)
-    return NextResponse.json(
-      { error: 'Erro interno do servidor' },
-      { status: 500 }
-    )
+    console.error('Error importing materials:', error)
+    return NextResponse.json({ error: 'Erro interno do servidor' }, { status: 500 })
   }
+}
+
+function generateMaterialId(type: string): string {
+  const prefix = type.charAt(0).toUpperCase()
+  const timestamp = Date.now().toString().slice(-6)
+  return `${prefix}_${timestamp}`
 }

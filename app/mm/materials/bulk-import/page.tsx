@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import { Upload, Download, CheckCircle, XCircle, AlertCircle } from 'lucide-react'
-import { MATERIAL_TYPES, MATERIAL_CLASSIFICATIONS, UNITS_OF_MEASURE } from '@/lib/material-config'
+// Removido import hardcoded - usar dados do customizing
 
 interface ValidationResult {
   row_index: number
@@ -145,20 +145,21 @@ export default function BulkImportPage() {
       'mm_mat_type', 
       'mm_mat_class', 
       'mm_vendor_id', 
+      'mm_price_cents', 
       'purchase_price_cents', 
-      'sale_price_cents', 
-      'barcode', 
+      'catalog_url', 
       'lead_time_days'
     ]
     const csvContent = [
       headers.join(','),
-      'Exemplo Brinco,Descrição do brinco,Brinco,Amuletos,VENDOR001,2500,3500,123456789,7',
+      'Exemplo Brinco,Descrição do brinco,Brinco,Elementar,VENDOR001,3500,2500,https://fornecedor.com/produto/123,7',
       '',
       '# Instruções:',
-      '# - Campos obrigatórios: mm_desc, mm_mat_type, mm_mat_class, mm_vendor_id, purchase_price_cents, sale_price_cents, lead_time_days',
-      `# - mm_mat_type: ${MATERIAL_TYPES.map(t => t.type).join(', ')}`,
-      `# - mm_mat_class: ${MATERIAL_CLASSIFICATIONS.map(c => c.classification).join(', ')}`,
+      '# - Campos obrigatórios: mm_desc, mm_mat_type, mm_mat_class, mm_vendor_id, mm_price_cents, purchase_price_cents, catalog_url, lead_time_days',
+      '# - mm_mat_type: Brinco, Cordão, Choker, Gargantilha, Anel, Pulseira',
+      '# - mm_mat_class: Elementar, Amuleto, Protetor, Decoração',
       '# - Preços em centavos (ex: 2500 = R$ 25,00)',
+      '# - catalog_url: URL do fornecedor para este SKU',
       '# - lead_time_days: número de dias para entrega'
     ].join('\n')
     

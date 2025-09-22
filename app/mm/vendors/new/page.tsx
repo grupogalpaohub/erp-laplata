@@ -1,6 +1,6 @@
 import Link from 'next/link'
 import { ArrowLeft } from 'lucide-react'
-import { createSupabaseServerClient } from '@/lib/supabaseServer'
+import { createClient } from '@supabase/supabase-js'
 import { getTenantId } from '@/lib/auth'
 import { redirect } from 'next/navigation'
 
@@ -10,7 +10,10 @@ export const revalidate = 0
 async function createVendor(formData: FormData) {
   'use server'
   
-  const supabase = createSupabaseServerClient()
+  const supabase = createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!
+  )
   const tenantId = await getTenantId()
 
   const vendorData = {
@@ -19,8 +22,8 @@ async function createVendor(formData: FormData) {
     vendor_name: formData.get('vendor_name') as string,
     email: formData.get('email') as string,
     telefone: formData.get('telefone') as string,
-    cidade: formData.get('cidade') as string,
-    estado: formData.get('estado') as string,
+    cidade: formData.get('city') as string, // Mapear city para cidade
+    estado: formData.get('state') as string, // Mapear state para estado
     contact_person: formData.get('contact_person') as string,
     address: formData.get('address') as string,
     city: formData.get('city') as string,
@@ -28,8 +31,8 @@ async function createVendor(formData: FormData) {
     zip_code: formData.get('zip_code') as string,
     country: formData.get('country') as string || 'Brasil',
     tax_id: formData.get('tax_id') as string,
-    payment_terms: parseInt(formData.get('payment_terms') as string) || 30,
-    rating: formData.get('rating') as string || 'B',
+    payment_terms: parseInt(formData.get('payment_terms') as string) || 0, // PIX = 0
+    rating: formData.get('rating') as string || 'A', // Excelente = A
     status: 'active'
   }
 
@@ -148,7 +151,7 @@ export default async function NewVendorPage() {
 
             <div>
               <label htmlFor="tax_id" className="label-fiori">
-                CNPJ/CPF *
+                Documento (CPF 11 dígitos) *
               </label>
               <input
                 type="text"
@@ -156,7 +159,8 @@ export default async function NewVendorPage() {
                 id="tax_id"
                 required
                 className="input-fiori"
-                placeholder="00.000.000/0000-00"
+                placeholder="00000000000"
+                maxLength={11}
               />
             </div>
 
@@ -176,14 +180,15 @@ export default async function NewVendorPage() {
 
             <div>
               <label htmlFor="telefone" className="label-fiori">
-                Telefone
+                Telefone (11 dígitos)
               </label>
               <input
                 type="tel"
                 name="telefone"
                 id="telefone"
                 className="input-fiori"
-                placeholder="(11) 99999-9999"
+                placeholder="99999999999"
+                maxLength={11}
               />
             </div>
           </div>
@@ -195,7 +200,7 @@ export default async function NewVendorPage() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
               <label htmlFor="contact_person" className="label-fiori">
-                Pessoa de Contato
+                Nome de Contato
               </label>
               <input
                 type="text"
@@ -214,6 +219,7 @@ export default async function NewVendorPage() {
                 name="rating"
                 id="rating"
                 className="input-fiori"
+                defaultValue="A"
               >
                 {ratingOptions.map((option) => (
                   <option key={option.value} value={option.value}>
@@ -275,14 +281,15 @@ export default async function NewVendorPage() {
 
             <div>
               <label htmlFor="zip_code" className="label-fiori">
-                CEP
+                CEP (8 dígitos)
               </label>
               <input
                 type="text"
                 name="zip_code"
                 id="zip_code"
                 className="input-fiori"
-                placeholder="00000-000"
+                placeholder="00000000"
+                maxLength={8}
               />
             </div>
 
@@ -311,13 +318,14 @@ export default async function NewVendorPage() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
               <label htmlFor="payment_terms" className="label-fiori">
-                Prazo de Pagamento *
+                Condição de Pagamento *
               </label>
               <select
                 name="payment_terms"
                 id="payment_terms"
                 required
                 className="input-fiori"
+                defaultValue="0"
               >
                 {paymentTermsOptions.map((option) => (
                   <option key={option.value} value={option.value}>

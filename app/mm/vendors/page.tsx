@@ -1,6 +1,6 @@
 import Link from 'next/link'
 import { ArrowLeft, Plus, Search, Edit, Eye } from 'lucide-react'
-import { createSupabaseServerClient } from '@/lib/supabaseServer'
+import { createClient } from '@supabase/supabase-js'
 import { getTenantId } from '@/lib/auth'
 import ExportCSVButton from './ExportCSVButton'
 
@@ -34,7 +34,10 @@ export default async function VendorsPage() {
   let activeVendors = 0
 
   try {
-    const supabase = createSupabaseServerClient()
+    const supabase = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.SUPABASE_SERVICE_ROLE_KEY!
+    )
     const tenantId = await getTenantId()
 
     // Buscar fornecedores com total movimentado

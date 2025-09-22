@@ -1,6 +1,6 @@
 import Link from 'next/link'
 import { ArrowLeft } from 'lucide-react'
-import { createSupabaseServerClient } from '@/lib/supabaseServer'
+import { createClient } from '@supabase/supabase-js'
 import { getTenantId } from '@/lib/auth'
 
 export const dynamic = 'force-dynamic'
@@ -17,22 +17,25 @@ export default async function MMIndex() {
   let totalValue = 0
 
   try {
-    const supabase = createSupabaseServerClient()
+    const supabase = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.SUPABASE_SERVICE_ROLE_KEY!
+    )
     const tenantId = await getTenantId()
 
     // Buscar dados para KPIs
     const [materialsResult, vendorsResult, ordersResult] = await Promise.allSettled([
       supabase
         .from('mm_material')
-        .select('mm_material, mm_comercial, purchase_price_cents, sale_price_cents')
+        .select('mm_material, mm_comercial, mm_purchase_price_cents, mm_price_cents')
         .eq('tenant_id', tenantId),
       supabase
         .from('mm_vendor')
-        .select('vendor_id, vendor_name, is_active')
+        .select('vendor_id, vendor_name, status')
         .eq('tenant_id', tenantId),
       supabase
         .from('mm_purchase_order')
-        .select('mm_order, total_amount_cents, status')
+        .select('mm_order, total_amount, status')
         .eq('tenant_id', tenantId)
     ])
 
@@ -42,9 +45,9 @@ export default async function MMIndex() {
 
     // Calcular KPIs
     totalMaterials = materials.length
-    totalVendors = vendors.filter(v => v.is_active).length
+    totalVendors = vendors.filter(v => v.status === 'active').length
     totalOrders = purchaseOrders.length
-    totalValue = purchaseOrders.reduce((sum, order) => sum + (order.total_amount_cents || 0), 0)
+    totalValue = purchaseOrders.reduce((sum, order) => sum + (order.total_amount || 0), 0)
 
   } catch (error) {
     console.error('Error loading MM data:', error)
@@ -127,17 +130,6 @@ export default async function MMIndex() {
           </div>
         </Link>
 
-        <Link href="/mm/materials/bulk-edit" className="group">
-          <div className="tile-fiori">
-            <div className="tile-fiori-icon">
-              <svg className="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-              </svg>
-            </div>
-            <h3 className="tile-fiori-title">Edição de Materiais</h3>
-            <p className="tile-fiori-subtitle">Editar múltiplos materiais</p>
-          </div>
-        </Link>
 
         <Link href="/mm/vendors/new" className="group">
           <div className="tile-fiori">
@@ -213,7 +205,7 @@ export default async function MMIndex() {
               </svg>
             </div>
             <div className="kpi-fiori kpi-fiori-warning">
-              R$ {(totalValue / 100).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+              R$ {(totalValue / 10000).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
             </div>
             <p className="tile-fiori-metric-label">Valor total em compras</p>
           </div>

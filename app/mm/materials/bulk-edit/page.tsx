@@ -12,8 +12,8 @@ interface Material {
   mm_mat_type: string | null
   mm_mat_class: string | null
   mm_price_cents: number | null
-  purchase_price_cents: number | null
-  catalog_url: string | null
+  mm_purchase_price_cents: number | null
+  mm_pur_link: string | null
   commercial_name: string | null
   lead_time_days: number | null
   mm_vendor_id: string | null

@@ -2,7 +2,7 @@ export const dynamic = 'force-dynamic'
 export const revalidate = 0
 export const runtime = 'nodejs'
 
-import { createSupabaseServerClient } from '@/lib/supabaseServer'
+import { createClient } from '@supabase/supabase-js'
 import { getTenantId } from '@/lib/auth'
 import Link from 'next/link'
 import { ArrowLeft, Printer, Edit } from 'lucide-react'
@@ -30,7 +30,10 @@ interface PurchaseOrderItem {
 }
 
 async function getPurchaseOrder(po_id: string): Promise<PurchaseOrder | null> {
-  const supabase = createSupabaseServerClient()
+  const supabase = createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!
+  )
   const tenantId = await getTenantId()
   
   const { data, error } = await supabase
@@ -49,7 +52,10 @@ async function getPurchaseOrder(po_id: string): Promise<PurchaseOrder | null> {
 }
 
 async function getPurchaseOrderItems(po_id: string): Promise<PurchaseOrderItem[]> {
-  const supabase = createSupabaseServerClient()
+  const supabase = createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!
+  )
   const tenantId = await getTenantId()
   
   const { data, error } = await supabase

@@ -51,6 +51,7 @@ async function createMaterial(formData: FormData) {
     mm_vendor_id: formData.get('mm_vendor_id') as string,
     mm_price_cents: Math.round(parseFloat(formData.get('mm_price_cents') as string) * 100),
     mm_purchase_price_cents: Math.round(parseFloat(formData.get('mm_purchase_price_cents') as string) * 10000),
+    mm_pur_link: formData.get('mm_pur_link') as string,
     lead_time_days: parseInt(lead_time_days),
     status: 'active'
   }
@@ -229,6 +230,19 @@ export default async function NewMaterialPage() {
                   placeholder="0.00"
                 />
               </div>
+            </div>
+
+            <div>
+              <label htmlFor="mm_pur_link" className={labelStyle}>
+                Link de Compra
+              </label>
+              <input
+                type="url"
+                name="mm_pur_link"
+                id="mm_pur_link"
+                className={fieldStyle}
+                placeholder="https://exemplo.com/produto"
+              />
             </div>
 
             <div>

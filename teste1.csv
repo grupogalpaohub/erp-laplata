@@ -1,0 +1,2 @@
+mm_material,mm_comercial,mm_desc,mm_mat_type,mm_mat_class,mm_vendor_id,mm_price_cents,mm_purchase_price_cents,mm_pur_link,lead_time_days,status
+,Brinco de Prata,Brinco de prata 925 com detalhes em ouro,Gargantilha,Elementar,SUP_00001,9000,1500,https://exemplo.com/produto,7,active

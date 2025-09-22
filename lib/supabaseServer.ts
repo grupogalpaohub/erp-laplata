@@ -7,17 +7,10 @@ export const runtime = 'nodejs';
 export function createSupabaseServerClient() {
   // Se auth está desabilitada, usar service role para bypass RLS
   if (ENV.AUTH_DISABLED && process.env.SUPABASE_SERVICE_ROLE_KEY) {
-    return createServerClient(
+    const { createClient } = require('@supabase/supabase-js');
+    return createClient(
       ENV.SUPABASE_URL || 'https://gpjcfwjssfvqhppxdudp.supabase.co',
-      process.env.SUPABASE_SERVICE_ROLE_KEY,
-      {
-        cookies: {
-          getAll() {
-            return [];
-          },
-          setAll() {},
-        },
-      }
+      process.env.SUPABASE_SERVICE_ROLE_KEY
     );
   }
 

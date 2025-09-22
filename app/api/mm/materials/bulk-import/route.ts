@@ -41,7 +41,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({
       success: true,
       imported: data.length,
-      materials: data.map(m => m.mm_material)
+      materials: data.map((m: any) => m.mm_material)
     })
 
   } catch (error) {

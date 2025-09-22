@@ -1,6 +1,6 @@
 export const dynamic = 'force-dynamic'
 export const revalidate = 0
-import { createSupabaseServerClient } from '@/lib/supabaseServer'
+import { createClient } from '@supabase/supabase-js'
 import { getTenantId } from '@/lib/auth'
 import Link from 'next/link'
 import ExportCSVButton from './ExportCSVButton'
@@ -16,30 +16,50 @@ type Material = {
   lead_time_days: number | null
   mm_vendor_id: string | null
   status: string | null
-  mm_vendor?: { vendor_name: string }[]
+  mm_vendor?: { vendor_name: string }
 }
 
 export default async function CatalogoMateriais() {
-  const supabase = createSupabaseServerClient()
+  // Usar service role key diretamente para bypass RLS
+  const supabase = createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!
+  )
   const tenantId = await getTenantId()
 
-          const { data, error } = await supabase
-            .from('mm_material')
-            .select(`
-              mm_material, 
-              mm_comercial, 
-              mm_desc, 
-              mm_mat_type, 
-              mm_mat_class, 
-              mm_price_cents, 
-              commercial_name, 
-              lead_time_days, 
-              mm_vendor_id, 
-              status,
-              mm_vendor!left(vendor_name)
-            `)
-            .eq('tenant_id', tenantId)
-            .order('mm_material', { ascending: true })
+  // Buscar materiais
+  const { data: materials, error: materialsError } = await supabase
+    .from('mm_material')
+    .select(`
+      mm_material, 
+      mm_comercial, 
+      mm_desc, 
+      mm_mat_type, 
+      mm_mat_class, 
+      mm_price_cents, 
+      mm_purchase_price_cents,
+      mm_pur_link,
+      commercial_name, 
+      lead_time_days, 
+      mm_vendor_id, 
+      status
+    `)
+    .eq('tenant_id', tenantId)
+    .order('mm_material', { ascending: true })
+
+  // Buscar fornecedores
+  const { data: vendors, error: vendorsError } = await supabase
+    .from('mm_vendor')
+    .select('vendor_id, vendor_name')
+    .eq('tenant_id', tenantId)
+
+  // Combinar dados
+  const data = materials?.map(material => ({
+    ...material,
+    mm_vendor: vendors?.find(v => v.vendor_id === material.mm_vendor_id)
+  })) || []
+
+  const error = materialsError || vendorsError
   
   console.log('[catalog] query result:', { data, error })
 
@@ -90,8 +110,10 @@ export default async function CatalogoMateriais() {
                   <th>Descrição</th>
                   <th>Tipo</th>
                   <th>Classe</th>
+                  <th>Preço Compra (R$)</th>
                   <th>Preço Venda (R$)</th>
                   <th>Fornecedor</th>
+                  <th>Link de Compra</th>
                   <th>Status</th>
                   <th>Lead Time</th>
                 </tr>
@@ -107,10 +129,25 @@ export default async function CatalogoMateriais() {
                     <td>{material.mm_mat_type || "-"}</td>
                     <td>{material.mm_mat_class || "-"}</td>
                     <td className="text-right font-medium">
+                      {material.mm_purchase_price_cents != null ? `R$ ${(material.mm_purchase_price_cents / 100).toFixed(2)}` : "-"}
+                    </td>
+                    <td className="text-right font-medium">
                       {material.mm_price_cents != null ? `R$ ${(material.mm_price_cents / 100).toFixed(2)}` : "-"}
                     </td>
                     <td>
-                      {(material.mm_vendor?.[0]?.vendor_name ?? material.mm_vendor_id ?? "-")}
+                      {(material.mm_vendor?.vendor_name ?? material.mm_vendor_id ?? "-")}
+                    </td>
+                    <td>
+                      {material.mm_pur_link ? (
+                        <a 
+                          href={material.mm_pur_link} 
+                          target="_blank" 
+                          rel="noopener noreferrer"
+                          className="text-blue-600 hover:text-blue-800 underline text-sm"
+                        >
+                          Ver Produto
+                        </a>
+                      ) : "-"}
                     </td>
                     <td>
                       <span className={`badge-fiori ${

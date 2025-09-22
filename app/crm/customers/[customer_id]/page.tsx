@@ -1,5 +1,5 @@
 import Link from 'next/link'
-import { supabaseServer } from '@/src/lib/supabaseServer'
+import { createSupabaseServerClient } from '@/lib/supabaseServer'
 import { getTenantId } from '@/src/lib/auth'
 import { ArrowLeft, Edit, Mail, Phone, MapPin, CreditCard, Calendar, User } from 'lucide-react'
 import { notFound } from 'next/navigation'
@@ -43,7 +43,7 @@ export default async function CustomerDetailPage({ params }: PageProps) {
   let totalSalesValue = 0
 
   try {
-    const supabase = supabaseServer()
+    const supabase = createSupabaseServerClient()
     const tenantId = await getTenantId()
 
     // Buscar dados do cliente

@@ -5,28 +5,28 @@ import { ENV } from '@/lib/env';
 export const runtime = 'nodejs';
 
 export function createSupabaseServerClient() {
+  // Se auth está desabilitada, usar service role para bypass RLS
+  if (ENV.AUTH_DISABLED && process.env.SUPABASE_SERVICE_ROLE_KEY) {
+    return createServerClient(
+      ENV.SUPABASE_URL || 'https://gpjcfwjssfvqhppxdudp.supabase.co',
+      process.env.SUPABASE_SERVICE_ROLE_KEY,
+      {
+        cookies: {
+          getAll() {
+            return [];
+          },
+          setAll() {},
+        },
+      }
+    );
+  }
+
+  // Verificar variáveis apenas quando auth não está desabilitada
   if (!ENV.SUPABASE_URL || !ENV.SUPABASE_ANON_KEY) {
     throw new Error('Supabase URL/ANON ausentes. Verifique .env.local.');
   }
-  
-  // Se auth está desabilitada, usar service role para bypass RLS
-  if (ENV.AUTH_DISABLED && ENV.SERVICE_ROLE_KEY) {
-    return createServerClient(ENV.SUPABASE_URL, ENV.SERVICE_ROLE_KEY, {
-      cookies: {
-        getAll() {
-          return [];
-        },
-        setAll() {},
-      },
-      headers: {
-        'x-forwarded-host': headers().get('x-forwarded-host') ?? undefined,
-        'x-forwarded-proto': headers().get('x-forwarded-proto') ?? undefined,
-      },
-    });
-  }
 
   const cookieStore = cookies();
-  const h = headers();
 
   return createServerClient(ENV.SUPABASE_URL, ENV.SUPABASE_ANON_KEY, {
     cookies: {
@@ -40,10 +40,6 @@ export function createSupabaseServerClient() {
           });
         } catch {}
       },
-    },
-    headers: {
-      'x-forwarded-host': h.get('x-forwarded-host') ?? undefined,
-      'x-forwarded-proto': h.get('x-forwarded-proto') ?? undefined,
     },
   });
 }

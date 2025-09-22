@@ -1,5 +1,5 @@
 import Link from 'next/link'
-import { supabaseServer } from '@/src/lib/supabaseServer'
+import { createSupabaseServerClient } from '@/lib/supabaseServer'
 import { getTenantId } from '@/src/lib/auth'
 import { ArrowLeft, Save, X } from 'lucide-react'
 import { notFound, redirect } from 'next/navigation'
@@ -41,7 +41,7 @@ async function updateCustomer(formData: FormData) {
   'use server'
   
   try {
-    const supabase = supabaseServer()
+    const supabase = createSupabaseServerClient()
     const tenantId = await getTenantId()
     const customerId = String(formData.get('customer_id') || '')
 
@@ -156,7 +156,7 @@ export default async function EditCustomerPage({ params }: PageProps) {
   let paymentTerms = []
 
   try {
-    const supabase = supabaseServer()
+    const supabase = createSupabaseServerClient()
     const tenantId = await getTenantId()
 
     // Buscar dados do cliente
@@ -460,7 +460,7 @@ export default async function EditCustomerPage({ params }: PageProps) {
                 </label>
                 <select id="payment_terms" name="payment_terms" required defaultValue={customer?.payment_terms || ''} className="select-fiori">
                   <option value="">Selecione uma forma de pagamento</option>
-                  {paymentTerms.map((term) => (
+                  {paymentTerms.map((term: { terms_code: string; description: string }) => (
                     <option key={term.terms_code} value={term.terms_code}>
                       {term.description}
                     </option>

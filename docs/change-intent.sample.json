@@ -1,0 +1,5 @@
+{
+  "reason": "Ex.: adicionar coluna purchase_cost em mm_material para refletir cadastro de compra",
+  "tables": ["mm_material"],
+  "impact": "Ex.: atualizar bulk import e validações em purchases"
+}

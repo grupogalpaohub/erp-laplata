@@ -65,14 +65,6 @@ export async function POST(request: NextRequest) {
       if (!material.mm_price_cents || isNaN(Number(material.mm_price_cents))) {
         errors.push('Preço de venda é obrigatório e deve ser numérico')
       }
-      if (!material.purchase_price_cents || isNaN(Number(material.purchase_price_cents))) {
-        errors.push('Preço de compra é obrigatório e deve ser numérico')
-      }
-      if (!material.catalog_url?.trim()) {
-        errors.push('Link do catálogo é obrigatório')
-      } else if (!isValidUrl(material.catalog_url)) {
-        errors.push('Link do catálogo deve ser uma URL válida')
-      }
       if (!material.lead_time_days || isNaN(Number(material.lead_time_days)) || Number(material.lead_time_days) < 0) {
         errors.push('Lead time deve ser um número maior ou igual a 0')
       }

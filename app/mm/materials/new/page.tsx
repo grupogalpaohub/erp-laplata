@@ -8,26 +8,10 @@ import Link from 'next/link'
 
 // Buscar tipos e classificações do customizing
 async function getCustomizingData() {
-  const supabase = createSupabaseServerClient()
-  const tenantId = await getTenantId()
-  
-  const { data: types } = await supabase
-    .from('customizing')
-    .select('value')
-    .eq('tenant_id', tenantId)
-    .eq('category', 'material_type')
-    .order('value')
-  
-  const { data: classifications } = await supabase
-    .from('customizing')
-    .select('value')
-    .eq('tenant_id', tenantId)
-    .eq('category', 'material_classification')
-    .order('value')
-  
+  // Usar valores hardcoded já que a tabela customizing não existe ainda
   return {
-    types: types?.map(t => t.value) || ['Brinco', 'Cordão', 'Choker', 'Gargantilha', 'Anel', 'Pulseira'],
-    classifications: classifications?.map(c => c.value) || ['Elementar', 'Amuleto', 'Protetor', 'Decoração']
+    types: ['Brinco', 'Cordão', 'Choker', 'Gargantilha', 'Anel', 'Pulseira'],
+    classifications: ['Elementar', 'Amuleto', 'Protetor', 'Decoração']
   }
 }
 
@@ -60,8 +44,6 @@ async function createMaterial(formData: FormData) {
     mm_mat_class: formData.get('mm_mat_class') as string,
     mm_vendor_id: formData.get('mm_vendor_id') as string,
     mm_price_cents: Math.round(parseFloat(formData.get('mm_price_cents') as string) * 100),
-    purchase_price_cents: Math.round(parseFloat(formData.get('purchase_price_cents') as string) * 100),
-    catalog_url: formData.get('catalog_url') as string,
     lead_time_days: parseInt(lead_time_days),
     status: 'active'
   }
@@ -208,38 +190,20 @@ export default async function NewMaterialPage() {
               </select>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div>
-                <label htmlFor="mm_price_cents" className={labelStyle}>
-                  Preço de Venda (R$) *
-                </label>
-                <input
-                  type="number"
-                  name="mm_price_cents"
-                  id="mm_price_cents"
-                  step="0.01"
-                  min="0"
-                  required
-                  className={fieldStyle}
-                  placeholder="0.00"
-                />
-              </div>
-              
-              <div>
-                <label htmlFor="purchase_price_cents" className={labelStyle}>
-                  Preço de Compra (R$) *
-                </label>
-                <input
-                  type="number"
-                  name="purchase_price_cents"
-                  id="purchase_price_cents"
-                  step="0.01"
-                  min="0"
-                  required
-                  className={fieldStyle}
-                  placeholder="0.00"
-                />
-              </div>
+            <div>
+              <label htmlFor="mm_price_cents" className={labelStyle}>
+                Preço de Venda (R$) *
+              </label>
+              <input
+                type="number"
+                name="mm_price_cents"
+                id="mm_price_cents"
+                step="0.01"
+                min="0"
+                required
+                className={fieldStyle}
+                placeholder="0.00"
+              />
             </div>
 
             <div>
@@ -257,22 +221,6 @@ export default async function NewMaterialPage() {
               />
             </div>
 
-            <div>
-              <label htmlFor="catalog_url" className={labelStyle}>
-                Link do Catálogo Online *
-              </label>
-              <input
-                type="url"
-                name="catalog_url"
-                id="catalog_url"
-                required
-                className={fieldStyle}
-                placeholder="https://fornecedor.com/produto/123"
-              />
-              <p className="mt-1 text-sm text-gray-500">
-                URL do fornecedor para este SKU
-              </p>
-            </div>
           </div>
         </div>
 

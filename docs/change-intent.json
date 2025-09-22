@@ -1,0 +1,5 @@
+{
+  "reason": "Implementação de sistema de guardrails automatizados para proteção de ambiente e validação de código",
+  "tables": [],
+  "impact": "Adiciona validação automática de commits, proteção de .env.local, validação TypeScript e sincronização GitHub"
+}

@@ -1,8 +1,8 @@
-import { supabaseServer } from '@/src/lib/supabase/server'
+import { createSupabaseServerClient } from '@/lib/supabaseServer'
 import { notFound } from 'next/navigation'
 
 async function getSalesOrder(soId: string) {
-  const supabase = supabaseServer()
+  const supabase = createSupabaseServerClient()
   const tenantId = 'LaplataLunaria'
 
   try {

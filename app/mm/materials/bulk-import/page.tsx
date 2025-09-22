@@ -146,20 +146,17 @@ export default function BulkImportPage() {
       'mm_mat_class', 
       'mm_vendor_id', 
       'mm_price_cents', 
-      'purchase_price_cents', 
-      'catalog_url', 
       'lead_time_days'
     ]
     const csvContent = [
       headers.join(','),
-      'Exemplo Brinco,Descrição do brinco,Brinco,Elementar,VENDOR001,3500,2500,https://fornecedor.com/produto/123,7',
+      'Exemplo Brinco,Descrição do brinco,Brinco,Elementar,VENDOR001,3500,7',
       '',
       '# Instruções:',
-      '# - Campos obrigatórios: mm_desc, mm_mat_type, mm_mat_class, mm_vendor_id, mm_price_cents, purchase_price_cents, catalog_url, lead_time_days',
+      '# - Campos obrigatórios: mm_desc, mm_mat_type, mm_mat_class, mm_vendor_id, mm_price_cents, lead_time_days',
       '# - mm_mat_type: Brinco, Cordão, Choker, Gargantilha, Anel, Pulseira',
       '# - mm_mat_class: Elementar, Amuleto, Protetor, Decoração',
-      '# - Preços em centavos (ex: 2500 = R$ 25,00)',
-      '# - catalog_url: URL do fornecedor para este SKU',
+      '# - Preços em centavos (ex: 3500 = R$ 35,00)',
       '# - lead_time_days: número de dias para entrega'
     ].join('\n')
     

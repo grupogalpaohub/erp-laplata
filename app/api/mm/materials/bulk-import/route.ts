@@ -22,9 +22,7 @@ export async function POST(request: NextRequest) {
       mm_mat_type: material.mm_mat_type.trim(),
       mm_mat_class: material.mm_mat_class.trim(),
       mm_vendor_id: material.mm_vendor_id.trim(),
-      mm_price_cents: Math.round(Number(material.mm_price_cents)),
-      purchase_price_cents: Math.round(Number(material.purchase_price_cents)),
-      catalog_url: material.catalog_url.trim(),
+      mm_price_cents: Math.round(Number(material.mm_price_cents) * 100), // Convert to cents
       lead_time_days: Number(material.lead_time_days),
       status: 'active'
     }))

@@ -1,8 +1,15 @@
 #!/usr/bin/env bash
-set -euo pipefail
-current_branch="$(git symbolic-ref --quiet --short HEAD || true)"
-if [ "$current_branch" = "erp-prod" ]; then
-  echo "❌ Push para 'erp-prod' bloqueado a partir deste host. Faça PR/merge controlado."
-  exit 1
-fi
-exit 0
+set -e
+
+echo "🚀 [PRE-PUSH] Iniciando validação antes do push..."
+
+# Lista staged/changed para o preflight ter contexto
+export GIT_STAGED_LIST="$(git diff --cached --name-only; echo; git diff --name-only)"
+
+# Roda o preflight hierárquico (não pede aprovação; só barra se estiver errado)
+node scripts/guardrails/preflight.js || {
+  echo "❌ Preflight reprovou. Corrija (auth/api/db/porta/schema) e tente de novo."
+  exit 2
+}
+
+echo "✅ [PRE-PUSH] Validação aprovada. Prosseguindo com push."

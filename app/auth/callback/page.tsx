@@ -25,7 +25,7 @@ export default function AuthCallbackPage() {
           }
         } else if (typeof window !== 'undefined' && window.location.hash.includes('access_token')) {
           console.log('[CALLBACK] Tem access_token no hash...');
-          const { error } = await supabase.auth.getSessionFromUrl({ storeSession: true });
+          const { error } = await supabase.auth.getSession();
           if (error) {
             console.error('[CALLBACK] getSessionFromUrl error:', error);
           } else {

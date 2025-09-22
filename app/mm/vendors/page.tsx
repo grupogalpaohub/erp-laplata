@@ -1,51 +1,8 @@
 import Link from 'next/link'
-import { ArrowLeft, Plus, Search, Download, Edit, Eye } from 'lucide-react'
+import { ArrowLeft, Plus, Search, Edit, Eye } from 'lucide-react'
 import { createSupabaseServerClient } from '@/lib/supabaseServer'
 import { getTenantId } from '@/lib/auth'
-
-// Função para exportar CSV
-function exportToCSV(vendors: Vendor[]) {
-  const headers = [
-    'ID',
-    'Nome',
-    'Documento',
-    'Contato',
-    'Telefone',
-    'Cidade/UF',
-    'Payment Terms',
-    'Status',
-    'Total Movimentado'
-  ]
-  
-  const csvContent = [
-    headers.join(','),
-    ...vendors.map(vendor => [
-      vendor.vendor_id,
-      `"${vendor.vendor_name.replace(/"/g, '""')}"`,
-      vendor.tax_id || '',
-      `"${(vendor.contact_person || vendor.email || '').replace(/"/g, '""')}"`,
-      vendor.telefone || '',
-      `"${(vendor.cidade && vendor.estado 
-        ? `${vendor.cidade}/${vendor.estado}` 
-        : vendor.city && vendor.state 
-        ? `${vendor.city}/${vendor.state}` 
-        : '').replace(/"/g, '""')}"`,
-      vendor.payment_terms ? `${vendor.payment_terms} dias` : '',
-      vendor.status === 'active' ? 'Ativo' : 'Inativo',
-      (vendor.total_movimentado || 0).toFixed(2)
-    ].join(','))
-  ].join('\n')
-  
-  const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' })
-  const link = document.createElement('a')
-  const url = URL.createObjectURL(blob)
-  link.setAttribute('href', url)
-  link.setAttribute('download', `fornecedores_${new Date().toISOString().split('T')[0]}.csv`)
-  link.style.visibility = 'hidden'
-  document.body.appendChild(link)
-  link.click()
-  document.body.removeChild(link)
-}
+import ExportCSVButton from './ExportCSVButton'
 
 export const dynamic = 'force-dynamic'
 export const revalidate = 0
@@ -198,13 +155,7 @@ export default async function VendorsPage() {
             <option value="RJ">Rio de Janeiro</option>
             <option value="MG">Minas Gerais</option>
           </select>
-          <button 
-            onClick={() => exportToCSV(vendors)}
-            className="btn-fiori-outline flex items-center gap-2"
-          >
-            <Download className="w-4 h-4" />
-            Exportar CSV
-          </button>
+          <ExportCSVButton vendors={vendors} />
         </div>
       </div>
 

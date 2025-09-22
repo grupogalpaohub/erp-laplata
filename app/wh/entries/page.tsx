@@ -159,7 +159,7 @@ export default async function EntriesPage() {
               <div>
                 <p className="text-sm text-fiori-muted">Confirmadas</p>
                 <p className="text-2xl font-bold text-fiori-success">
-                  {entries.filter(e => e.entry_date === 'CONFIRMED').length}
+                  {entries.filter(e => e.reason === 'CONFIRMED').length}
                 </p>
               </div>
               <Package className="w-8 h-8 text-fiori-success" />
@@ -172,7 +172,7 @@ export default async function EntriesPage() {
               <div>
                 <p className="text-sm text-fiori-muted">Canceladas</p>
                 <p className="text-2xl font-bold text-fiori-danger">
-                  {entries.filter(e => e.entry_date === 'CANCELLED').length}
+                  {entries.filter(e => e.reason === 'CANCELLED').length}
                 </p>
               </div>
               <Package className="w-8 h-8 text-fiori-danger" />

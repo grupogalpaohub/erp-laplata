@@ -16,12 +16,13 @@ export async function GET() {
         mm_mat_type, 
         mm_mat_class, 
         mm_price_cents, 
-        purchase_price_cents,
-        catalog_url,
         commercial_name, 
         lead_time_days, 
         mm_vendor_id, 
-        status
+        status,
+        mm_pur_link,
+        min_stock,
+        max_stock
       `)
       .eq('tenant_id', tenantId)
       .order('mm_material')

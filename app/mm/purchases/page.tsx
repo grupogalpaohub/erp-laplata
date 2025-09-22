@@ -4,38 +4,7 @@ export const runtime = 'nodejs'
 import { createSupabaseServerClient } from '@/lib/supabaseServer'
 import { getTenantId } from '@/lib/auth'
 import Link from 'next/link'
-
-// Função para exportar CSV
-function exportToCSV(pedidos: PO[]) {
-  const headers = [
-    'Pedido',
-    'Fornecedor',
-    'Data',
-    'Status',
-    'Total (R$)'
-  ]
-  
-  const csvContent = [
-    headers.join(','),
-    ...pedidos.map(po => [
-      po.mm_order,
-      po.vendor_id,
-      new Date(po.po_date).toLocaleDateString('pt-BR'),
-      po.status,
-      (po.total_amount / 100).toFixed(2)
-    ].join(','))
-  ].join('\n')
-  
-  const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' })
-  const link = document.createElement('a')
-  const url = URL.createObjectURL(blob)
-  link.setAttribute('href', url)
-  link.setAttribute('download', `pedidos_compras_${new Date().toISOString().split('T')[0]}.csv`)
-  link.style.visibility = 'hidden'
-  document.body.appendChild(link)
-  link.click()
-  document.body.removeChild(link)
-}
+import ExportCSVButton from './ExportCSVButton'
 
 type PO = {
   mm_order: string
@@ -77,12 +46,7 @@ export default async function PurchaseOrdersPage({ searchParams }: { searchParam
       {/* Actions */}
       <div className="flex justify-center gap-4 mb-8">
         <Link href="/mm/purchases/new" className="btn-fiori-primary">Novo Pedido</Link>
-        <button 
-          onClick={() => exportToCSV(rows)}
-          className="btn-fiori-outline"
-        >
-          Exportar CSV
-        </button>
+        <ExportCSVButton pedidos={rows} />
       </div>
 
       <div className="form-fiori">

@@ -1,10 +1,29 @@
 #!/usr/bin/env bash
-set -euo pipefail
-./scripts/check_static.sh
-./scripts/check_package_next.sh
-./scripts/check_next_config.sh
-./scripts/check_sql_ddls.sh
-./scripts/check_env_leak.sh
-APP_DIR="."
-[ -d "frontend/app" ] && APP_DIR="frontend"
-./scripts/check_required_routes.sh "$APP_DIR"
+set -e
+
+CHANGED=$(git diff --cached --name-only)
+export GIT_STAGED_LIST="$CHANGED"
+
+echo "🔍 [PRE-COMMIT] Verificando ${#CHANGED[@]} arquivos..."
+
+# Nunca comitar .env.local (sem travar o resto do commit)
+if echo "$CHANGED" | grep -qE '^\.env\.local$'; then
+  echo "❌ Não commitar .env.local. Mantenha apenas local."
+  exit 1
+fi
+
+# Se não há arquivos críticos, libera
+if ! echo "$CHANGED" | grep -E '^(lib/(env|supabase)|app/auth/|middleware\.ts$|next\.config\.(js|mjs)$|supabase/|.*_schema\.sql$|.*_data\.sql$|migrations?/)' >/dev/null; then
+  echo "✅ [PRE-COMMIT] Nenhum arquivo crítico detectado. Liberando commit."
+  exit 0
+fi
+
+echo "⚠️  [PRE-COMMIT] Arquivos críticos detectados. Executando preflight..."
+
+# Arquivos críticos: roda preflight hierárquico (sem pedir aprovação humana)
+node scripts/guardrails/preflight.js || {
+  echo "❌ Preflight reprovou (auth/api/db/porta/schema). Leia o log acima."
+  exit 2
+}
+
+echo "✅ [PRE-COMMIT] Preflight aprovado. Liberando commit."

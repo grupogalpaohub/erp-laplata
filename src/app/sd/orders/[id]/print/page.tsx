@@ -1,10 +1,10 @@
-import { supabaseServer } from '@/src/lib/supabase/server'
+import { createSupabaseServerClient } from '@/lib/supabaseServer'
 
 export const revalidate = 0
 export const dynamic = 'force-dynamic'
 
 export default async function OrderPrint({ params }: { params: { id: string } }) {
-  const sb = supabaseServer()
+  const sb = createSupabaseServerClient()
   const so_id = params.id
   const { data: order } = await sb.from('sd_sales_order' as any).select('*').eq('so_id', so_id).single()
   const { data: items } = await sb.from('sd_sales_order_item' as any).select('*').eq('so_id', so_id).order('mm_material', { ascending: true })

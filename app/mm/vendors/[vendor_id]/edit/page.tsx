@@ -192,7 +192,7 @@ export default async function EditVendorPage({ params }: { params: { vendor_id: 
 
             <div>
               <label htmlFor="tax_id" className="label-fiori">
-                Documento (CPF 11 dígitos) *
+                CPF / CNPJ *
               </label>
               <input
                 type="text"
@@ -201,9 +201,12 @@ export default async function EditVendorPage({ params }: { params: { vendor_id: 
                 required
                 defaultValue={vendor.tax_id}
                 className="input-fiori"
-                placeholder="00000000000"
-                maxLength={11}
+                placeholder="000.000.000-00 ou 00.000.000/0000-00"
+                maxLength={18}
               />
+              <p className="mt-1 text-sm text-gray-500">
+                Digite apenas números. A formatação será aplicada automaticamente.
+              </p>
             </div>
 
             <div>

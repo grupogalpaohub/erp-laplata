@@ -2,6 +2,7 @@ import Link from 'next/link'
 import { createSupabaseServerClient } from '@/lib/supabaseServer'
 import { getTenantId } from '@/lib/auth'
 import { Search, Download, Plus, Eye, Edit, CheckCircle, XCircle } from 'lucide-react'
+import StatusActionButtons from './StatusActionButtons'
 
 export const dynamic = 'force-dynamic'
 export const revalidate = 0
@@ -84,60 +85,7 @@ export default async function SalesOrdersPage() {
   }
 
   const getStatusActions = (status: string, soId: string) => {
-    switch (status) {
-      case 'draft':
-        return (
-          <div className="flex gap-2">
-            <Link
-              href={`/sd/orders/${soId}/edit`}
-              className="btn-fiori-outline text-xs flex items-center gap-1"
-            >
-              <Edit className="w-3 h-3" />
-              Editar
-            </Link>
-            <button className="btn-fiori-primary text-xs flex items-center gap-1">
-              <CheckCircle className="w-3 h-3" />
-              Aprovar
-            </button>
-          </div>
-        )
-      case 'approved':
-        return (
-          <div className="flex gap-2">
-            <button className="btn-fiori-primary text-xs flex items-center gap-1">
-              <CheckCircle className="w-3 h-3" />
-              Faturar
-            </button>
-            <button className="btn-fiori-danger-outline text-xs flex items-center gap-1">
-              <XCircle className="w-3 h-3" />
-              Cancelar
-            </button>
-          </div>
-        )
-      case 'invoiced':
-        return (
-          <div className="flex gap-2">
-            <Link
-              href={`/sd/orders/${soId}/print`}
-              className="btn-fiori-outline text-xs"
-            >
-              Imprimir
-            </Link>
-          </div>
-        )
-      default:
-        return (
-          <div className="flex gap-2">
-            <Link
-              href={`/sd/orders/${soId}`}
-              className="btn-fiori-outline text-xs flex items-center gap-1"
-            >
-              <Eye className="w-3 h-3" />
-              Ver
-            </Link>
-          </div>
-        )
-    }
+    return <StatusActionButtons soId={soId} currentStatus={status} />
   }
 
   return (

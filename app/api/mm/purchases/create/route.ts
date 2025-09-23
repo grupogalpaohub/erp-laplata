@@ -96,10 +96,12 @@ export async function POST(request: NextRequest) {
       plant_id: 'WH-001',
       mm_material: item.material,
       mm_qtt: item.quantity,
+      quantity: item.quantity, // Adicionar campo quantity para compatibilidade com triggers
       unit_cost_cents: Math.round(item.unitPrice * 10000),
       line_total_cents: Math.round(item.total * 10000),
       currency: 'BRL',
-      po_item_id: index + 1
+      po_item_id: index + 1,
+      material_id: item.material // Adicionar material_id também
     }))
 
     // Inserir itens do pedido

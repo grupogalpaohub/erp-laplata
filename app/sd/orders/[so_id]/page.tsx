@@ -23,7 +23,7 @@ interface SalesOrder {
   created_at: string
   crm_customer: {
     name: string
-  }[]
+  }
 }
 
 interface OrderItem {
@@ -33,11 +33,7 @@ interface OrderItem {
   unit_price_cents: number
   line_total_cents: number
   row_no: number
-  mm_material: {
-    mm_material: string
-    mm_comercial: string
-    mm_desc: string
-  }[]
+  material_id: string
 }
 
 export default async function SalesOrderDetailPage({ params }: { params: { so_id: string } }) {
@@ -88,7 +84,7 @@ export default async function SalesOrderDetailPage({ params }: { params: { so_id
           unit_price_cents,
           line_total_cents,
           row_no,
-          mm_material(mm_material, mm_comercial, mm_desc)
+          material_id
         `)
         .eq('tenant_id', tenantId)
         .eq('so_id', so_id)
@@ -163,7 +159,7 @@ export default async function SalesOrderDetailPage({ params }: { params: { so_id
               Pedido {order.doc_no || order.so_id}
             </h1>
             <p className="text-fiori-muted">
-              Cliente: {order.crm_customer?.[0]?.name || 'Não encontrado'}
+              Cliente: {order.crm_customer?.name || 'Não encontrado'}
             </p>
           </div>
         </div>
@@ -199,7 +195,7 @@ export default async function SalesOrderDetailPage({ params }: { params: { so_id
                 </div>
                 <div>
                   <label className="label-fiori">Cliente</label>
-                  <p>{order.crm_customer?.[0]?.name || 'Não encontrado'}</p>
+                  <p>{order.crm_customer?.name || 'Não encontrado'}</p>
                 </div>
                 <div>
                   <label className="label-fiori">Status</label>
@@ -246,10 +242,10 @@ export default async function SalesOrderDetailPage({ params }: { params: { so_id
                         <td>
                           <div>
                             <div className="font-medium">
-                              {item.mm_material?.[0]?.mm_comercial || item.sku}
+                              {item.sku}
                             </div>
                             <div className="text-sm text-fiori-muted">
-                              {item.mm_material?.[0]?.mm_desc || 'Descrição não disponível'}
+                              {item.material_id}
                             </div>
                           </div>
                         </td>

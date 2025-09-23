@@ -508,7 +508,7 @@ export default function EditSalesOrderForm({ order, customers, materials }: Edit
                   R$ {(valueGapCents / 100).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
                 </div>
                 <div className="text-xs text-yellow-600">
-                  {valueGapCents > 0 ? 'Desconto' : valueGapCents < 0 ? 'Acréscimo' : 'Iguais'}
+                  {valueGapCents > 0 ? `Desconto (${valueGapPercent.toFixed(1)}%)` : valueGapCents < 0 ? `Acréscimo (${Math.abs(valueGapPercent).toFixed(1)}%)` : 'Iguais (0%)'}
                 </div>
               </div>
               

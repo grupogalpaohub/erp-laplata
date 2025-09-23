@@ -103,88 +103,638 @@ Form padrão (shadcn + zod), tabelas com paginação server-side (TanStack Query
 
 Permissões: use role_permission para ocultar ações/botões (além de RLS no banco).
 
-🗄️ Banco de dados — Tabelas (MVP)
+🗄️ Banco de dados — Arquitetura Completa
 
 Todas as tabelas possuem tenant_id text. Chaves: simples ou compostas conforme indicado.
-Aqui vai o catálogo mínimo para o ERP funcionar ponta a ponta (dados + customizings).
+Sistema multi-tenant com RLS (Row Level Security) habilitado em todas as tabelas.
+Arquitetura otimizada para performance com índices compostos e triggers automáticos.
 
-🔐 Setup & Segurança
+## 📊 ARQUITETURA DAS TABELAS PRINCIPAIS
 
-tenant: tenant_id(PK), display_name, locale, timezone, created_at
+### 🔐 Setup & Segurança (Core)
+```sql
+-- Controle de tenants e usuários
+tenant: 
+  tenant_id(PK), display_name, locale, timezone, created_at, is_active
 
-user_profile: tenant_id, user_id(PK), name, email, role, is_active, created_at
+user_profile: 
+  tenant_id, user_id(PK), name, email, role, is_active, created_at, last_login
 
-role_permission: tenant_id, role, resource, action, allowed
+role_permission: 
+  tenant_id, role, resource, action, allowed, created_at
 
-app_setting: tenant_id, key, value, updated_at
+app_setting: 
+  tenant_id, key, value, updated_at, created_by
 
-doc_numbering: tenant_id, doc_type, prefix, format, next_seq, is_active
+doc_numbering: 
+  tenant_id, doc_type, prefix, format, next_seq, is_active, created_at
 
-audit_log: tenant_id, audit_id, table_name, record_pk, action, diff_json, actor_user, created_at
+audit_log: 
+  tenant_id, audit_id(PK), table_name, record_pk, action, diff_json, actor_user, created_at
+```
 
-import_job/import_log: logs de importação (bootstrap/seeds)
+### 📦 MM — Material Management (Arquitetura Detalhada)
+```sql
+-- Fornecedores com validação CPF/CNPJ
+mm_vendor: 
+  tenant_id, vendor_id(PK), vendor_name, contact_email, contact_phone, 
+  document_id, vendor_type(PF|PJ), vendor_rating, addr_street, addr_city, 
+  addr_state, addr_zip, addr_country, contact_name, is_active, 
+  total_moved_cents, created_at, updated_at
 
-📦 MM — Materiais & Fornecedores (negócio)
+-- Materiais com preços e categorias
+mm_material: 
+  tenant_id, mm_material(PK), mm_comercial, mm_desc, mm_mat_type, 
+  mm_mat_class, mm_price_cents, barcode, weight_grams, status, 
+  mm_pur_link, mm_vendor_id, created_at, updated_at
 
-mm_vendor: tenant_id, vendor_id(PK), vendor_name, email, telefone, cidade, estado, vendor_rating
+-- Pedidos de compra com triggers automáticos
+mm_purchase_order: 
+  tenant_id, mm_order(PK), vendor_id, status, po_date, expected_delivery, 
+  notes, total_cents, created_at, updated_at
 
-mm_material: tenant_id, mm_material(PK), mm_comercial, mm_desc, mm_mat_type, mm_mat_class, mm_price_cents, barcode, weight_grams, status, mm_pur_link, mm_vendor_id?
+-- Itens de pedido com cálculo automático
+mm_purchase_order_item: 
+  tenant_id, po_item_id(PK), mm_order, plant_id, mm_material, 
+  mm_qtt numeric, quantity numeric, unit_cost_cents, line_total_cents, 
+  currency, material_id, notes, created_at
 
-mm_purchase_order: tenant_id, mm_order(PK), vendor_id, status, po_date, expected_delivery?, notes?
+-- Recebimento de materiais
+mm_receiving: 
+  tenant_id, recv_id(PK), mm_order, plant_id, mm_material, 
+  qty_received numeric, received_at timestamptz, notes
+```
 
-mm_purchase_order_item: tenant_id, po_item_id(PK), mm_order, plant_id, mm_material, mm_qtt numeric, unit_cost_cents, line_total_cents, notes?
+### 🏭 WH — Warehouse Management (Arquitetura Detalhada)
+```sql
+-- Depósitos com controle de default
+wh_warehouse: 
+  tenant_id, plant_id(PK), name, is_default boolean, 
+  addr_street, addr_city, addr_state, addr_zip, is_active, created_at
 
-mm_receiving: tenant_id, recv_id(PK), mm_order, plant_id, mm_material, qty_received numeric, received_at timestamptz
+-- Saldo de estoque em tempo real
+wh_inventory_balance: 
+  tenant_id, plant_id, mm_material, on_hand_qty numeric, 
+  reserved_qty numeric, available_qty numeric, 
+  last_movement_at timestamptz, created_at, updated_at
+  -- PK composta: (tenant_id, plant_id, mm_material)
 
-🏭 WH — Depósitos & Estoque (negócio)
+-- Ledger de movimentações (opcional no MVP)
+wh_inventory_ledger: 
+  ledger_id bigserial(PK), tenant_id, plant_id, mm_material, 
+  movement_type(IN|OUT|RESERVE|RELEASE|ADJUST), qty numeric, 
+  ref_type, ref_id, created_at, notes
+```
 
-wh_warehouse: tenant_id, plant_id(PK), name, is_default boolean (UNIQUE por tenant onde true)
+### 🛒 SD — Sales & Distribution (Arquitetura Detalhada)
+```sql
+-- Clientes com dados completos
+crm_customer: 
+  tenant_id, customer_id(PK), name, contact_email, contact_phone, 
+  document_id, customer_type(PF|PJ), status, addr_street, addr_city, 
+  addr_state, addr_zip, addr_country, contact_name, customer_category, 
+  lead_classification, sales_channel, notes, preferred_payment_method, 
+  preferred_payment_terms, is_active, created_date, updated_at
 
-wh_inventory_balance: tenant_id, plant_id, mm_material, on_hand_qty numeric, reserved_qty numeric (PK composta tenant_id, plant_id, mm_material)
+-- Pedidos de venda com KPIs
+sd_sales_order: 
+  tenant_id, so_id(PK), doc_no, customer_id, status, order_date, 
+  expected_ship, total_cents, total_final_cents, total_negotiated_cents, 
+  payment_method, payment_term, notes, created_at, updated_at
 
-wh_inventory_ledger (opcional no MVP, recomendado): ledger_id bigserial(PK), tenant_id, plant_id, mm_material, movement (IN|OUT|RESERVE|RELEASE|ADJUST), qty numeric, ref_type, ref_id, created_at
+-- Itens de pedido com preços congelados
+sd_sales_order_item: 
+  tenant_id, so_id, sku, quantity, unit_price_cents, line_total_cents, 
+  material_id, unit_price_cents_at_order, row_no, created_at
+  -- PK composta: (tenant_id, so_id, material_id, row_no)
 
-🛒 SD — Vendas (negócio)
+-- Expedição de pedidos
+sd_shipment: 
+  tenant_id, shipment_id(PK), so_id, warehouse_id, ship_date, 
+  status, carrier, tracking_code, notes, created_at
 
-crm_customer: tenant_id, customer_id(PK), name, email?, telefone?, customer_type(PF|PJ), status, created_date
+-- Pagamentos
+sd_payment: 
+  tenant_id, payment_id(PK), so_id, amount_cents, payment_date, 
+  payment_method, status, notes, created_at
+```
 
-sd_sales_order: tenant_id, so_id(PK), customer_id, status, order_date, expected_ship?, total_cents, total_negotiated_cents?, payment_method?, payment_term?, notes?, doc_no?
+### 🧲 CRM — Customer Relationship (Arquitetura Detalhada)
+```sql
+-- Leads com scoring
+crm_lead: 
+  tenant_id, lead_id(PK), name, contact_email, contact_phone, 
+  source, status, score, owner_user, company, position, 
+  lead_source, lead_status, created_date, updated_at
 
-sd_sales_order_item: tenant_id, so_id, sku, quantity, unit_price_cents, line_total_cents, material_id?, unit_price_cents_at_order? (PK composta tenant_id, so_id, sku, row_no? se precisar)
+-- Oportunidades com pipeline
+crm_opportunity: 
+  tenant_id, opp_id(PK), lead_id, stage, est_value_cents, 
+  probability, next_action_at, status, owner_user, created_date, updated_at
 
-sd_shipment: tenant_id, shipment_id(PK), so_id, warehouse_id, ship_date, status, carrier?, tracking_code?
+-- Interações e histórico
+crm_interaction: 
+  tenant_id, interaction_id(PK), lead_id, channel, content, 
+  sentiment, created_date, created_by
+```
 
-sd_payment: tenant_id, payment_id(PK), so_id, amount_cents, payment_date, payment_method, status
+### 💰 FI — Financial Management (Arquitetura Detalhada)
+```sql
+-- Contas financeiras
+fi_account: 
+  tenant_id, account_id(PK), name, type(caixa|banco|receber|pagar), 
+  currency, is_active, created_at
 
-🧲 CRM — Leads & Oportunidades (negócio)
+-- Faturas e contas
+fi_invoice: 
+  tenant_id, invoice_id(PK), source_type(PO|SO), source_id, 
+  customer_id, vendor_id, amount_cents, due_date, status, 
+  created_date, paid_date
 
-crm_lead: tenant_id, lead_id(PK), name, email?, phone?, source, status, score?, owner_user?, created_date
+-- Pagamentos
+fi_payment: 
+  tenant_id, payment_id(PK), invoice_id, account_id, amount_cents, 
+  payment_date, method, status, notes, created_at
 
-crm_opportunity: tenant_id, opp_id(PK), lead_id, stage, est_value_cents?, probability?, next_action_at?, status, created_date
+-- Transações
+fi_transaction: 
+  tenant_id, transaction_id(PK), account_id, type(credito|debito), 
+  amount_cents, ref_type, ref_id, date, description, created_at
+```
 
-crm_interaction: tenant_id, interaction_id(PK), lead_id, channel, content, sentiment?, created_date
+### 📊 CO — Controladoria & Dashboard (Arquitetura Detalhada)
+```sql
+-- Centros de custo
+co_cost_center: 
+  tenant_id, cc_id(PK), name, parent_cc_id, is_active, created_at
 
-💰 FI — Financeiro (negócio)
+-- Períodos fiscais
+co_fiscal_period: 
+  tenant_id, period_id(PK), start_date, end_date, status, created_at
 
-fi_account: tenant_id, account_id(PK), name, type(caixa|banco), currency, is_active
+-- Definições de KPIs
+co_kpi_definition: 
+  tenant_id, kpi_key(PK), name, unit, description, calculation_method, 
+  refresh_frequency, is_active, created_at
 
-fi_invoice: tenant_id, invoice_id(PK), source_type(PO|SO), source_id, customer_id?, vendor_id?, amount_cents, due_date, status, created_date
+-- Snapshots de KPIs
+co_kpi_snapshot: 
+  tenant_id, kpi_key, snapshot_at, value_number, meta_json, 
+  created_at
+  -- PK composta: (tenant_id, kpi_key, snapshot_at)
 
-fi_payment: tenant_id, payment_id(PK), invoice_id, account_id, amount_cents, payment_date, method, status
+-- Tiles do dashboard
+co_dashboard_tile: 
+  tenant_id, tile_id(PK), kpi_key, title, subtitle, order_index, 
+  color, is_active, created_at
+```
 
-fi_transaction: tenant_id, transaction_id(PK), account_id, type(credito|debito), amount_cents, ref_type(invoice|payment|ajuste), ref_id, date
+## 🤖 AUTOMAÇÕES E TRIGGERS IMPLEMENTADOS
 
-📊 CO — Controladoria & Dashboard (negócio)
+### 🔄 Triggers de Cálculo Automático
+```sql
+-- 1. Congelar preço e calcular total da linha (MM)
+CREATE OR REPLACE FUNCTION freeze_item_price()
+RETURNS trigger AS $$
+DECLARE
+  v_price bigint;
+BEGIN
+  -- Pega o preço do material
+  SELECT mm_price_cents INTO v_price
+  FROM mm_material
+  WHERE mm_material = NEW.mm_material;
 
-co_cost_center: tenant_id, cc_id(PK), name, parent_cc_id?, is_active
+  IF v_price IS NULL THEN
+    RAISE EXCEPTION 'Material % sem preço cadastrado', NEW.mm_material;
+  END IF;
 
-co_fiscal_period: tenant_id, period_id(PK), start_date, end_date, status
+  -- Se unit_cost_cents não foi informado, usa o preço do material
+  IF NEW.unit_cost_cents IS NULL OR NEW.unit_cost_cents <= 0 THEN
+    NEW.unit_cost_cents := v_price;
+  END IF;
 
-co_kpi_definition: tenant_id, kpi_key(PK), name, unit, description?
+  -- Calcula o total da linha
+  NEW.line_total_cents := COALESCE(NEW.mm_qtt, 0) * COALESCE(NEW.unit_cost_cents, 0);
 
-co_kpi_snapshot: tenant_id, kpi_key, snapshot_at, value_number numeric, meta_json text (PK composta tenant_id, kpi_key, snapshot_at)
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
 
-co_dashboard_tile: tenant_id, tile_id(PK), kpi_key, title, subtitle?, order_index, color?, is_active
+-- 2. Atualizar total do pedido após mudanças nos itens (MM)
+CREATE OR REPLACE FUNCTION trg_update_po_total()
+RETURNS trigger AS $$
+DECLARE
+  v_tenant text;
+  v_order  text;
+  v_total  bigint;
+BEGIN
+  -- Descobre qual pedido/tenant atualizar
+  IF TG_OP = 'DELETE' THEN
+    v_tenant := OLD.tenant_id;
+    v_order  := OLD.mm_order;
+  ELSE
+    v_tenant := NEW.tenant_id;
+    v_order  := NEW.mm_order;
+  END IF;
+
+  -- Recalcula o total somando todas as linhas
+  SELECT COALESCE(SUM(line_total_cents), 0) INTO v_total
+  FROM mm_purchase_order_item
+  WHERE tenant_id = v_tenant AND mm_order = v_order;
+
+  -- Atualiza a tabela de cabeçalho
+  UPDATE mm_purchase_order
+  SET total_cents = v_total
+  WHERE tenant_id = v_tenant AND mm_order = v_order;
+
+  RETURN COALESCE(NEW, OLD);
+END;
+$$ LANGUAGE plpgsql;
+
+-- 3. Geração automática de números de documento (SD)
+CREATE OR REPLACE FUNCTION next_doc_number(tenant_id_param TEXT, doc_type TEXT)
+RETURNS TEXT AS $$
+DECLARE
+  v_next_seq INTEGER;
+  v_prefix TEXT;
+  v_format TEXT;
+  v_doc_number TEXT;
+BEGIN
+  -- Get the next sequence number atomically
+  UPDATE doc_numbering 
+  SET next_seq = next_seq + 1
+  WHERE tenant_id = tenant_id_param 
+    AND doc_type = doc_type 
+    AND is_active = TRUE
+  RETURNING next_seq, prefix, format INTO v_next_seq, v_prefix, v_format;
+  
+  -- If no row was updated, create a new one
+  IF NOT FOUND THEN
+    INSERT INTO doc_numbering (tenant_id, doc_type, prefix, format, next_seq, is_active)
+    VALUES (tenant_id_param, doc_type, doc_type, 'YYYY-SEQ3', 1, TRUE)
+    ON CONFLICT (tenant_id, doc_type) DO UPDATE SET
+        next_seq = doc_numbering.next_seq + 1,
+        is_active = TRUE
+    RETURNING next_seq, prefix, format INTO v_next_seq, v_prefix, v_format;
+  END IF;
+  
+  -- Format the document number
+  CASE v_format
+    WHEN 'YYYY-SEQ3' THEN
+      v_doc_number := v_prefix || '-' || TO_CHAR(CURRENT_DATE, 'YYYY') || '-' || LPAD(v_next_seq::TEXT, 3, '0');
+    WHEN 'YYYYMM-SEQ6' THEN
+      v_doc_number := v_prefix || '-' || TO_CHAR(CURRENT_DATE, 'YYYYMM') || '-' || LPAD(v_next_seq::TEXT, 6, '0');
+    ELSE
+      v_doc_number := v_prefix || '-' || TO_CHAR(CURRENT_DATE, 'YYYY') || '-' || LPAD(v_next_seq::TEXT, 3, '0');
+  END CASE;
+  
+  RETURN v_doc_number;
+END;
+$$ LANGUAGE plpgsql;
+
+-- 4. Atribuir número de documento automaticamente (SD)
+CREATE OR REPLACE FUNCTION so_assign_doc_no()
+RETURNS TRIGGER AS $$
+BEGIN
+  IF NEW.so_id IS NULL OR NEW.so_id = '' THEN
+    NEW.so_id := next_doc_number(NEW.tenant_id, 'SO');
+  END IF;
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+```
+
+### ⚡ Triggers Aplicados
+```sql
+-- Congela preço e calcula line_total_cents antes de gravar
+CREATE TRIGGER trg_freeze_price
+BEFORE INSERT OR UPDATE OF mm_qtt, mm_material, unit_cost_cents
+ON mm_purchase_order_item
+FOR EACH ROW EXECUTE FUNCTION freeze_item_price();
+
+-- Atualiza o total do pedido após qualquer mudança nos itens
+CREATE TRIGGER trg_update_po_total
+AFTER INSERT OR UPDATE OR DELETE
+ON mm_purchase_order_item
+FOR EACH ROW EXECUTE FUNCTION trg_update_po_total();
+
+-- Atribui número de documento automaticamente em pedidos de venda
+CREATE TRIGGER trg_so_assign_doc_no
+BEFORE INSERT ON sd_sales_order
+FOR EACH ROW EXECUTE FUNCTION so_assign_doc_no();
+```
+
+### 🔄 Automações de Estoque
+```sql
+-- Atualizar saldo de estoque automaticamente
+CREATE OR REPLACE FUNCTION update_inventory_balance()
+RETURNS TRIGGER AS $$
+BEGIN
+  -- Lógica para atualizar wh_inventory_balance
+  -- baseada no tipo de movimentação
+  IF TG_OP = 'INSERT' THEN
+    -- Atualizar saldo baseado no tipo de movimento
+    IF NEW.movement_type = 'IN' THEN
+      UPDATE wh_inventory_balance 
+      SET on_hand_qty = on_hand_qty + NEW.qty,
+          last_movement_at = NEW.created_at
+      WHERE tenant_id = NEW.tenant_id 
+        AND plant_id = NEW.plant_id 
+        AND mm_material = NEW.mm_material;
+    ELSIF NEW.movement_type = 'OUT' THEN
+      UPDATE wh_inventory_balance 
+      SET on_hand_qty = on_hand_qty - NEW.qty,
+          last_movement_at = NEW.created_at
+      WHERE tenant_id = NEW.tenant_id 
+        AND plant_id = NEW.plant_id 
+        AND mm_material = NEW.mm_material;
+    END IF;
+  END IF;
+  
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+```
+
+## 📊 DETALHES DE CADA MÓDULO E FEATURES
+
+### 📦 MM — Material Management (Detalhado)
+
+#### 🏢 Gestão de Fornecedores
+- **Validação CPF/CNPJ**: Suporte a 11 dígitos (CPF) e 14 dígitos (CNPJ)
+- **Campos completos**: Dados básicos, contato, endereço, classificação
+- **Rating de fornecedores**: A, B, C baseado em performance
+- **Total movimentado**: Cálculo automático do valor total negociado
+- **Status ativo/inativo**: Controle de fornecedores ativos
+
+#### 📋 Gestão de Materiais
+- **IDs sequenciais**: B_001, G_184, C_200, A_150, P_300, Ch_100, K_050
+- **Preços automáticos**: Carregamento do banco de dados
+- **Categorias**: Brincos, Gargantilhas, Cordões, Anéis, Pulseiras, Chokers, Kits
+- **Classificação**: Prata, Ouro, Aço, etc.
+- **Status**: Ativo, Rascunho, Arquivado
+- **Links de compra**: URLs para catálogos de fornecedores
+
+#### 🛒 Pedidos de Compra
+- **Criação automática**: Interface intuitiva com validação
+- **Triggers automáticos**: Cálculo de preços e totais
+- **Status workflow**: Rascunho → Aprovado → Recebido → Cancelado
+- **Validação de preços**: Verificação se material tem preço cadastrado
+- **Compatibilidade**: Campos quantity e material_id para integração
+
+#### 📥 Recebimento
+- **Recebimento parcial**: Suporte a recebimentos parciais
+- **Atualização de estoque**: Movimentação automática do saldo
+- **Rastreabilidade**: Histórico completo de recebimentos
+
+### 🛒 SD — Sales & Distribution (Detalhado)
+
+#### 👥 Gestão de Clientes
+- **Dados completos**: Básicos, contato, endereço, preferências
+- **Tipos**: Pessoa Física (PF) e Pessoa Jurídica (PJ)
+- **Categorias**: Cliente VIP, Regular, Prospect
+- **Classificação de leads**: Novo, Qualificado, Convertido
+- **Canal de vendas**: Site, WhatsApp, Instagram, etc.
+
+#### 📋 Pedidos de Venda
+- **Criação inteligente**: Preços carregados automaticamente
+- **KPIs avançados**: Margem de contribuição, Lucro (R$ e %), Gap entre valores
+- **Status workflow**: Rascunho → Pedido Criado → Aprovado → Faturado → Cancelado
+- **Valores**: Final calculado + Negociado opcional
+- **Campos adicionais**: Forma de pagamento, observações, datas
+- **Validação**: Campos obrigatórios e relacionamentos
+
+#### 📦 Itens de Pedido
+- **Preços congelados**: Valores fixados no momento da criação
+- **Cálculo automático**: Total = Quantidade × Preço Unitário
+- **Materiais**: Integração com catálogo de materiais
+- **Validação**: Verificação de disponibilidade e preços
+
+#### 🚚 Expedição
+- **Rastreamento**: Códigos de rastreamento
+- **Transportadoras**: Integração com correios e transportadoras
+- **Status**: Pendente, Parcial, Completo, Cancelado
+
+#### 💳 Pagamentos
+- **Métodos**: PIX, Cartão, Boleto, Dinheiro
+- **Status**: Pendente, Pago, Cancelado
+- **Integração**: Com sistema financeiro
+
+### 🧲 CRM — Customer Relationship (Detalhado)
+
+#### 🎯 Gestão de Leads
+- **Scoring automático**: Pontuação baseada em critérios
+- **Fontes**: Instagram, WhatsApp, Site, Indicação
+- **Status**: Novo, Em Contato, Qualificado, Convertido
+- **Proprietário**: Atribuição de leads a vendedores
+
+#### 💼 Oportunidades
+- **Pipeline**: Discovery, Validation, Closing
+- **Valor estimado**: Estimativa de valor da oportunidade
+- **Probabilidade**: Percentual de fechamento
+- **Próxima ação**: Data e descrição da próxima ação
+
+#### 📞 Interações
+- **Canais**: Telefone, Email, WhatsApp, Presencial
+- **Sentimento**: Positivo, Neutro, Negativo
+- **Histórico**: Registro completo de todas as interações
+
+### 🏭 WH — Warehouse Management (Detalhado)
+
+#### 🏢 Gestão de Depósitos
+- **Depósito padrão**: Apenas um por tenant (constraint única)
+- **Endereços**: Dados completos de localização
+- **Status**: Ativo/Inativo
+
+#### 📊 Controle de Estoque
+- **Saldo em tempo real**: on_hand_qty, reserved_qty, available_qty
+- **Movimentações**: Entrada, Saída, Reserva, Liberação, Ajuste
+- **Rastreabilidade**: Histórico completo de movimentações
+- **Alertas**: Estoque baixo, zerado, crítico
+
+#### 📈 KPIs de Estoque
+- **Valor total**: Valor monetário do inventário
+- **Giro de estoque**: Rotação anual
+- **Eficiência**: Precisão do inventário
+- **Itens críticos**: Produtos com estoque baixo
+
+### 💰 FI — Financial Management (Detalhado)
+
+#### 🏦 Gestão de Contas
+- **Tipos**: Caixa, Banco, Contas a Receber, Contas a Pagar
+- **Moedas**: Suporte a múltiplas moedas
+- **Status**: Ativo/Inativo
+
+#### 📄 Faturas e Contas
+- **Origem**: Pedidos de Compra, Pedidos de Venda
+- **Vencimento**: Cálculo automático baseado em termos de pagamento
+- **Status**: Pendente, Paga, Vencida, Cancelada
+
+#### 💳 Pagamentos
+- **Métodos**: PIX, Cartão, Boleto, Transferência
+- **Contas**: Integração com contas financeiras
+- **Status**: Pendente, Processado, Falhado
+
+#### 📊 Transações
+- **Tipos**: Crédito, Débito
+- **Referências**: Faturas, Pagamentos, Ajustes
+- **Auditoria**: Rastreamento completo de movimentações
+
+### 📊 CO — Controladoria & Dashboard (Detalhado)
+
+#### 🏢 Centros de Custo
+- **Hierarquia**: Estrutura hierárquica de centros de custo
+- **Status**: Ativo/Inativo
+- **Relacionamentos**: Centros pai e filhos
+
+#### 📅 Períodos Fiscais
+- **Controle**: Períodos abertos e fechados
+- **Datas**: Início e fim do período
+- **Status**: Aberto, Fechado, Bloqueado
+
+#### 📈 KPIs e Métricas
+- **Definições**: Configuração de KPIs personalizados
+- **Cálculos**: Métodos de cálculo automático
+- **Frequência**: Atualização automática (15 min)
+- **Snapshots**: Histórico de valores
+
+#### 🎛️ Dashboard
+- **Tiles**: Configuração de tiles personalizados
+- **Cores**: Código de cores semânticas
+- **Ordem**: Ordenação personalizada
+- **Status**: Ativo/Inativo
+
+## 🔐 Setup & Segurança (Detalhado)
+
+### 🏢 Controle de Tenants
+- **Multi-tenancy**: Isolamento completo por tenant
+- **Configurações**: Locale, timezone, configurações específicas
+- **Status**: Ativo/Inativo
+
+### 👤 Gestão de Usuários
+- **Perfis**: Dados completos do usuário
+- **Roles**: Admin, Manager, User, Viewer
+- **Status**: Ativo/Inativo
+- **Último login**: Controle de acesso
+
+### 🔐 Permissões
+- **Recursos**: mm_material, sd_sales_order, etc.
+- **Ações**: read, create, update, delete, approve
+- **Controle**: Permissões granulares por usuário
+
+### ⚙️ Configurações
+- **Chave-valor**: Configurações flexíveis
+- **Auditoria**: Quem alterou e quando
+- **Versionamento**: Histórico de mudanças
+
+### 📊 Numeração de Documentos
+- **Tipos**: SO, PO, FI, INV, etc.
+- **Formatos**: YYYY-SEQ3, YYYYMM-SEQ6
+- **Sequência**: Controle atômico de números
+- **Ativo**: Controle de tipos ativos
+
+### 📝 Auditoria
+- **Logs**: Registro de todas as alterações
+- **Diferenças**: JSON com mudanças
+- **Usuário**: Quem fez a alteração
+- **Tabela**: Qual tabela foi alterada
+
+## 🔧 DETALHES TÉCNICOS E CONFIGURAÇÕES
+
+### 📊 Índices e Performance
+```sql
+-- Índices compostos para performance otimizada
+CREATE INDEX idx_mm_purchase_order_item_tenant_order 
+ON mm_purchase_order_item(tenant_id, mm_order);
+
+CREATE INDEX idx_mm_receiving_tenant_order 
+ON mm_receiving(tenant_id, mm_order);
+
+CREATE UNIQUE INDEX idx_wh_inventory_balance_unique 
+ON wh_inventory_balance(tenant_id, plant_id, mm_material);
+
+CREATE INDEX idx_sd_sales_order_item_tenant_so 
+ON sd_sales_order_item(tenant_id, so_id);
+
+CREATE INDEX idx_co_kpi_snapshot_tenant_key_time 
+ON co_kpi_snapshot(tenant_id, kpi_key, snapshot_at DESC);
+```
+
+### 🔐 Políticas RLS (Row Level Security)
+```sql
+-- Política padrão para todas as tabelas
+CREATE POLICY tenant_isolation_policy ON [table_name]
+FOR ALL TO authenticated
+USING (tenant_id = current_setting('request.jwt.claims', true)::json->>'tenant_id');
+```
+
+### 🔄 Fluxos de Negócio Implementados
+
+#### 📦 Fluxo de Compras (MM → WH)
+1. **Criação de Pedido**: Interface intuitiva com validação
+2. **Aprovação**: Mudança de status com triggers
+3. **Recebimento**: Atualização automática de estoque
+4. **Faturamento**: Integração com módulo financeiro
+
+#### 🛒 Fluxo de Vendas (SD → WH → FI)
+1. **Criação de Pedido**: Preços carregados automaticamente
+2. **Confirmação**: Reserva de estoque (se configurado)
+3. **Expedição**: Baixa de estoque e rastreamento
+4. **Pagamento**: Integração com sistema financeiro
+
+### 📊 KPIs e Métricas Implementados
+
+#### 🏠 Dashboard Principal
+- **Pedidos Hoje**: Contagem de pedidos do dia
+- **Receita do Mês**: Valor total de vendas
+- **Leads Ativos**: Leads em processo de qualificação
+- **Estoque Crítico**: Itens com estoque baixo
+
+### 🔧 APIs e Endpoints Implementados
+
+#### 📦 MM - Material Management APIs
+```
+GET    /api/mm/materials              # Listar materiais
+POST   /api/mm/materials              # Criar material
+PUT    /api/mm/materials/[id]         # Atualizar material
+DELETE /api/mm/materials/[id]         # Excluir material
+POST   /api/mm/materials/bulk-import  # Importação em lote
+GET    /api/mm/vendors                # Listar fornecedores
+POST   /api/mm/vendors                # Criar fornecedor
+PUT    /api/mm/vendors/[id]           # Atualizar fornecedor
+DELETE /api/mm/vendors/[id]           # Excluir fornecedor
+GET    /api/mm/purchases              # Listar pedidos de compra
+POST   /api/mm/purchases/create       # Criar pedido de compra
+PUT    /api/mm/purchases/[id]         # Atualizar pedido
+GET    /api/mm/purchases/[id]         # Detalhes do pedido
+```
+
+#### 🛒 SD - Sales & Distribution APIs
+```
+GET    /api/sd/orders                 # Listar pedidos de venda
+POST   /api/sd/orders                 # Criar pedido de venda
+PUT    /api/sd/orders/[id]            # Atualizar pedido
+GET    /api/sd/orders/[id]            # Detalhes do pedido
+PUT    /api/sd/orders/[id]/status     # Mudar status
+GET    /api/sd/orders/[id]/items      # Itens do pedido
+POST   /api/sd/orders/[id]/items      # Adicionar item
+PUT    /api/sd/orders/[id]/items/[item_id] # Atualizar item
+DELETE /api/sd/orders/[id]/items/[item_id] # Excluir item
+```
+
+#### 🧲 CRM - Customer Relationship APIs
+```
+GET    /api/crm/customers             # Listar clientes
+POST   /api/crm/customers             # Criar cliente
+PUT    /api/crm/customers/[id]        # Atualizar cliente
+DELETE /api/crm/customers/[id]        # Excluir cliente
+GET    /api/crm/customers/[id]        # Detalhes do cliente
+GET    /api/crm/leads                 # Listar leads
+POST   /api/crm/leads                 # Criar lead
+PUT    /api/crm/leads/[id]            # Atualizar lead
+GET    /api/crm/opportunities         # Listar oportunidades
+POST   /api/crm/opportunities         # Criar oportunidade
+```
 
 🎛️ Customizings / Setup por módulo
 

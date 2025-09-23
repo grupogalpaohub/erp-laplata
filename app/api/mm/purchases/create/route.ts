@@ -89,6 +89,9 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: `Erro ao criar pedido: ${headerError.message}` }, { status: 500 })
     }
 
+    // Debug: Log dos dados recebidos
+    console.log('Items recebidos:', JSON.stringify(items, null, 2))
+    
     // Criar itens do pedido
     const orderItems = items.map((item: any) => ({
       tenant_id: tenantId,
@@ -100,6 +103,9 @@ export async function POST(request: NextRequest) {
       line_total_cents: Math.round(item.total * 10000),
       currency: 'BRL'
     }))
+    
+    // Debug: Log dos dados mapeados
+    console.log('Order items mapeados:', JSON.stringify(orderItems, null, 2))
 
     // Inserir itens do pedido
     const { error: itemsError } = await supabase

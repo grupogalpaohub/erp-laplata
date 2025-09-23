@@ -6,9 +6,6 @@ import Link from 'next/link'
 import { ArrowLeft, Printer, Edit } from 'lucide-react'
 import StatusUpdateButton from '../StatusUpdateButton'
 
-export const dynamic = 'force-dynamic'
-export const revalidate = 0
-
 interface PurchaseOrder {
   mm_order: string
   vendor_id: string

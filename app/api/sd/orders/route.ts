@@ -93,7 +93,6 @@ export async function POST(request: NextRequest) {
         customer_id: selectedCustomer,
         order_date: orderDate,
         total_cents: totalNegotiatedCents || totalFinalCents,
-        total_negotiated_cents: totalNegotiatedCents,
         status: 'draft'
       })
       .select()
@@ -128,7 +127,7 @@ export async function POST(request: NextRequest) {
       await supabase
         .from('sd_sales_order')
         .delete()
-        .eq('so_id', newSoId)
+        .eq('so_id', salesOrder.so_id)
         .eq('tenant_id', tenantId)
       
       return NextResponse.json(

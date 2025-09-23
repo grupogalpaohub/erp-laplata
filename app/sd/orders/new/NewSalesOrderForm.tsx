@@ -98,16 +98,19 @@ export default function NewSalesOrderForm({ customers, materials, selectedCustom
     Math.round(parseFloat(totalNegotiatedReais.replace(',', '.')) * 100) : 
     totalFinalCents
   
-  // Margem de contribuição (valor negociado - custo estimado)
-  // Para simplificar, vamos usar 70% do valor como custo estimado
-  const estimatedCostCents = Math.round(totalNegotiatedCents * 0.7)
-  const contributionMarginCents = totalNegotiatedCents - estimatedCostCents
-  const contributionMarginPercent = totalNegotiatedCents > 0 ? 
-    (contributionMarginCents / totalNegotiatedCents) * 100 : 0
+  // Gap entre valor final e valor negociado
+  const valueGapCents = totalFinalCents - totalNegotiatedCents
+  const valueGapPercent = totalFinalCents > 0 ? (valueGapCents / totalFinalCents) * 100 : 0
   
-  // Lucro em reais e percentual
-  const profitCents = contributionMarginCents
-  const profitPercent = contributionMarginPercent
+  // Lucro calculado sobre valor final (primeiro)
+  const estimatedCostFinalCents = Math.round(totalFinalCents * 0.7)
+  const profitFinalCents = totalFinalCents - estimatedCostFinalCents
+  const profitFinalPercent = totalFinalCents > 0 ? (profitFinalCents / totalFinalCents) * 100 : 0
+  
+  // Lucro calculado sobre valor negociado (segundo)
+  const estimatedCostNegotiatedCents = Math.round(totalNegotiatedCents * 0.7)
+  const profitNegotiatedCents = totalNegotiatedCents - estimatedCostNegotiatedCents
+  const profitNegotiatedPercent = totalNegotiatedCents > 0 ? (profitNegotiatedCents / totalNegotiatedCents) * 100 : 0
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -231,22 +234,19 @@ export default function NewSalesOrderForm({ customers, materials, selectedCustom
 
             <div>
               <label htmlFor="status" className="label-fiori">
-                Status *
+                Status
               </label>
-              <select
+              <input
+                type="text"
                 id="status"
                 name="status"
-                required
-                value={status}
-                onChange={(e) => setStatus(e.target.value)}
-                className="select-fiori"
-              >
-                <option value="draft">Rascunho</option>
-                <option value="placed">Confirmado</option>
-                <option value="shipped">Enviado</option>
-                <option value="delivered">Entregue</option>
-                <option value="cancelled">Cancelado</option>
-              </select>
+                value="Rascunho"
+                readOnly
+                className="input-fiori bg-fiori-bg-secondary"
+              />
+              <p className="text-xs text-fiori-muted mt-1">
+                Status inicial - será alterado ao salvar
+              </p>
             </div>
 
             <div>
@@ -362,12 +362,10 @@ export default function NewSalesOrderForm({ customers, materials, selectedCustom
                     </td>
                     <td>
                       <input
-                        type="number"
-                        min="0"
-                        step="0.01"
-                        value={(item.unit_price_cents / 100).toFixed(2)}
-                        onChange={(e) => updateItem(item.temp_id, 'unit_price_cents', Math.round((parseFloat(e.target.value) || 0) * 100))}
-                        className="input-fiori w-24 text-right"
+                        type="text"
+                        value={(item.unit_price_cents / 100).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                        readOnly
+                        className="input-fiori bg-fiori-bg-secondary w-24 text-right"
                       />
                     </td>
                     <td>
@@ -420,7 +418,7 @@ export default function NewSalesOrderForm({ customers, materials, selectedCustom
             </div>
             <div>
               <label htmlFor="total_negotiated_cents" className="label-fiori">
-                Valor Final Negociado (R$) *
+                Valor Final Negociado (R$)
               </label>
               <input
                 type="text"
@@ -428,11 +426,11 @@ export default function NewSalesOrderForm({ customers, materials, selectedCustom
                 name="total_negotiated_cents"
                 value={totalNegotiatedReais}
                 onChange={(e) => setTotalNegotiatedReais(e.target.value)}
-                placeholder="0,00"
+                placeholder="Deixe vazio para usar valor final"
                 className="input-fiori"
               />
               <p className="text-xs text-fiori-muted mt-1">
-                Valor efetivamente negociado - Único campo editável
+                Valor efetivamente negociado (opcional) - Se vazio, usa o valor final
               </p>
             </div>
           </div>
@@ -440,44 +438,55 @@ export default function NewSalesOrderForm({ customers, materials, selectedCustom
           {/* KPIs */}
           <div className="mt-6 pt-6 border-t border-fiori-border">
             <h4 className="text-lg font-semibold text-fiori-text mb-4">Indicadores de Rentabilidade</h4>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
+              <div className="bg-yellow-50 p-4 rounded-lg">
+                <div className="text-sm text-yellow-600 font-medium">Gap Final vs Negociado</div>
+                <div className="text-2xl font-bold text-yellow-800">
+                  R$ {(valueGapCents / 100).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                </div>
+                <div className="text-xs text-yellow-600">
+                  {valueGapCents > 0 ? 'Desconto' : valueGapCents < 0 ? 'Acréscimo' : 'Iguais'}
+                </div>
+              </div>
+              
               <div className="bg-blue-50 p-4 rounded-lg">
-                <div className="text-sm text-blue-600 font-medium">Margem de Contribuição (R$)</div>
+                <div className="text-sm text-blue-600 font-medium">Lucro (Valor Final) R$</div>
                 <div className="text-2xl font-bold text-blue-800">
-                  R$ {(contributionMarginCents / 100).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                  R$ {(profitFinalCents / 100).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
                 </div>
                 <div className="text-xs text-blue-600">
-                  Valor em reais
+                  Sobre valor final
                 </div>
               </div>
               
               <div className="bg-indigo-50 p-4 rounded-lg">
-                <div className="text-sm text-indigo-600 font-medium">Margem de Contribuição (%)</div>
+                <div className="text-sm text-indigo-600 font-medium">Lucro (Valor Final) %</div>
                 <div className="text-2xl font-bold text-indigo-800">
-                  {contributionMarginPercent.toFixed(1)}%
+                  {profitFinalPercent.toFixed(1)}%
                 </div>
                 <div className="text-xs text-indigo-600">
-                  Percentual do valor negociado
+                  Sobre valor final
                 </div>
               </div>
               
               <div className="bg-green-50 p-4 rounded-lg">
-                <div className="text-sm text-green-600 font-medium">Lucro (R$)</div>
+                <div className="text-sm text-green-600 font-medium">Lucro (Negociado) R$</div>
                 <div className="text-2xl font-bold text-green-800">
-                  R$ {(profitCents / 100).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                  R$ {(profitNegotiatedCents / 100).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
                 </div>
                 <div className="text-xs text-green-600">
-                  Valor em reais
+                  Sobre valor negociado
                 </div>
               </div>
               
               <div className="bg-purple-50 p-4 rounded-lg">
-                <div className="text-sm text-purple-600 font-medium">Lucro (%)</div>
+                <div className="text-sm text-purple-600 font-medium">Lucro (Negociado) %</div>
                 <div className="text-2xl font-bold text-purple-800">
-                  {profitPercent.toFixed(1)}%
+                  {profitNegotiatedPercent.toFixed(1)}%
                 </div>
                 <div className="text-xs text-purple-600">
-                  Percentual do valor negociado
+                  Sobre valor negociado
                 </div>
               </div>
             </div>

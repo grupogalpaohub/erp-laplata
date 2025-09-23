@@ -388,13 +388,17 @@ vercel --prod
 - **Interface responsiva** com design Fiori
 
 ### ✅ SD - Sales & Distribution
-- **Gestão completa de pedidos de venda**
+- **Gestão completa de pedidos de venda** com interface moderna
 - **Preços congelados** no momento da criação do pedido
-- **Status workflow**: Rascunho → Aprovado → Faturado → Cancelado
+- **Status workflow**: Rascunho → Pedido Criado → Aprovado → Faturado → Cancelado
 - **Valores**: Final calculado automaticamente + Negociado opcional
 - **Integração com CRM** para dados de clientes
 - **Integração com MM** para materiais e preços
-- **Formas de pagamento** configuráveis
+- **Formas de pagamento** e condições configuráveis
+- **KPIs avançados**: Margem de contribuição, Lucro (R$ e %), Gap entre valores
+- **Edição completa** de pedidos com validações
+- **Mudança de status** com botões funcionais
+- **Campos adicionais**: Observações, datas, status
 
 ### ✅ WH - Warehouse Management
 - **Posição de estoque em tempo real**
@@ -421,8 +425,11 @@ vercel --prod
 - **Importação em massa** via CSV/XLSX com validação
 - **Catálogo** com filtros e busca
 - **Pedidos de compra** com detalhes completos dos materiais
-- **Gestão de fornecedores** com campos completos
+- **Gestão de fornecedores** com campos completos (CPF/CNPJ)
 - **Total movimentado** por fornecedor
+- **Triggers automáticos** para cálculo de preços e totais
+- **Compatibilidade** com campos quantity e material_id
+- **Validação de preços** automática do banco de dados
 
 ### ✅ Autenticação e Segurança
 - **Login com Google** via Supabase OAuth
@@ -456,6 +463,14 @@ vercel --prod
 - **Guardrails automáticos** para qualidade de código
 - **Pre-commit hooks** para validação
 - **Sincronização automática** com GitHub
+
+### ✅ Triggers e Automação do Banco
+- **freeze_item_price()** - Congela preços e calcula totais automaticamente
+- **trg_update_po_total()** - Atualiza total do pedido em tempo real
+- **Validação de preços** - Verifica se material tem preço cadastrado
+- **Cálculo automático** - line_total_cents = mm_qtt × unit_cost_cents
+- **Compatibilidade total** - Funciona com campos quantity e material_id
+- **Performance otimizada** - Triggers executam apenas quando necessário
 
 ## 🐛 Troubleshooting
 

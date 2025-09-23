@@ -38,10 +38,13 @@ export default function EditSalesOrderForm({ order, customers, materials }: Edit
   
   const [selectedCustomer, setSelectedCustomer] = useState(order.customer_id)
   const [orderDate, setOrderDate] = useState(order.order_date)
+  const [paymentMethod, setPaymentMethod] = useState(order.payment_method || '')
+  const [paymentTerm, setPaymentTerm] = useState(order.payment_term || '')
+  const [notes, setNotes] = useState(order.notes || '')
+  const [status, setStatus] = useState(order.status || 'draft')
   const [totalNegotiatedReais, setTotalNegotiatedReais] = useState(
     order.total_negotiated_cents ? (order.total_negotiated_cents / 100).toFixed(2) : ''
   )
-  const [notes, setNotes] = useState(order.notes || '')
   const [items, setItems] = useState<OrderItem[]>([])
   const [isLoading, setIsLoading] = useState(false)
   const [isLoadingItems, setIsLoadingItems] = useState(true)
@@ -155,8 +158,9 @@ export default function EditSalesOrderForm({ order, customers, materials }: Edit
   const contributionMarginPercent = totalNegotiatedCents > 0 ? 
     (contributionMarginCents / totalNegotiatedCents) * 100 : 0
   
-  // Lucro em reais
+  // Lucro em reais e percentual
   const profitCents = contributionMarginCents
+  const profitPercent = contributionMarginPercent
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -179,8 +183,11 @@ export default function EditSalesOrderForm({ order, customers, materials }: Edit
         body: JSON.stringify({
           selectedCustomer,
           orderDate,
-          totalNegotiatedCents,
+          paymentMethod,
+          paymentTerm,
           notes,
+          status,
+          totalNegotiatedCents,
           items,
           totalFinalCents
         })
@@ -261,6 +268,82 @@ export default function EditSalesOrderForm({ order, customers, materials }: Edit
                 value={orderDate}
                 onChange={(e) => setOrderDate(e.target.value)}
                 className="input-fiori"
+              />
+            </div>
+
+            <div>
+              <label htmlFor="status" className="label-fiori">
+                Status *
+              </label>
+              <select
+                id="status"
+                name="status"
+                required
+                value={status}
+                onChange={(e) => setStatus(e.target.value)}
+                className="select-fiori"
+              >
+                <option value="draft">Rascunho</option>
+                <option value="placed">Confirmado</option>
+                <option value="shipped">Enviado</option>
+                <option value="delivered">Entregue</option>
+                <option value="cancelled">Cancelado</option>
+              </select>
+            </div>
+
+            <div>
+              <label htmlFor="payment_method" className="label-fiori">
+                Forma de Pagamento
+              </label>
+              <select
+                id="payment_method"
+                name="payment_method"
+                value={paymentMethod}
+                onChange={(e) => setPaymentMethod(e.target.value)}
+                className="select-fiori"
+              >
+                <option value="">Selecione uma forma</option>
+                <option value="PIX">PIX</option>
+                <option value="CARTAO_CREDITO">Cartão de Crédito</option>
+                <option value="CARTAO_DEBITO">Cartão de Débito</option>
+                <option value="BOLETO">Boleto</option>
+                <option value="DINHEIRO">Dinheiro</option>
+                <option value="TRANSFERENCIA">Transferência</option>
+              </select>
+            </div>
+
+            <div>
+              <label htmlFor="payment_term" className="label-fiori">
+                Condição de Pagamento
+              </label>
+              <select
+                id="payment_term"
+                name="payment_term"
+                value={paymentTerm}
+                onChange={(e) => setPaymentTerm(e.target.value)}
+                className="select-fiori"
+              >
+                <option value="">Selecione uma condição</option>
+                <option value="A_VISTA">À Vista</option>
+                <option value="30_DIAS">30 dias</option>
+                <option value="60_DIAS">60 dias</option>
+                <option value="90_DIAS">90 dias</option>
+                <option value="PARCELADO">Parcelado</option>
+              </select>
+            </div>
+
+            <div className="md:col-span-2">
+              <label htmlFor="notes" className="label-fiori">
+                Observações
+              </label>
+              <textarea
+                id="notes"
+                name="notes"
+                value={notes}
+                onChange={(e) => setNotes(e.target.value)}
+                rows={3}
+                className="input-fiori"
+                placeholder="Observações adicionais sobre o pedido..."
               />
             </div>
           </div>
@@ -416,34 +499,44 @@ export default function EditSalesOrderForm({ order, customers, materials }: Edit
           {/* KPIs */}
           <div className="mt-6 pt-6 border-t border-fiori-border">
             <h4 className="text-lg font-semibold text-fiori-text mb-4">Indicadores de Rentabilidade</h4>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
               <div className="bg-blue-50 p-4 rounded-lg">
-                <div className="text-sm text-blue-600 font-medium">Margem de Contribuição</div>
+                <div className="text-sm text-blue-600 font-medium">Margem de Contribuição (R$)</div>
                 <div className="text-2xl font-bold text-blue-800">
-                  {(contributionMarginCents / 100).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                  R$ {(contributionMarginCents / 100).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
                 </div>
-                <div className="text-sm text-blue-600">
-                  {contributionMarginPercent.toFixed(1)}% do valor negociado
+                <div className="text-xs text-blue-600">
+                  Valor em reais
+                </div>
+              </div>
+              
+              <div className="bg-indigo-50 p-4 rounded-lg">
+                <div className="text-sm text-indigo-600 font-medium">Margem de Contribuição (%)</div>
+                <div className="text-2xl font-bold text-indigo-800">
+                  {contributionMarginPercent.toFixed(1)}%
+                </div>
+                <div className="text-xs text-indigo-600">
+                  Percentual do valor negociado
                 </div>
               </div>
               
               <div className="bg-green-50 p-4 rounded-lg">
-                <div className="text-sm text-green-600 font-medium">Lucro Estimado</div>
+                <div className="text-sm text-green-600 font-medium">Lucro (R$)</div>
                 <div className="text-2xl font-bold text-green-800">
-                  {(profitCents / 100).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
-                </div>
-                <div className="text-sm text-green-600">
                   R$ {(profitCents / 100).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                </div>
+                <div className="text-xs text-green-600">
+                  Valor em reais
                 </div>
               </div>
               
               <div className="bg-purple-50 p-4 rounded-lg">
-                <div className="text-sm text-purple-600 font-medium">Margem de Lucro</div>
+                <div className="text-sm text-purple-600 font-medium">Lucro (%)</div>
                 <div className="text-2xl font-bold text-purple-800">
-                  {contributionMarginPercent.toFixed(1)}%
+                  {profitPercent.toFixed(1)}%
                 </div>
-                <div className="text-sm text-purple-600">
-                  Sobre valor negociado
+                <div className="text-xs text-purple-600">
+                  Percentual do valor negociado
                 </div>
               </div>
             </div>

@@ -23,7 +23,7 @@ interface SalesOrder {
   created_at: string
   crm_customer: {
     name: string
-  }[]
+  }
 }
 
 export default async function SalesOrdersPage() {
@@ -255,7 +255,7 @@ export default async function SalesOrdersPage() {
                       <td>
                         <div>
                           <div className="font-semibold text-fiori-primary">
-                            {order.crm_customer?.[0]?.name || 'Cliente não encontrado'}
+                            {order.crm_customer?.name || 'Cliente não encontrado'}
                           </div>
                           <div className="text-xs text-fiori-muted">{order.customer_id}</div>
                         </div>

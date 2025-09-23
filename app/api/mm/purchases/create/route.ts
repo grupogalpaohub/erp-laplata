@@ -90,7 +90,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Criar itens do pedido
-    const orderItems = items.map((item: any) => ({
+    const orderItems = items.map((item: any, index: number) => ({
       tenant_id: tenantId,
       mm_order: headerData.mm_order,
       plant_id: 'WH-001',
@@ -98,7 +98,8 @@ export async function POST(request: NextRequest) {
       mm_qtt: item.quantity,
       unit_cost_cents: Math.round(item.unitPrice * 10000),
       line_total_cents: Math.round(item.total * 10000),
-      currency: 'BRL'
+      currency: 'BRL',
+      po_item_id: index + 1
     }))
 
     // Inserir itens do pedido

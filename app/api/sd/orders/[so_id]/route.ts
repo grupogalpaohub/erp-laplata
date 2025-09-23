@@ -79,6 +79,7 @@ export async function PUT(
       so_id: so_id,
       tenant_id: tenantId,
       sku: item.material_id,
+      material_id: item.material_id,
       quantity: item.quantity,
       unit_price_cents: item.unit_price_cents,
       line_total_cents: item.line_total_cents,

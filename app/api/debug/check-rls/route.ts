@@ -1,91 +1,57 @@
+import { createClient } from '@supabase/supabase-js'
 import { NextRequest, NextResponse } from 'next/server'
-import { createSupabaseServerClient } from '@/lib/supabaseServer'
-import { getTenantId } from '@/lib/auth'
+
+export const runtime = 'nodejs'
 
 export async function GET(request: NextRequest) {
   try {
-    const supabase = createSupabaseServerClient()
-    const tenantId = await getTenantId()
+    const supabase = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.SUPABASE_SERVICE_ROLE_KEY!
+    )
 
-    console.log('Checking RLS for tenant:', tenantId)
+    // Verificar se RLS está habilitado na tabela
+    const { data: rlsStatus, error: rlsError } = await supabase.rpc('exec', {
+      sql: `
+        SELECT schemaname, tablename, rowsecurity, hasrls
+        FROM pg_tables 
+        WHERE tablename = 'mm_purchase_order_item';
+      `
+    })
 
     // Verificar políticas RLS
-    const { data: policies, error: policiesError } = await supabase
-      .rpc('get_rls_policies', { table_name: 'sd_sales_order' })
+    const { data: policies, error: policiesError } = await supabase.rpc('exec', {
+      sql: `
+        SELECT policyname, permissive, roles, cmd, qual, with_check
+        FROM pg_policies 
+        WHERE tablename = 'mm_purchase_order_item';
+      `
+    })
 
-    if (policiesError) {
-      console.error('RLS policies error:', policiesError)
-    }
-
-    // Verificar se consegue inserir um pedido de teste
-    const testOrder = {
-      so_id: 'TEST-RLS-' + Date.now(),
-      tenant_id: tenantId,
-      customer_id: 'CUST-1758564216650', // Cliente existente
-      order_date: '2025-09-22',
-      total_cents: 10000,
-      status: 'draft'
-    }
-
-    const { data: insertData, error: insertError } = await supabase
-      .from('sd_sales_order')
-      .insert(testOrder)
-      .select()
-
-    if (insertError) {
-      console.error('Insert test error:', insertError)
-    } else {
-      console.log('Insert test success:', insertData)
-      
-      // Limpar teste
-      await supabase
-        .from('sd_sales_order')
-        .delete()
-        .eq('so_id', testOrder.so_id)
-    }
-
-    // Verificar cliente
-    const { data: customer, error: customerError } = await supabase
-      .from('crm_customer')
-      .select('customer_id, name')
-      .eq('tenant_id', tenantId)
+    // Verificar se há algum problema com tenant_id
+    const { data: sampleData, error: sampleError } = await supabase
+      .from('mm_purchase_order_item')
+      .select('tenant_id, mm_order, mm_material')
       .limit(1)
-
-    if (customerError) {
-      console.error('Customer check error:', customerError)
-    }
-
-    // Verificar materiais
-    const { data: materials, error: materialsError } = await supabase
-      .from('mm_material')
-      .select('mm_material, mm_comercial')
-      .eq('tenant_id', tenantId)
-      .limit(1)
-
-    if (materialsError) {
-      console.error('Materials check error:', materialsError)
-    }
 
     return NextResponse.json({
       success: true,
-      tenantId,
+      rlsStatus: rlsStatus || [],
       policies: policies || [],
-      insertTest: insertError ? { error: insertError.message } : { success: true },
-      customer: customer || [],
-      materials: materials || [],
+      sampleData: sampleData || [],
       errors: {
-        policies: policiesError?.message,
-        insert: insertError?.message,
-        customer: customerError?.message,
-        materials: materialsError?.message
+        rlsError: rlsError?.message,
+        policiesError: policiesError?.message,
+        sampleError: sampleError?.message
       }
     })
 
   } catch (error) {
-    console.error('Debug RLS error:', error)
-    return NextResponse.json(
-      { error: 'Debug RLS error', details: error },
-      { status: 500 }
-    )
+    console.error('Erro ao verificar RLS:', error)
+    return NextResponse.json({ 
+      success: false, 
+      error: 'Erro interno do servidor',
+      details: error instanceof Error ? error.message : 'Erro desconhecido'
+    }, { status: 500 })
   }
 }

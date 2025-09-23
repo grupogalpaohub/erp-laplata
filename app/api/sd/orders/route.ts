@@ -85,18 +85,21 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Criar pedido de venda (trigger vai gerar so_id automaticamente)
+    // Gerar ID único baseado em timestamp
+    const timestamp = Date.now()
+    const newSoId = `SO-${timestamp}`
+
+    // Criar pedido de venda com ID gerado
     const { data: salesOrder, error: orderError } = await supabase
       .from('sd_sales_order')
       .insert({
         tenant_id: tenantId,
+        so_id: newSoId,
         customer_id: selectedCustomer,
         order_date: orderDate,
         total_cents: totalNegotiatedCents || totalFinalCents,
         total_final_cents: totalFinalCents,
         total_negotiated_cents: totalNegotiatedCents,
-        payment_method: paymentMethod,
-        payment_term: paymentTerm,
         notes: notes,
         status: 'draft'
       })
@@ -116,6 +119,7 @@ export async function POST(request: NextRequest) {
       so_id: salesOrder.so_id,
       tenant_id: tenantId,
       sku: item.material_id,
+      material_id: item.material_id,
       quantity: item.quantity,
       unit_price_cents: item.unit_price_cents,
       line_total_cents: item.line_total_cents,

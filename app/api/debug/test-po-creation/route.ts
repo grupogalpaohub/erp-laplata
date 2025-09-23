@@ -12,48 +12,46 @@ export async function POST(request: NextRequest) {
 
     const tenantId = 'LaplataLunaria'
 
-    // Gerar ID único baseado em timestamp
-    const timestamp = Date.now()
-    const uniqueId = `SO-${timestamp}`
-
-    // Tentar criar pedido com ID único
-    const testOrder = {
+    // Dados de teste
+    const testItem = {
       tenant_id: tenantId,
-      so_id: uniqueId,
-      customer_id: 'CUST-1758564216650',
-      order_date: '2025-01-23',
-      total_cents: 10000,
-      status: 'draft'
+      mm_order: 'PO-TEST-001',
+      plant_id: 'WH-001',
+      mm_material: 'B_175',
+      mm_qtt: 1,
+      unit_cost_cents: 1000,
+      line_total_cents: 1000,
+      currency: 'BRL'
     }
 
-    console.log('Tentando criar pedido com ID único:', testOrder)
+    console.log('Tentando inserir item de teste:', testItem)
 
-    const { data: orderData, error: orderError } = await supabase
-      .from('sd_sales_order')
-      .insert(testOrder)
+    // Tentar inserir item de teste
+    const { data, error } = await supabase
+      .from('mm_purchase_order_item')
+      .insert(testItem)
       .select()
-      .single()
 
-    if (orderError) {
+    if (error) {
+      console.error('Erro ao inserir item:', error)
       return NextResponse.json({
         success: false,
-        error: 'Erro ao criar pedido com ID único',
-        details: orderError.message,
-        code: orderError.code,
-        hint: orderError.hint
+        error: error.message,
+        details: error,
+        testItem
       })
     }
 
     // Limpar dados de teste
     await supabase
-      .from('sd_sales_order')
+      .from('mm_purchase_order_item')
       .delete()
-      .eq('so_id', uniqueId)
+      .eq('mm_order', 'PO-TEST-001')
 
     return NextResponse.json({
       success: true,
-      message: 'Criação com ID único funcionou',
-      orderData
+      message: 'Item inserido com sucesso',
+      data
     })
 
   } catch (error) {

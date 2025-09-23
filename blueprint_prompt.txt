@@ -148,9 +148,9 @@ wh_inventory_ledger (opcional no MVP, recomendado): ledger_id bigserial(PK), ten
 
 crm_customer: tenant_id, customer_id(PK), name, email?, telefone?, customer_type(PF|PJ), status, created_date
 
-sd_sales_order: tenant_id, so_id(PK), customer_id, status, order_date, expected_ship?, total_cents
+sd_sales_order: tenant_id, so_id(PK), customer_id, status, order_date, expected_ship?, total_cents, total_negotiated_cents?, payment_method?, payment_term?, notes?, doc_no?
 
-sd_sales_order_item: tenant_id, so_id, sku, quantity, unit_price_cents, line_total_cents (PK composta tenant_id, so_id, sku, row_no? se precisar)
+sd_sales_order_item: tenant_id, so_id, sku, quantity, unit_price_cents, line_total_cents, material_id?, unit_price_cents_at_order? (PK composta tenant_id, so_id, sku, row_no? se precisar)
 
 sd_shipment: tenant_id, shipment_id(PK), so_id, warehouse_id, ship_date, status, carrier?, tracking_code?
 
@@ -518,3 +518,49 @@ Priorize MVP funcional (ciclos: Compra→Recebimento→Estoque e Venda→Expedi�
 Mantenha a compatibilidade com planos free: nada de rotas sem paginação, nada que varra a base inteira, KPIs por snapshot.
 
 Pronto. Gere a implementação respeitando fielmente este blueprint.
+
+🚀 Funcionalidades Implementadas (Status Atual)
+
+✅ Sistema de Numeração Sequencial:
+- Função next_doc_number() com controle atômico
+- Triggers automáticos para PO e SO
+- Formato: SO-YYYY-SEQ3, PO-YYYY-SEQ3
+- Tabela doc_numbering com controle por tenant
+
+✅ Módulo SD (Sales & Distribution):
+- Criação de pedidos de venda com validação
+- Edição de pedidos existentes
+- Campos: valor final, valor negociado, forma de pagamento, observações
+- KPIs: Margem de contribuição, Lucro (R$ e %), Gap entre valores
+- Status: Rascunho → Pedido Criado → (outros via botão)
+- Preços carregados automaticamente do database
+- Cálculos automáticos de totais e margens
+
+✅ Módulo MM (Materials Management):
+- Gestão de materiais com preços
+- Fornecedores com validação de CPF/CNPJ
+- Importação em lote via CSV
+- Catálogo com links e preços
+
+✅ Módulo CRM (Customer Relationship):
+- Gestão de clientes
+- Validação de dados obrigatórios
+- Interface Fiori-like
+
+✅ Sistema de Autenticação:
+- Bypass para desenvolvimento (AUTH_DISABLED)
+- RLS configurado para multi-tenant
+- Service role para operações administrativas
+
+✅ Guardrails e Qualidade:
+- Pre-commit hooks
+- Scripts de validação
+- Exclusão automática de .env.local
+- Documentação de mudanças
+
+✅ UI/UX Fiori-like:
+- Sidebar fixa com módulos
+- KPIs no topo (4 cards)
+- Formulários padronizados
+- Validação em tempo real
+- Layout responsivo

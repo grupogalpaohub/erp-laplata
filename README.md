@@ -249,10 +249,13 @@ vercel --prod
 - **Pedidos de Venda** (`/sd/orders`) - Listagem com filtros e status
 - **Novo Pedido** (`/sd/orders/new`) - Criação com itens dinâmicos
 - **Detalhes do Pedido** (`/sd/orders/[id]`) - Visualização e ações
+- **Edição de Pedidos** (`/sd/orders/[id]/edit`) - Edição completa de pedidos
 - **Integração com CRM** - Clientes e materiais
-- **Preços congelados** no pedido conforme especificação
-- **Status**: Rascunho → Aprovado → Faturado → Cancelado
+- **Preços automáticos** carregados do database
+- **Status**: Rascunho → Pedido Criado → (outros via botão)
 - **Valores**: Final calculado + Negociado opcional
+- **KPIs**: Margem de contribuição, Lucro (R$ e %), Gap entre valores
+- **Campos**: Forma de pagamento, observações, datas, status
 
 ### 📦 WH - Warehouse Management
 - **Central de Estoque** (`/wh/inventory`) - Posição atual com filtros

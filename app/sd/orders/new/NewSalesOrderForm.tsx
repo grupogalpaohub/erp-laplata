@@ -120,7 +120,7 @@ export default function NewSalesOrderForm({ customers, materials, selectedCustom
     setError('')
 
     // Usar o valor negociado calculado
-    const totalNegotiatedCents = totalNegotiatedCents
+    const finalTotalNegotiatedCents = totalNegotiatedCents || totalFinalCents
 
     try {
       const response = await fetch('/api/sd/orders', {
@@ -135,7 +135,7 @@ export default function NewSalesOrderForm({ customers, materials, selectedCustom
           paymentTerm,
           notes,
           status,
-          totalNegotiatedCents,
+          totalNegotiatedCents: finalTotalNegotiatedCents,
           items,
           totalFinalCents: totalFinalCents // Sempre o valor calculado dos itens
         })

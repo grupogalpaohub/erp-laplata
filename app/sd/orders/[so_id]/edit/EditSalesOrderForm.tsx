@@ -68,7 +68,7 @@ export default function EditSalesOrderForm({ order, customers, materials }: Edit
       if (response.ok) {
         const orderItems = result.items.map((item: any, index: number) => ({
           temp_id: `item_${Date.now()}_${index}`,
-          material_id: item.sku,
+          material_id: item.material_id || item.sku,
           quantity: item.quantity,
           unit_price_cents: item.unit_price_cents,
           line_total_cents: item.line_total_cents

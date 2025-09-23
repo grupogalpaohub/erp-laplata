@@ -21,7 +21,7 @@ export async function GET(
         unit_price_cents,
         line_total_cents,
         row_no,
-        mm_material(mm_material, mm_comercial, mm_desc)
+        material_id
       `)
       .eq('tenant_id', tenantId)
       .eq('so_id', so_id)

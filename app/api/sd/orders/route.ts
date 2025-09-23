@@ -93,6 +93,11 @@ export async function POST(request: NextRequest) {
         customer_id: selectedCustomer,
         order_date: orderDate,
         total_cents: totalNegotiatedCents || totalFinalCents,
+        total_final_cents: totalFinalCents,
+        total_negotiated_cents: totalNegotiatedCents,
+        payment_method: paymentMethod,
+        payment_term: paymentTerm,
+        notes: notes,
         status: 'draft'
       })
       .select()

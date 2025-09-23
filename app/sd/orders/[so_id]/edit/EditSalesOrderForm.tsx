@@ -104,8 +104,16 @@ export default function EditSalesOrderForm({ order, customers, materials }: Edit
       if (item.temp_id === tempId) {
         const updatedItem = { ...item, [field]: value }
         
+        // Se mudou o material, carregar preço do database
+        if (field === 'material_id' && value) {
+          const selectedMaterial = materials.find(m => m.mm_material === value)
+          if (selectedMaterial) {
+            updatedItem.unit_price_cents = selectedMaterial.mm_price_cents || 0
+          }
+        }
+        
         // Recalcular total da linha se quantidade ou preço mudaram
-        if (field === 'quantity' || field === 'unit_price_cents') {
+        if (field === 'quantity' || field === 'unit_price_cents' || field === 'material_id') {
           updatedItem.line_total_cents = updatedItem.quantity * updatedItem.unit_price_cents
         }
         
@@ -134,6 +142,21 @@ export default function EditSalesOrderForm({ order, customers, materials }: Edit
   // Cálculo de totais
   const totalItemsCents = items.reduce((sum, item) => sum + item.line_total_cents, 0)
   const totalFinalCents = totalItemsCents
+  
+  // Cálculo de KPIs
+  const totalNegotiatedCents = totalNegotiatedReais ? 
+    Math.round(parseFloat(totalNegotiatedReais.replace(',', '.')) * 100) : 
+    totalFinalCents
+  
+  // Margem de contribuição (valor negociado - custo estimado)
+  // Para simplificar, vamos usar 70% do valor como custo estimado
+  const estimatedCostCents = Math.round(totalNegotiatedCents * 0.7)
+  const contributionMarginCents = totalNegotiatedCents - estimatedCostCents
+  const contributionMarginPercent = totalNegotiatedCents > 0 ? 
+    (contributionMarginCents / totalNegotiatedCents) * 100 : 0
+  
+  // Lucro em reais
+  const profitCents = contributionMarginCents
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -348,10 +371,10 @@ export default function EditSalesOrderForm({ order, customers, materials }: Edit
         </div>
       </div>
 
-      {/* Totais */}
+      {/* Totais e KPIs */}
       <div className="card-fiori">
         <div className="card-fiori-header">
-          <h3 className="card-fiori-title">Totais</h3>
+          <h3 className="card-fiori-title">Totais e Indicadores</h3>
         </div>
         <div className="card-fiori-content">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -373,7 +396,7 @@ export default function EditSalesOrderForm({ order, customers, materials }: Edit
             </div>
             <div>
               <label htmlFor="total_negotiated_cents" className="label-fiori">
-                Valor Final Negociado (R$)
+                Valor Final Negociado (R$) *
               </label>
               <input
                 type="text"
@@ -385,8 +408,44 @@ export default function EditSalesOrderForm({ order, customers, materials }: Edit
                 className="input-fiori"
               />
               <p className="text-xs text-fiori-muted mt-1">
-                Valor efetivamente negociado (opcional)
+                Valor efetivamente negociado - Único campo editável
               </p>
+            </div>
+          </div>
+          
+          {/* KPIs */}
+          <div className="mt-6 pt-6 border-t border-fiori-border">
+            <h4 className="text-lg font-semibold text-fiori-text mb-4">Indicadores de Rentabilidade</h4>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <div className="bg-blue-50 p-4 rounded-lg">
+                <div className="text-sm text-blue-600 font-medium">Margem de Contribuição</div>
+                <div className="text-2xl font-bold text-blue-800">
+                  {(contributionMarginCents / 100).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                </div>
+                <div className="text-sm text-blue-600">
+                  {contributionMarginPercent.toFixed(1)}% do valor negociado
+                </div>
+              </div>
+              
+              <div className="bg-green-50 p-4 rounded-lg">
+                <div className="text-sm text-green-600 font-medium">Lucro Estimado</div>
+                <div className="text-2xl font-bold text-green-800">
+                  {(profitCents / 100).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                </div>
+                <div className="text-sm text-green-600">
+                  R$ {(profitCents / 100).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                </div>
+              </div>
+              
+              <div className="bg-purple-50 p-4 rounded-lg">
+                <div className="text-sm text-purple-600 font-medium">Margem de Lucro</div>
+                <div className="text-2xl font-bold text-purple-800">
+                  {contributionMarginPercent.toFixed(1)}%
+                </div>
+                <div className="text-sm text-purple-600">
+                  Sobre valor negociado
+                </div>
+              </div>
             </div>
           </div>
         </div>

@@ -1,9 +1,15 @@
 -- =========================================
--- FIX: Criar função next_doc_number
+-- FIX: Aplicar estrutura original robusta
 -- =========================================
 
--- 1) Criar tabela doc_numbering com estrutura original robusta
-CREATE TABLE IF NOT EXISTS doc_numbering (
+-- 1) Dropar trigger e função problemática
+DROP TRIGGER IF EXISTS trg_so_assign_doc_no ON sd_sales_order;
+DROP FUNCTION IF EXISTS so_assign_doc_no();
+DROP FUNCTION IF EXISTS next_doc_number(TEXT, TEXT);
+
+-- 2) Recriar tabela doc_numbering com estrutura original
+DROP TABLE IF EXISTS doc_numbering CASCADE;
+CREATE TABLE doc_numbering (
     tenant_id TEXT NOT NULL,
     doc_type TEXT NOT NULL,
     prefix TEXT NOT NULL,
@@ -13,15 +19,14 @@ CREATE TABLE IF NOT EXISTS doc_numbering (
     PRIMARY KEY (tenant_id, doc_type)
 );
 
--- 2) Inserir dados iniciais para LaplataLunaria
+-- 3) Inserir dados iniciais
 INSERT INTO doc_numbering (tenant_id, doc_type, prefix, format, next_seq, is_active)
 VALUES 
     ('LaplataLunaria', 'SO', 'SO', 'YYYY-SEQ3', 0, TRUE),
     ('LaplataLunaria', 'PO', 'PO', 'YYYY-SEQ3', 0, TRUE),
-    ('LaplataLunaria', 'INV', 'INV', 'YYYY-SEQ3', 0, TRUE)
-ON CONFLICT (tenant_id, doc_type) DO NOTHING;
+    ('LaplataLunaria', 'INV', 'INV', 'YYYY-SEQ3', 0, TRUE);
 
--- 3) Criar função next_doc_number usando estrutura original robusta
+-- 4) Recriar função next_doc_number robusta
 CREATE OR REPLACE FUNCTION next_doc_number(tenant_id_param TEXT, doc_type TEXT)
 RETURNS TEXT AS $$
 DECLARE
@@ -62,7 +67,7 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
--- 4) Recriar trigger so_assign_doc_no
+-- 5) Recriar trigger so_assign_doc_no
 CREATE OR REPLACE FUNCTION so_assign_doc_no()
 RETURNS TRIGGER AS $$
 BEGIN
@@ -74,13 +79,16 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
--- 5) Recriar trigger
-DROP TRIGGER IF EXISTS trg_so_assign_doc_no ON sd_sales_order;
+-- 6) Recriar trigger
 CREATE TRIGGER trg_so_assign_doc_no
     BEFORE INSERT ON sd_sales_order
     FOR EACH ROW EXECUTE FUNCTION so_assign_doc_no();
 
--- 6) Comentários
+-- 7) Comentários
 COMMENT ON FUNCTION next_doc_number(TEXT, TEXT) IS 'Gera número sequencial de documento usando estrutura original robusta com controle atômico';
 COMMENT ON TABLE doc_numbering IS 'Controle de numeração sequencial de documentos por tenant e tipo (estrutura original)';
 COMMENT ON FUNCTION so_assign_doc_no() IS 'Trigger para atribuir número de documento automaticamente em pedidos de venda';
+
+-- 8) Teste da função
+SELECT next_doc_number('LaplataLunaria', 'SO') as test_so_number;
+SELECT next_doc_number('LaplataLunaria', 'PO') as test_po_number;

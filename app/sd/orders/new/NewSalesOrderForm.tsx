@@ -62,6 +62,10 @@ export default function NewSalesOrderForm({ customers, materials, selectedCustom
   }
 
   const isValid = () => {
+    return selectedCustomer && items.length > 0 && items.every(item => item.material_id && item.quantity > 0)
+  }
+
+  const validateAndShowErrors = () => {
     if (!selectedCustomer) {
       alert('Selecione um cliente')
       return false
@@ -79,7 +83,7 @@ export default function NewSalesOrderForm({ customers, materials, selectedCustom
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!isValid()) return
+    if (!validateAndShowErrors()) return
 
     setIsLoading(true)
     setError('')

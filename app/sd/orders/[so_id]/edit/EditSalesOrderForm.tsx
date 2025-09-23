@@ -116,6 +116,10 @@ export default function EditSalesOrderForm({ order, customers, materials }: Edit
   }
 
   const isValid = () => {
+    return selectedCustomer && items.length > 0 && items.every(item => item.material_id && item.quantity > 0)
+  }
+
+  const validateAndShowErrors = () => {
     if (!selectedCustomer) {
       alert('Selecione um cliente')
       return false
@@ -133,7 +137,7 @@ export default function EditSalesOrderForm({ order, customers, materials }: Edit
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!isValid()) return
+    if (!validateAndShowErrors()) return
 
     setIsLoading(true)
     setError('')

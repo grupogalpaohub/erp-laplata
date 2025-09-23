@@ -181,7 +181,7 @@ export default function PurchaseOrderClient({ order, items }: PurchaseOrderClien
                   Total do Pedido:
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                  R$ {(order.total_amount / 100).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                  R$ {(order.total_cents / 100).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
                 </td>
               </tr>
             </tfoot>

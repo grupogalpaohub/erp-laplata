@@ -1,56 +1,42 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createClient } from '@supabase/supabase-js'
+import { createSupabaseServerClient } from '@/lib/supabaseServer'
 import { getTenantId } from '@/lib/auth'
 
 export const runtime = 'nodejs'
+export const dynamic = 'force-dynamic'
+export const revalidate = 0
 
 export async function GET(
   request: NextRequest,
   { params }: { params: { po_id: string } }
 ) {
   try {
-    const supabase = createClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.SUPABASE_SERVICE_ROLE_KEY!
-    )
+    const supabase = createSupabaseServerClient()
     const tenantId = await getTenantId()
 
+    console.log('=== NOVA API - BUSCAR ITENS ===')
+    console.log('PO ID:', params.po_id)
+    console.log('Tenant ID:', tenantId)
+
+    // Query simples e direta
     const { data, error } = await supabase
       .from('mm_purchase_order_item')
-      .select(`
-        po_item_id,
-        mm_material,
-        mm_qtt,
-        unit_cost_cents,
-        line_total_cents,
-        notes,
-        mm_material_data:mm_material(mm_comercial, mm_desc)
-      `)
+      .select('*')
       .eq('mm_order', params.po_id)
       .eq('tenant_id', tenantId)
-      .order('po_item_id')
 
     if (error) {
-      console.error('Error fetching purchase order items:', error)
+      console.error('Erro ao buscar itens:', error)
       return NextResponse.json({ error: 'Erro ao buscar itens' }, { status: 500 })
     }
 
-    // Transformar os dados para a interface esperada
-    const items = (data || []).map((item: any) => ({
-      po_item_id: item.po_item_id,
-      mm_material: item.mm_material,
-      mm_qtt: item.mm_qtt,
-      unit_cost_cents: item.unit_cost_cents,
-      line_total_cents: item.line_total_cents,
-      notes: item.notes,
-      mm_comercial: item.mm_material_data?.mm_comercial || null,
-      mm_desc: item.mm_material_data?.mm_desc || null
-    }))
+    console.log('Itens encontrados:', data?.length || 0)
+    console.log('Dados:', data)
 
-    return NextResponse.json(items)
+    return NextResponse.json(data || [])
 
   } catch (error) {
-    console.error('Error fetching purchase order items:', error)
+    console.error('Erro interno:', error)
     return NextResponse.json({ 
       error: 'Erro interno do servidor' 
     }, { status: 500 })
@@ -62,23 +48,33 @@ export async function PUT(
   { params }: { params: { po_id: string } }
 ) {
   try {
-    const supabase = createClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.SUPABASE_SERVICE_ROLE_KEY!
-    )
+    const supabase = createSupabaseServerClient()
     const tenantId = await getTenantId()
+
+    console.log('=== NOVA API - ATUALIZAR ITENS ===')
+    console.log('PO ID:', params.po_id)
+    console.log('Tenant ID:', tenantId)
 
     const body = await request.json()
     const { items } = body
 
-    // Deletar itens existentes
-    await supabase
+    console.log('Itens recebidos:', items?.length || 0)
+
+    // 1. Deletar itens existentes
+    const { error: deleteError } = await supabase
       .from('mm_purchase_order_item')
       .delete()
       .eq('mm_order', params.po_id)
       .eq('tenant_id', tenantId)
 
-    // Inserir novos itens
+    if (deleteError) {
+      console.error('Erro ao deletar itens:', deleteError)
+      return NextResponse.json({ error: 'Erro ao deletar itens' }, { status: 500 })
+    }
+
+    console.log('Itens deletados com sucesso')
+
+    // 2. Inserir novos itens
     if (items && items.length > 0) {
       const orderItems = items.map((item: any) => ({
         tenant_id: tenantId,
@@ -92,20 +88,25 @@ export async function PUT(
         notes: item.notes
       }))
 
-      const { error } = await supabase
+      console.log('Itens para inserir:', orderItems)
+
+      const { data: insertedItems, error: insertError } = await supabase
         .from('mm_purchase_order_item')
         .insert(orderItems)
+        .select('*')
 
-      if (error) {
-        console.error('Error updating purchase order items:', error)
-        return NextResponse.json({ error: 'Erro ao atualizar itens' }, { status: 500 })
+      if (insertError) {
+        console.error('Erro ao inserir itens:', insertError)
+        return NextResponse.json({ error: 'Erro ao inserir itens' }, { status: 500 })
       }
+
+      console.log('Itens inseridos:', insertedItems?.length || 0)
     }
 
     return NextResponse.json({ success: true })
 
   } catch (error) {
-    console.error('Error updating purchase order items:', error)
+    console.error('Erro interno:', error)
     return NextResponse.json({ 
       error: 'Erro interno do servidor' 
     }, { status: 500 })

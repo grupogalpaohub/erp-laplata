@@ -36,11 +36,11 @@ export default async function MMIndex() {
         .eq('tenant_id', tenantId),
       supabase
         .from('mm_purchase_order')
-        .select('mm_order, total_amount, status, po_date')
+        .select('mm_order, total_cents, status, po_date')
         .eq('tenant_id', tenantId),
       supabase
         .from('mm_purchase_order')
-        .select('mm_order, total_amount, status, po_date')
+        .select('mm_order, total_cents, status, po_date')
         .eq('tenant_id', tenantId)
         .gte('po_date', new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString().split('T')[0])
         .lte('po_date', new Date(new Date().getFullYear(), new Date().getMonth() + 1, 0).toISOString().split('T')[0])
@@ -55,8 +55,8 @@ export default async function MMIndex() {
     totalMaterials = materials.length
     totalVendors = vendors.filter(v => v.status === 'active').length
     totalOrders = purchaseOrders.length
-    totalValue = purchaseOrders.reduce((sum, order) => sum + (order.total_amount || 0), 0)
-    monthlyValue = monthlyOrders.reduce((sum, order) => sum + (order.total_amount || 0), 0)
+    totalValue = purchaseOrders.reduce((sum, order) => sum + (order.total_cents || 0), 0)
+    monthlyValue = monthlyOrders.reduce((sum, order) => sum + (order.total_cents || 0), 0)
 
   } catch (error) {
     console.error('Error loading MM data:', error)
@@ -214,7 +214,7 @@ export default async function MMIndex() {
               </svg>
             </div>
             <div className="kpi-fiori kpi-fiori-warning">
-              R$ {(monthlyValue / 10000).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+              R$ {(monthlyValue / 100).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
             </div>
             <p className="tile-fiori-metric-label">Valor do mês atual</p>
           </div>
@@ -228,7 +228,7 @@ export default async function MMIndex() {
               </svg>
             </div>
             <div className="kpi-fiori kpi-fiori-info">
-              R$ {(totalValue / 10000).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+              R$ {(totalValue / 100).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
             </div>
             <p className="tile-fiori-metric-label">Valor total histórico</p>
           </div>

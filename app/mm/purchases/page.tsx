@@ -32,7 +32,7 @@ export default async function PurchaseOrdersPage({ searchParams }: { searchParam
       vendor_id, 
       po_date, 
       status, 
-      total_amount,
+      total_cents,
       mm_vendor!left(vendor_name)
     `)
     .eq('tenant_id', tenantId)
@@ -112,7 +112,7 @@ export default async function PurchaseOrdersPage({ searchParams }: { searchParam
                       {r.status}
                     </span>
                   </td>
-                  <td className="text-right font-medium">R$ {(r.total_amount/10000).toFixed(2)}</td>
+                  <td className="text-right font-medium">R$ {(r.total_cents/100).toFixed(2)}</td>
                   <td>
                     <div className="flex gap-2">
                       <Link href={`/mm/purchases/${r.mm_order}`} className="btn-fiori-outline btn-sm">

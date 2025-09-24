@@ -1,238 +1,152 @@
-import Link from 'next/link'
 import { createSupabaseServerClient } from '@/lib/supabaseServer'
 import { getTenantId } from '@/lib/auth'
-import { ArrowLeft, Search, Download, Filter, Plus, Eye, Edit, Trash2 } from 'lucide-react'
+import Link from 'next/link'
+import { FileText, Plus, Eye, Calendar } from 'lucide-react'
 
 export const dynamic = 'force-dynamic'
 export const revalidate = 0
-export const fetchCache = 'force-no-store'
 
-interface FinancialEntry {
+interface AccountingEntry {
   entry_id: string
+  tenant_id: string
   entry_date: string
   description: string
-  debit_account: string
-  credit_account: string
-  amount_cents: number
-  entry_type: string
-  reference_doc: string
-  is_reversed: boolean
+  total_debit_cents: number
+  total_credit_cents: number
+  is_posted: boolean
   created_at: string
+  created_by: string
+  items?: {
+    item_id: string
+    account_code: string
+    debit_cents: number
+    credit_cents: number
+    description: string
+    account_name?: string
+  }[]
 }
 
 export default async function EntriesPage() {
-  let entries: FinancialEntry[] = []
-  let totalCount = 0
+  const supabase = createSupabaseServerClient()
+  const tenantId = await getTenantId()
 
-  try {
-    const supabase = createSupabaseServerClient()
-    const tenantId = await getTenantId()
-
-    // Buscar lançamentos financeiros
-    const { data, count, error } = await supabase
-      .from('fi_financial_entry')
-      .select(`
-        entry_id,
-        entry_date,
+  // Buscar lançamentos contábeis
+  const { data: entriesData, error } = await supabase
+    .from('fi_accounting_entry')
+    .select(`
+      *,
+      items:fi_accounting_entry_item(
+        item_id,
+        account_code,
+        debit_cents,
+        credit_cents,
         description,
-        debit_account,
-        credit_account,
-        amount_cents,
-        entry_type,
-        reference_doc,
-        is_reversed,
-        created_at
-      `, { count: 'exact' })
-      .eq('tenant_id', tenantId)
-      .order('entry_date', { ascending: false })
-      .limit(50)
+        account_name
+      )
+    `)
+    .eq('tenant_id', tenantId)
+    .order('entry_date', { ascending: false })
+    .limit(50)
 
-    if (error) {
-      console.error('Error loading financial entries:', error)
-    } else {
-      entries = data || []
-      totalCount = count || 0
-    }
-
-  } catch (error) {
-    console.error('Error loading financial entries:', error)
+  if (error) {
+    console.error('Error fetching accounting entries:', error)
   }
 
-  const getTypeLabel = (type: string) => {
-    switch (type) {
-      case 'SALE': return 'Venda'
-      case 'PURCHASE': return 'Compra'
-      case 'PAYMENT': return 'Pagamento'
-      case 'RECEIPT': return 'Recebimento'
-      case 'TRANSFER': return 'Transferência'
-      case 'ADJUSTMENT': return 'Ajuste'
-      default: return type
-    }
-  }
+  const entries: AccountingEntry[] = entriesData || []
 
-  const getTypeBadge = (type: string) => {
-    switch (type) {
-      case 'SALE': return <span className="badge-fiori badge-fiori-success">Venda</span>
-      case 'PURCHASE': return <span className="badge-fiori badge-fiori-danger">Compra</span>
-      case 'PAYMENT': return <span className="badge-fiori badge-fiori-warning">Pagamento</span>
-      case 'RECEIPT': return <span className="badge-fiori badge-fiori-info">Recebimento</span>
-      case 'TRANSFER': return <span className="badge-fiori badge-fiori-neutral">Transferência</span>
-      case 'ADJUSTMENT': return <span className="badge-fiori badge-fiori-neutral">Ajuste</span>
-      default: return <span className="badge-fiori badge-fiori-neutral">{type}</span>
-    }
-  }
+  // Calcular estatísticas
+  const totalEntries = entries.length
+  const postedEntries = entries.filter(e => e.is_posted).length
+  const draftEntries = entries.filter(e => !e.is_posted).length
+  const totalDebit = entries.reduce((sum, e) => sum + e.total_debit_cents, 0)
+  const totalCredit = entries.reduce((sum, e) => sum + e.total_credit_cents, 0)
 
   return (
-    <div className="space-y-8">
-      {/* Header */}
-      <div className="flex items-center justify-between mb-8">
-        <Link href="/fi" className="btn-fiori-outline flex items-center gap-2">
-          <ArrowLeft className="w-4 h-4" />
-          Voltar
-        </Link>
-        <div className="text-center flex-1">
-          <h1 className="text-4xl font-bold text-fiori-primary mb-4">Lançamentos Financeiros</h1>
-          <p className="text-xl text-fiori-secondary mb-2">Registro de movimentações financeiras</p>
-          <p className="text-lg text-fiori-muted">Gerencie todos os lançamentos contábeis</p>
-        </div>
-        <div className="w-20"></div>
-      </div>
-
-      {/* Filtros e Ações */}
-      <div className="card-fiori">
-        <div className="card-fiori-content">
-          <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
-            <div className="flex flex-col sm:flex-row gap-4 flex-1">
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-fiori-muted w-4 h-4" />
-                <input
-                  type="text"
-                  placeholder="Buscar por descrição ou documento..."
-                  className="input-fiori pl-10 w-full sm:w-80"
-                />
-              </div>
-              <select className="select-fiori">
-                <option value="">Todos os tipos</option>
-                <option value="SALE">Venda</option>
-                <option value="PURCHASE">Compra</option>
-                <option value="PAYMENT">Pagamento</option>
-                <option value="RECEIPT">Recebimento</option>
-                <option value="TRANSFER">Transferência</option>
-                <option value="ADJUSTMENT">Ajuste</option>
-              </select>
-              <input
-                type="date"
-                className="input-fiori"
-                placeholder="Data inicial"
-              />
-            </div>
-            <div className="flex gap-2">
-              <button className="btn-fiori-outline flex items-center gap-2">
-                <Filter className="w-4 h-4" />
-                Filtros
-              </button>
-              <button className="btn-fiori-outline flex items-center gap-2">
-                <Download className="w-4 h-4" />
-                Exportar
-              </button>
-              <Link href="/fi/entries/new" className="btn-fiori-primary flex items-center gap-2">
-                <Plus className="w-4 h-4" />
-                Novo Lançamento
-              </Link>
-            </div>
+    <div className="container-fiori">
+      <div className="section-fiori">
+        <div className="flex items-center justify-between mb-8">
+          <div>
+            <h1 className="text-3xl font-bold text-fiori-primary">Lançamentos Contábeis</h1>
+            <p className="text-fiori-secondary mt-2">Histórico de movimentações contábeis</p>
+          </div>
+          <div className="flex gap-4">
+            <Link href="/fi" className="btn-fiori-secondary">
+              ← Voltar
+            </Link>
+            <Link href="/fi/entries/new" className="btn-fiori-primary">
+              <Plus className="w-4 h-4 mr-2" />
+              Novo Lançamento
+            </Link>
           </div>
         </div>
-      </div>
 
-      {/* Resumo */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-        <div className="card-fiori">
-          <div className="card-fiori-content">
+        {/* Estatísticas */}
+        <div className="grid-fiori-4 mb-8">
+          <div className="tile-fiori">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-fiori-muted">Total de Lançamentos</p>
-                <p className="text-2xl font-bold text-fiori-primary">{totalCount}</p>
+                <p className="tile-fiori-subtitle">Total de Lançamentos</p>
+                <p className="tile-fiori-metric">{totalEntries}</p>
               </div>
-              <div className="w-8 h-8 bg-fiori-primary/10 rounded-full flex items-center justify-center">
-                <span className="text-fiori-primary font-bold">L</span>
-              </div>
+              <FileText className="tile-fiori-icon" />
             </div>
           </div>
-        </div>
-        <div className="card-fiori">
-          <div className="card-fiori-content">
+
+          <div className="tile-fiori">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-fiori-muted">Vendas</p>
-                <p className="text-2xl font-bold text-fiori-success">
-                  {entries.filter(e => e.entry_type === 'SALE').length}
+                <p className="tile-fiori-subtitle">Lançados</p>
+                <p className="tile-fiori-metric text-fiori-success">{postedEntries}</p>
+              </div>
+              <FileText className="tile-fiori-icon text-fiori-success" />
+            </div>
+          </div>
+
+          <div className="tile-fiori">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="tile-fiori-subtitle">Rascunhos</p>
+                <p className="tile-fiori-metric text-fiori-warning">{draftEntries}</p>
+              </div>
+              <FileText className="tile-fiori-icon text-fiori-warning" />
+            </div>
+          </div>
+
+          <div className="tile-fiori">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="tile-fiori-subtitle">Balanço</p>
+                <p className={`tile-fiori-metric ${
+                  totalDebit === totalCredit ? 'text-fiori-success' : 'text-fiori-danger'
+                }`}>
+                  {totalDebit === totalCredit ? 'Equilibrado' : 'Desequilibrado'}
                 </p>
               </div>
-              <div className="w-8 h-8 bg-fiori-success/10 rounded-full flex items-center justify-center">
-                <span className="text-fiori-success font-bold">V</span>
-              </div>
+              <FileText className="tile-fiori-icon" />
             </div>
           </div>
         </div>
-        <div className="card-fiori">
-          <div className="card-fiori-content">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-fiori-muted">Compras</p>
-                <p className="text-2xl font-bold text-fiori-danger">
-                  {entries.filter(e => e.entry_type === 'PURCHASE').length}
-                </p>
-              </div>
-              <div className="w-8 h-8 bg-fiori-danger/10 rounded-full flex items-center justify-center">
-                <span className="text-fiori-danger font-bold">C</span>
-              </div>
-            </div>
-          </div>
-        </div>
-        <div className="card-fiori">
-          <div className="card-fiori-content">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-fiori-muted">Valor Total</p>
-                <p className="text-2xl font-bold text-fiori-info">
-                  R$ {(entries.reduce((sum, e) => sum + (e.amount_cents || 0), 0) / 100).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
-                </p>
-              </div>
-              <div className="w-8 h-8 bg-fiori-info/10 rounded-full flex items-center justify-center">
-                <span className="text-fiori-info font-bold">$</span>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
 
-      {/* Tabela */}
-      <div className="card-fiori">
-        <div className="card-fiori-content p-0">
-          {entries.length === 0 ? (
-            <div className="text-center py-12">
-              <div className="w-12 h-12 bg-fiori-muted/10 rounded-full flex items-center justify-center mx-auto mb-4">
-                <span className="text-fiori-muted font-bold text-xl">L</span>
-              </div>
-              <h3 className="text-lg font-semibold text-fiori-primary mb-2">Nenhum lançamento encontrado</h3>
-              <p className="text-fiori-muted mb-6">Comece criando um novo lançamento financeiro</p>
-              <Link href="/fi/entries/new" className="btn-fiori-primary">
-                Novo Lançamento
-              </Link>
-            </div>
-          ) : (
+        {/* Tabela de Lançamentos */}
+        <div className="card-fiori">
+          <div className="card-fiori-header">
+            <h2 className="card-fiori-title">Lançamentos Recentes</h2>
+            <p className="card-fiori-subtitle">
+              Total Débito: R$ {(totalDebit / 100).toLocaleString('pt-BR', { minimumFractionDigits: 2 })} | 
+              Total Crédito: R$ {(totalCredit / 100).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+            </p>
+          </div>
+          <div className="card-fiori-body">
             <div className="overflow-x-auto">
               <table className="table-fiori">
                 <thead>
                   <tr>
                     <th>Data</th>
                     <th>Descrição</th>
-                    <th>Tipo</th>
-                    <th>Débito</th>
-                    <th>Crédito</th>
-                    <th>Valor</th>
-                    <th>Documento</th>
+                    <th className="text-right">Débito</th>
+                    <th className="text-right">Crédito</th>
                     <th>Status</th>
+                    <th>Criado por</th>
                     <th>Ações</th>
                   </tr>
                 </thead>
@@ -240,59 +154,57 @@ export default async function EntriesPage() {
                   {entries.map((entry) => (
                     <tr key={entry.entry_id}>
                       <td>
-                        <div className="text-sm">
-                          {entry.entry_date ? new Date(entry.entry_date).toLocaleDateString('pt-BR') : '-'}
+                        <div className="flex items-center gap-2">
+                          <Calendar className="w-4 h-4 text-fiori-muted" />
+                          <div>
+                            <div className="text-sm font-medium">
+                              {new Date(entry.entry_date).toLocaleDateString('pt-BR')}
+                            </div>
+                            <div className="text-xs text-fiori-muted">
+                              {new Date(entry.created_at).toLocaleTimeString('pt-BR')}
+                            </div>
+                          </div>
                         </div>
                       </td>
                       <td>
-                        <div className="font-semibold text-fiori-primary">
-                          {entry.description}
-                        </div>
-                      </td>
-                      <td>
-                        {getTypeBadge(entry.entry_type)}
-                      </td>
-                      <td>
-                        <div className="text-sm font-mono">
-                          {entry.debit_account}
-                        </div>
-                      </td>
-                      <td>
-                        <div className="text-sm font-mono">
-                          {entry.credit_account}
+                        <div>
+                          <div className="font-medium">
+                            {entry.description}
+                          </div>
+                          <div className="text-xs text-fiori-muted font-mono">
+                            {entry.entry_id}
+                          </div>
                         </div>
                       </td>
                       <td className="text-right">
-                        <div className="text-sm font-semibold">
-                          R$ {((entry.amount_cents || 0) / 100).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
-                        </div>
+                        <span className="font-medium text-fiori-danger">
+                          R$ {(entry.total_debit_cents / 100).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                        </span>
+                      </td>
+                      <td className="text-right">
+                        <span className="font-medium text-fiori-success">
+                          R$ {(entry.total_credit_cents / 100).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                        </span>
                       </td>
                       <td>
-                        <div className="text-sm">
-                          {entry.reference_doc || '-'}
-                        </div>
+                        <span className={`badge-fiori ${
+                          entry.is_posted ? 'badge-fiori-success' : 'badge-fiori-warning'
+                        }`}>
+                          {entry.is_posted ? 'Lançado' : 'Rascunho'}
+                        </span>
                       </td>
                       <td>
-                        {entry.is_reversed ? 
-                          <span className="badge-fiori badge-fiori-danger">Estornado</span> : 
-                          <span className="badge-fiori badge-fiori-success">Ativo</span>
-                        }
+                        <span className="text-sm text-fiori-muted">
+                          {entry.created_by || 'Sistema'}
+                        </span>
                       </td>
                       <td>
                         <div className="flex gap-2">
                           <Link
                             href={`/fi/entries/${entry.entry_id}`}
-                            className="btn-fiori-outline text-xs flex items-center gap-1"
+                            className="btn-fiori-outline text-xs"
                           >
-                            <Eye className="w-3 h-3" />
-                            Ver
-                          </Link>
-                          <Link
-                            href={`/fi/entries/${entry.entry_id}/edit`}
-                            className="btn-fiori-outline text-xs flex items-center gap-1"
-                          >
-                            <Edit className="w-3 h-3" />
-                            Editar
+                            <Eye className="w-4 h-4" />
                           </Link>
                         </div>
                       </td>
@@ -301,7 +213,23 @@ export default async function EntriesPage() {
                 </tbody>
               </table>
             </div>
-          )}
+
+            {entries.length === 0 && (
+              <div className="text-center py-12">
+                <FileText className="w-12 h-12 text-fiori-muted mx-auto mb-4" />
+                <h3 className="text-lg font-medium text-fiori-muted mb-2">
+                  Nenhum lançamento encontrado
+                </h3>
+                <p className="text-fiori-muted mb-4">
+                  Os lançamentos contábeis aparecerão aqui conforme forem criados.
+                </p>
+                <Link href="/fi/entries/new" className="btn-fiori-primary">
+                  <Plus className="w-4 h-4 mr-2" />
+                  Criar Primeiro Lançamento
+                </Link>
+              </div>
+            )}
+          </div>
         </div>
       </div>
     </div>

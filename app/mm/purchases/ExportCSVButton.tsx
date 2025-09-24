@@ -1,5 +1,7 @@
 'use client'
 
+import { formatBRL } from '@/lib/money'
+
 interface PO {
   mm_order: string
   vendor_id: string
@@ -29,7 +31,7 @@ export default function ExportCSVButton({ pedidos }: ExportCSVButtonProps) {
         po.vendor_id,
         new Date(po.po_date).toLocaleDateString('pt-BR'),
         po.status,
-        (po.total_amount / 100).toFixed(2)
+        formatBRL(po.total_amount )
       ].join(','))
     ].join('\n')
     
@@ -53,3 +55,4 @@ export default function ExportCSVButton({ pedidos }: ExportCSVButtonProps) {
     </button>
   )
 }
+

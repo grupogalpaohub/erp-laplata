@@ -12,7 +12,7 @@ type PO = {
   vendor_id: string
   po_date: string
   status: string
-  total_amount: number
+  total_cents: number
   mm_vendor?: {
     vendor_name: string
   }
@@ -112,7 +112,7 @@ export default async function PurchaseOrdersPage({ searchParams }: { searchParam
                       {r.status}
                     </span>
                   </td>
-                  <td className="text-right font-medium">R$ {(r.total_cents/100).toFixed(2)}</td>
+                  <td className="text-right font-medium">R$ {(r.total_cents/100).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</td>
                   <td>
                     <div className="flex gap-2">
                       <Link href={`/mm/purchases/${r.mm_order}`} className="btn-fiori-outline btn-sm">

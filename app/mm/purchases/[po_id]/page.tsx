@@ -8,7 +8,7 @@ interface PurchaseOrder {
   vendor_id: string
   po_date: string
   status: string
-  total_cents: number
+  total_amount: number
   expected_delivery?: string
   notes?: string
   created_at: string

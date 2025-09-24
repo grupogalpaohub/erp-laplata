@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { formatBRL } from '@/lib/money'
 import Link from 'next/link'
 import { Save, X, CheckCircle, AlertCircle } from 'lucide-react'
 // Removido import hardcoded - usar dados do customizing
@@ -323,7 +324,7 @@ export default function BulkEditPage() {
                   <td className="px-4 py-3">
                     <input
                       type="number"
-                      value={material.mm_price_cents ? (material.mm_price_cents / 100).toFixed(2) : ''}
+                      value={material.mm_price_cents ? formatBRL(material.mm_price_cents ) : ''}
                       onChange={(e) => handleFieldChange(material.mm_material, 'mm_price_cents', 
                         e.target.value ? Math.round(parseFloat(e.target.value) * 100) : null
                       )}
@@ -334,7 +335,7 @@ export default function BulkEditPage() {
                   <td className="px-4 py-3">
                     <input
                       type="number"
-                      value={material.purchase_price_cents ? (material.purchase_price_cents / 100).toFixed(2) : ''}
+                      value={material.purchase_price_cents ? formatBRL(material.purchase_price_cents ) : ''}
                       onChange={(e) => handleFieldChange(material.mm_material, 'purchase_price_cents', 
                         e.target.value ? Math.round(parseFloat(e.target.value) * 100) : null
                       )}

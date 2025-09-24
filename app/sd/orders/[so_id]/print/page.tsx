@@ -1,4 +1,5 @@
 import { createSupabaseServerClient } from '@/lib/supabaseServer'
+import { formatBRL } from '@/lib/money'
 import { notFound } from 'next/navigation'
 
 async function getSalesOrder(soId: string) {
@@ -133,7 +134,7 @@ export default async function PrintSalesOrderPage({ params }: { params: { so_id:
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
-                {order.items.map((item: any, index: number) => (
+                {order.items.map((item: any, index: number) => formatBRL(
                   <tr key={index}>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                       {item.row_no}
@@ -145,10 +146,10 @@ export default async function PrintSalesOrderPage({ params }: { params: { so_id:
                       {item.quantity}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 text-right">
-                      R$ {(item.unit_price_cents / 100).toFixed(2)}
+                      R$ {(item.unit_price_cents )}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 text-right">
-                      R$ {(item.line_total_cents / 100).toFixed(2)}
+                      R$ {formatBRL(item.line_total_cents )}
                     </td>
                   </tr>
                 ))}
@@ -164,7 +165,7 @@ export default async function PrintSalesOrderPage({ params }: { params: { so_id:
               <div className="flex justify-between items-center">
                 <span className="text-lg font-semibold text-gray-900">Total:</span>
                 <span className="text-xl font-bold text-gray-900">
-                  R$ {(order.total_cents / 100).toFixed(2)}
+                  R$ {formatBRL(order.total_cents )}
                 </span>
               </div>
             </div>

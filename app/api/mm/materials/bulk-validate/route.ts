@@ -26,8 +26,8 @@ export async function POST(request: NextRequest) {
     const validVendors = vendors?.map(v => v.vendor_id) || []
 
     // Tipos e classificações válidos (hardcoded por enquanto)
-    const validTypes = ['Brinco', 'Cordão', 'Choker', 'Gargantilha', 'Anel', 'Pulseira']
-    const validClassifications = ['Elementar', 'Amuleto', 'Protetor', 'Decoração']
+    const validTypes = ['Brinco', 'Cordão', 'Choker', 'Gargantilha', 'Anel', 'Pulseira', 'Kit']
+    const validClassifications = ['Elementar', 'Amuleto', 'Amuletos', 'Protetor', 'Decoração', 'Ciclos', 'Ancestral']
 
     const validationResults = materials.map((material, index) => {
       const errors: string[] = []

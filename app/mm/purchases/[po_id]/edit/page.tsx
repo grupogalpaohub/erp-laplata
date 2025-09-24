@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { formatBRL } from '@/lib/money'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { ArrowLeft, Plus, Trash2, Save, X } from 'lucide-react'
@@ -27,7 +28,7 @@ interface PurchaseOrder {
   vendor_id: string
   po_date: string
   status: string
-  total_amount: number
+  total_cents: number
   expected_delivery?: string
   notes?: string
 }
@@ -141,7 +142,7 @@ export default function EditPurchaseOrderPage({ params }: { params: { po_id: str
           po_date: purchaseOrder.po_date,
           expected_delivery: purchaseOrder.expected_delivery,
           notes: purchaseOrder.notes,
-          total_amount: calculateTotal()
+          total_cents: calculateTotal()
         })
       })
 
@@ -339,8 +340,8 @@ export default function EditPurchaseOrderPage({ params }: { params: { po_id: str
                           type="number"
                           step="0.01"
                           min="0"
-                          value={(item.unit_cost_cents / 10000).toFixed(2)}
-                          onChange={(e) => updateItem(index, 'unit_cost_cents', Math.round(parseFloat(e.target.value) * 10000))}
+                          value={formatBRL(item.unit_cost_cents )}
+                          onChange={(e) => updateItem(index, 'unit_cost_cents', Math.round(parseFloat(e.target.value) * 100))}
                           disabled={purchaseOrder.status !== 'draft'}
                           className="input-fiori w-full"
                         />
@@ -349,7 +350,7 @@ export default function EditPurchaseOrderPage({ params }: { params: { po_id: str
                         <label className="text-sm font-medium text-gray-500">Total (R$)</label>
                         <input
                           type="text"
-                          value={(item.line_total_cents / 10000).toFixed(2)}
+                          value={formatBRL(item.line_total_cents )}
                           disabled
                           className="input-fiori w-full bg-gray-50"
                         />
@@ -388,7 +389,7 @@ export default function EditPurchaseOrderPage({ params }: { params: { po_id: str
               <div className="border-t pt-3">
                 <div className="flex justify-between text-lg font-semibold">
                   <span>Valor Total:</span>
-                  <span className="text-green-600">R$ {(calculateTotal() / 10000).toFixed(2)}</span>
+                  <span className="text-green-600">{formatBRL(calculateTotal())}</span>
                 </div>
               </div>
             </div>

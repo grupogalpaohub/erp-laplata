@@ -1,0 +1,183 @@
+{
+  "timestamp": "2025-09-24T19:25:50.190Z",
+  "filesProcessed": 179,
+  "filesWithIssues": 11,
+  "totalCorrections": 20,
+  "corrections": [
+    {
+      "file": "app\\admin\\logs\\material\\page.tsx",
+      "issues": [
+        {
+          "line": 39,
+          "content": "<td className=\"p-2 border text-right\">R$ {(Number(r.old_price||0)/100).toFixed(2)}</td>",
+          "pattern": "toFixed(2) sem formatação de moeda",
+          "suggested": "                <td className=\"p-2 border text-right\">R$ {(Number(r.old_price||0)/100)formatBRL(value)}</td>\r"
+        },
+        {
+          "line": 40,
+          "content": "<td className=\"p-2 border text-right\">R$ {(Number(r.new_price||0)/100).toFixed(2)}</td>",
+          "pattern": "toFixed(2) sem formatação de moeda",
+          "suggested": "                <td className=\"p-2 border text-right\">R$ {(Number(r.new_price||0)/100)formatBRL(value)}</td>\r"
+        }
+      ]
+    },
+    {
+      "file": "app\\api\\export\\material-logs\\route.ts",
+      "issues": [
+        {
+          "line": 20,
+          "content": "csv((Number(r.old_price||0)/100).toFixed(2)),",
+          "pattern": "toFixed(2) sem formatação de moeda",
+          "suggested": "      csv((Number(r.old_price||0)/100)formatBRL(value)),\r"
+        },
+        {
+          "line": 21,
+          "content": "csv((Number(r.new_price||0)/100).toFixed(2)),",
+          "pattern": "toFixed(2) sem formatação de moeda",
+          "suggested": "      csv((Number(r.new_price||0)/100)formatBRL(value)),\r"
+        }
+      ]
+    },
+    {
+      "file": "app\\fi\\dashboard\\page.tsx",
+      "issues": [
+        {
+          "line": 197,
+          "content": "{totalPayables > 0 ? (totalReceivables / totalPayables).toFixed(2) : 'N/A'}",
+          "pattern": "toFixed(2) sem formatação de moeda",
+          "suggested": "                  {totalPayables > 0 ? (totalReceivables / totalPayables)formatBRL(value) : 'N/A'}\r"
+        }
+      ]
+    },
+    {
+      "file": "app\\mm\\catalog\\ExportCSVButton.tsx",
+      "issues": [
+        {
+          "line": 43,
+          "content": "material.mm_price_cents ? (material.mm_price_cents / 100).toFixed(2) : '',",
+          "pattern": "toFixed(2) sem formatação de moeda",
+          "suggested": "        material.mm_price_cents ? (material.mm_price_cents / 100)formatBRL(value) : '',\r"
+        }
+      ]
+    },
+    {
+      "file": "app\\mm\\materials\\bulk-edit\\page.tsx",
+      "issues": [
+        {
+          "line": 326,
+          "content": "value={material.mm_price_cents ? (material.mm_price_cents / 100).toFixed(2) : ''}",
+          "pattern": "toFixed(2) sem formatação de moeda",
+          "suggested": "                      value={material.mm_price_cents ? (material.mm_price_cents / 100)formatBRL(value) : ''}\r"
+        },
+        {
+          "line": 337,
+          "content": "value={material.purchase_price_cents ? (material.purchase_price_cents / 100).toFixed(2) : ''}",
+          "pattern": "toFixed(2) sem formatação de moeda",
+          "suggested": "                      value={material.purchase_price_cents ? (material.purchase_price_cents / 100)formatBRL(value) : ''}\r"
+        }
+      ]
+    },
+    {
+      "file": "app\\mm\\materials\\[material_id]\\edit\\page.tsx",
+      "issues": [
+        {
+          "line": 233,
+          "content": "defaultValue={material.mm_price_cents ? toReais(material.mm_price_cents).toFixed(2) : ''}",
+          "pattern": "toFixed(2) sem formatação de moeda",
+          "suggested": "                defaultValue={material.mm_price_cents ? toReais(material.mm_price_cents)formatBRL(value) : ''}\r"
+        },
+        {
+          "line": 248,
+          "content": "defaultValue={material.mm_purchase_price_cents ? toReais(material.mm_purchase_price_cents).toFixed(2) : ''}",
+          "pattern": "toFixed(2) sem formatação de moeda",
+          "suggested": "                defaultValue={material.mm_purchase_price_cents ? toReais(material.mm_purchase_price_cents)formatBRL(value) : ''}\r"
+        }
+      ]
+    },
+    {
+      "file": "app\\mm\\purchases\\ExportCSVButton.tsx",
+      "issues": [
+        {
+          "line": 32,
+          "content": "(po.total_amount / 100).toFixed(2)",
+          "pattern": "toFixed(2) sem formatação de moeda",
+          "suggested": "        (po.total_amount / 100)formatBRL(value)\r"
+        }
+      ]
+    },
+    {
+      "file": "app\\mm\\purchases\\[po_id]\\edit\\page.tsx",
+      "issues": [
+        {
+          "line": 342,
+          "content": "value={(item.unit_cost_cents / 100).toFixed(2)}",
+          "pattern": "toFixed(2) sem formatação de moeda",
+          "suggested": "                          value={(item.unit_cost_cents / 100)formatBRL(value)}"
+        },
+        {
+          "line": 352,
+          "content": "value={(item.line_total_cents / 100).toFixed(2)}",
+          "pattern": "toFixed(2) sem formatação de moeda",
+          "suggested": "                          value={(item.line_total_cents / 100)formatBRL(value)}"
+        },
+        {
+          "line": 391,
+          "content": "<span className=\"text-green-600\">R$ {(calculateTotal() / 100).toFixed(2)}</span>",
+          "pattern": "toFixed(2) sem formatação de moeda",
+          "suggested": "                  <span className=\"text-green-600\">R$ {(calculateTotal() / 100)formatBRL(value)}</span>"
+        }
+      ]
+    },
+    {
+      "file": "app\\mm\\vendors\\ExportCSVButton.tsx",
+      "issues": [
+        {
+          "line": 57,
+          "content": "(vendor.total_movimentado || 0).toFixed(2)",
+          "pattern": "toFixed(2) sem formatação de moeda",
+          "suggested": "        (vendor.total_movimentado || 0)formatBRL(value)\r"
+        }
+      ]
+    },
+    {
+      "file": "app\\sd\\orders\\[so_id]\\print\\page.tsx",
+      "issues": [
+        {
+          "line": 148,
+          "content": "R$ {(item.unit_price_cents / 100).toFixed(2)}",
+          "pattern": "toFixed(2) sem formatação de moeda",
+          "suggested": "                      R$ {(item.unit_price_cents / 100)formatBRL(value)}\r"
+        },
+        {
+          "line": 151,
+          "content": "R$ {(item.line_total_cents / 100).toFixed(2)}",
+          "pattern": "toFixed(2) sem formatação de moeda",
+          "suggested": "                      R$ {(item.line_total_cents / 100)formatBRL(value)}\r"
+        },
+        {
+          "line": 167,
+          "content": "R$ {(order.total_cents / 100).toFixed(2)}",
+          "pattern": "toFixed(2) sem formatação de moeda",
+          "suggested": "                  R$ {(order.total_cents / 100)formatBRL(value)}\r"
+        }
+      ]
+    },
+    {
+      "file": "lib\\money.ts",
+      "issues": [
+        {
+          "line": 19,
+          "content": "return Math.round(input * 100)",
+          "pattern": "Multiplicação manual por 100",
+          "suggested": "    return toCents(value)\r"
+        },
+        {
+          "line": 34,
+          "content": "return Math.round(numericValue * 100)",
+          "pattern": "Multiplicação manual por 100",
+          "suggested": "  return toCents(value)\r"
+        }
+      ]
+    }
+  ]
+}

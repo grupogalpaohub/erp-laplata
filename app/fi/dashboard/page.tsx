@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import { createSupabaseServerClient } from '@/lib/supabaseServer'
 import { getTenantId } from '@/lib/auth'
+import { formatBRL } from '@/lib/money'
 import { ArrowLeft, TrendingUp, TrendingDown, DollarSign, BarChart3 } from 'lucide-react'
 
 export const dynamic = 'force-dynamic'
@@ -194,7 +195,7 @@ export default async function FIDashboardPage() {
               <div className="flex items-center justify-between">
                 <span className="text-fiori-muted">Razão Receb./Pagar</span>
                 <span className="font-semibold text-fiori-info">
-                  {totalPayables > 0 ? (totalReceivables / totalPayables).toFixed(2) : 'N/A'}
+                  {totalPayables > 0 ? formatBRL(Math.round((totalReceivables / totalPayables) * 100)) : 'N/A'}
                 </span>
               </div>
               <div className="flex items-center justify-between">

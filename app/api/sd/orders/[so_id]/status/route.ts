@@ -21,8 +21,8 @@ export async function PUT(
       )
     }
 
-    // Validar status permitidos
-    const allowedStatuses = ['draft', 'placed', 'approved', 'invoiced', 'cancelled']
+    // Validar status permitidos (conforme enum order_status no Supabase)
+    const allowedStatuses = ['draft', 'approved', 'invoiced', 'cancelled']
     if (!allowedStatuses.includes(status)) {
       return NextResponse.json(
         { error: 'Status inválido' },

@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import { createSupabaseServerClient } from '@/lib/supabaseServer'
 import { getTenantId } from '@/lib/auth'
+import { formatCurrency } from '@/lib/currency'
 import { ArrowLeft, Edit, CheckCircle, XCircle, DollarSign, Percent } from 'lucide-react'
 
 export const dynamic = 'force-dynamic'
@@ -251,16 +252,10 @@ export default async function SalesOrderDetailPage({ params }: { params: { so_id
                         </td>
                         <td className="text-right">{item.quantity}</td>
                         <td className="text-right">
-                          {(item.unit_price_cents / 100).toLocaleString('pt-BR', { 
-                            style: 'currency', 
-                            currency: 'BRL' 
-                          })}
+                          {formatCurrency(item.unit_price_cents)}
                         </td>
                         <td className="text-right font-medium">
-                          {(item.line_total_cents / 100).toLocaleString('pt-BR', { 
-                            style: 'currency', 
-                            currency: 'BRL' 
-                          })}
+                          {formatCurrency(item.line_total_cents)}
                         </td>
                       </tr>
                     ))}
@@ -282,29 +277,20 @@ export default async function SalesOrderDetailPage({ params }: { params: { so_id
               <div className="flex justify-between">
                 <span>Total dos Itens:</span>
                 <span className="font-medium">
-                  {(totalItems / 100).toLocaleString('pt-BR', { 
-                    style: 'currency', 
-                    currency: 'BRL' 
-                  })}
+                  {formatCurrency(totalItems)}
                 </span>
               </div>
               <div className="flex justify-between">
                 <span>Total Final:</span>
                 <span className="font-medium">
-                  {(totalFinal / 100).toLocaleString('pt-BR', { 
-                    style: 'currency', 
-                    currency: 'BRL' 
-                  })}
+                  {formatCurrency(totalFinal)}
                 </span>
               </div>
               {totalNegotiated !== totalFinal && (
                 <div className="flex justify-between text-fiori-primary">
                   <span>Total Negociado:</span>
                   <span className="font-bold">
-                    {(totalNegotiated / 100).toLocaleString('pt-BR', { 
-                      style: 'currency', 
-                      currency: 'BRL' 
-                    })}
+                    {formatCurrency(totalNegotiated)}
                   </span>
                 </div>
               )}
@@ -323,10 +309,7 @@ export default async function SalesOrderDetailPage({ params }: { params: { so_id
                   Margem (R$):
                 </span>
                 <span className={`font-medium ${margin >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                  {margin >= 0 ? '+' : ''}{(margin / 100).toLocaleString('pt-BR', { 
-                    style: 'currency', 
-                    currency: 'BRL' 
-                  })}
+                  {margin >= 0 ? '+' : ''}{formatCurrency(margin)}
                 </span>
               </div>
               <div className="flex justify-between">

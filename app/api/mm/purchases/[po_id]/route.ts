@@ -49,7 +49,7 @@ export async function PUT(
     const tenantId = await getTenantId()
 
     const body = await request.json()
-    const { vendor_id, po_date, expected_delivery, notes, total_amount } = body
+    const { vendor_id, po_date, expected_delivery, notes, total_cents } = body
 
     const { error } = await supabase
       .from('mm_purchase_order')
@@ -58,7 +58,7 @@ export async function PUT(
         po_date,
         expected_delivery,
         notes,
-        total_amount
+        total_cents
       })
       .eq('mm_order', params.po_id)
       .eq('tenant_id', tenantId)

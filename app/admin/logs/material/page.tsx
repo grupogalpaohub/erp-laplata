@@ -2,6 +2,7 @@ export const dynamic = 'force-dynamic'
 export const revalidate = 0
 export const runtime = 'nodejs'
 import { createSupabaseServerClient } from '@/lib/supabase/server'
+import { formatBRL } from '@/lib/money'
 
 export default async function MaterialLogsPage() {
   const supabase = createSupabaseServerClient()
@@ -36,8 +37,8 @@ export default async function MaterialLogsPage() {
             {(price ?? []).map((r:any, idx:number) => (
               <tr key={idx}>
                 <td className="p-2 border font-mono">{r.mm_material}</td>
-                <td className="p-2 border text-right">R$ {(Number(r.old_price||0)/100).toFixed(2)}</td>
-                <td className="p-2 border text-right">R$ {(Number(r.new_price||0)/100).toFixed(2)}</td>
+                <td className="p-2 border text-right">{formatBRL(Number(r.old_price||0))}</td>
+                <td className="p-2 border text-right">{formatBRL(Number(r.new_price||0))}</td>
                 <td className="p-2 border">{new Date(r.changed_at).toLocaleString()}</td>
                 <td className="p-2 border">{r.changed_by ?? '-'}</td>
               </tr>

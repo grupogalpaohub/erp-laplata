@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import { Upload, Download, CheckCircle, XCircle, AlertCircle } from 'lucide-react'
+import { formatBRL } from '@/lib/money'
 
 interface Material {
   mm_material?: string // ID do material (opcional para criação)
@@ -98,8 +99,8 @@ export default function BulkImportPage() {
           mm_mat_type: values[headers.indexOf('mm_mat_type')] || '',
           mm_mat_class: values[headers.indexOf('mm_mat_class')] || '',
           mm_vendor_id: values[headers.indexOf('mm_vendor_id')] || '',
-          mm_price_cents: parseFloat(values[headers.indexOf('mm_price_cents')] || '0') * 100,
-          mm_purchase_price_cents: parseFloat(values[headers.indexOf('mm_purchase_price_cents')] || '0') * 10000,
+          mm_price_cents: parseInt(values[headers.indexOf('mm_price_cents')] || '0'),
+          mm_purchase_price_cents: parseInt(values[headers.indexOf('mm_purchase_price_cents')] || '0'),
           mm_pur_link: values[headers.indexOf('mm_pur_link')] || undefined,
           lead_time_days: parseInt(values[headers.indexOf('lead_time_days')] || '0'),
           status: values[headers.indexOf('status')] || 'active'
@@ -387,3 +388,4 @@ export default function BulkImportPage() {
     </div>
   )
 }
+

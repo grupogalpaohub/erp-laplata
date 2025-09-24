@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { formatBRL } from '@/lib/money'
 
 interface PriceDisplayProps {
   materials: any[]
@@ -37,7 +38,9 @@ export default function PriceDisplay({ materials, materialIndex }: PriceDisplayP
 
   return (
     <div className="text-right text-sm text-gray-600">
-      {price !== null ? `R$ ${(price / 10000).toFixed(2)}` : '—'}
+      {price !== null ? formatBRL(price) : '—'}
     </div>
   )
 }
+
+

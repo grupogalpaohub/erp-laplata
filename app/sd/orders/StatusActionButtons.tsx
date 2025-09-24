@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { CheckCircle, XCircle } from 'lucide-react'
+import { CheckCircle, XCircle, Edit, Eye } from 'lucide-react'
 import Link from 'next/link'
 
 interface StatusActionButtonsProps {
@@ -44,26 +44,26 @@ export default function StatusActionButtons({ soId, currentStatus, onStatusChang
     switch (currentStatus) {
       case 'draft':
         return (
-          <div className="flex gap-2">
+          <>
             <Link href={`/sd/orders/${soId}/edit`} className="btn-fiori-outline text-xs flex items-center gap-1">
               <Edit className="w-3 h-3" />
               Editar
             </Link>
             <button 
-              onClick={() => updateStatus('placed')}
+              onClick={() => updateStatus('approved')}
               disabled={loading}
               className="btn-fiori-primary text-xs flex items-center gap-1 disabled:opacity-50"
             >
               <CheckCircle className="w-3 h-3" />
               {loading ? 'Aprovando...' : 'Aprovar'}
             </button>
-          </div>
+          </>
         )
-      case 'placed':
+      case 'approved':
         return (
-          <div className="flex gap-2">
+          <>
             <button 
-              onClick={() => updateStatus('approved')}
+              onClick={() => updateStatus('invoiced')}
               disabled={loading}
               className="btn-fiori-primary text-xs flex items-center gap-1 disabled:opacity-50"
             >
@@ -78,25 +78,32 @@ export default function StatusActionButtons({ soId, currentStatus, onStatusChang
               <XCircle className="w-3 h-3" />
               {loading ? 'Cancelando...' : 'Cancelar'}
             </button>
-          </div>
+          </>
         )
-      case 'approved':
+      case 'invoiced':
         return (
-          <div className="flex gap-2">
-            <button 
-              onClick={() => updateStatus('invoiced')}
-              disabled={loading}
-              className="btn-fiori-primary text-xs flex items-center gap-1 disabled:opacity-50"
-            >
-              <CheckCircle className="w-3 h-3" />
-              {loading ? 'Processando...' : 'Finalizar'}
-            </button>
-          </div>
+          <>
+            <span className="text-xs text-green-600 font-medium">
+              Pedido Finalizado
+            </span>
+          </>
+        )
+      case 'cancelled':
+        return (
+          <>
+            <span className="text-xs text-red-600 font-medium">
+              Pedido Cancelado
+            </span>
+          </>
         )
       default:
         return null
     }
   }
 
-  return getStatusActions()
+  return (
+    <div className="flex gap-2">
+      {getStatusActions()}
+    </div>
+  )
 }

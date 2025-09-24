@@ -1,9 +1,9 @@
-export const dynamic = 'force-dynamic'
-export const revalidate = 0
-import { createClient } from '@supabase/supabase-js'
-import { getTenantId } from '@/lib/auth'
+'use client'
+
+import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { CheckCircle, XCircle } from 'lucide-react'
+import { formatBRL } from '@/lib/money'
 import ExportCSVButton from './ExportCSVButton'
 
 type Material = {
@@ -13,6 +13,8 @@ type Material = {
   mm_mat_type: string | null
   mm_mat_class: string | null
   mm_price_cents: number | null
+  mm_purchase_price_cents: number | null
+  mm_pur_link: string | null
   commercial_name: string | null
   lead_time_days: number | null
   mm_vendor_id: string | null
@@ -20,65 +22,42 @@ type Material = {
   mm_vendor?: { vendor_name: string }
 }
 
-export default async function CatalogoMateriais({ searchParams }: { searchParams: { success?: string; error?: string } }) {
-  // Usar service role key diretamente para bypass RLS
-  const supabase = createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!
-  )
-  const tenantId = await getTenantId()
+export default function CatalogoMateriais({ searchParams }: { searchParams: { success?: string; error?: string } }) {
+  const [materials, setMaterials] = useState<Material[]>([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
 
-  // Buscar materiais
-  const { data: materials, error: materialsError } = await supabase
-    .from('mm_material')
-    .select(`
-      mm_material, 
-      mm_comercial, 
-      mm_desc, 
-      mm_mat_type, 
-      mm_mat_class, 
-      mm_price_cents, 
-      mm_purchase_price_cents,
-      mm_pur_link,
-      commercial_name, 
-      lead_time_days, 
-      mm_vendor_id, 
-      status
-    `)
-    .eq('tenant_id', tenantId)
-    .order('mm_material', { ascending: true })
+  useEffect(() => {
+    const loadMaterials = async () => {
+      try {
+        const response = await fetch('/api/mm/materials')
+        if (response.ok) {
+          const data = await response.json()
+          setMaterials(data)
+        } else {
+          setError('Erro ao carregar materiais')
+        }
+      } catch (err) {
+        console.error('Erro ao carregar materiais:', err)
+        setError('Erro interno do servidor')
+      } finally {
+        setLoading(false)
+      }
+    }
 
-  // Buscar fornecedores
-  const { data: vendors, error: vendorsError } = await supabase
-    .from('mm_vendor')
-    .select('vendor_id, vendor_name')
-    .eq('tenant_id', tenantId)
+    loadMaterials()
+  }, [])
 
-  // Combinar dados
-  const data = materials?.map(material => ({
-    ...material,
-    mm_vendor: vendors?.find(v => v.vendor_id === material.mm_vendor_id)
-  })) || []
-
-  const error = materialsError || vendorsError
-  
-  console.log('[catalog] query result:', { data, error })
-
-  if (error) {
+  if (loading) {
     return (
-      <main className="mx-auto max-w-7xl px-4 py-6 space-y-6">
-        <div>
-          <h1 className="text-2xl font-semibold">Catálogo de Materiais</h1>
-          <p className="text-gray-500 mt-1">Gerencie materiais e fornecedores</p>
+      <div className="space-y-8">
+        <div className="text-center mb-12">
+          <h1 className="text-4xl font-bold text-fiori-primary mb-4">Catálogo de Materiais</h1>
+          <p className="text-xl text-fiori-secondary mb-2">Carregando catálogo...</p>
         </div>
-        <div className="alert-fiori-danger">
-          Erro ao carregar materiais: {error.message}
-        </div>
-      </main>
+      </div>
     )
   }
-
-  const materiais = (data ?? []) as Material[]
 
   return (
     <div className="space-y-8">
@@ -89,7 +68,7 @@ export default async function CatalogoMateriais({ searchParams }: { searchParams
         <p className="text-lg text-fiori-muted">Visualize e gerencie todos os materiais cadastrados</p>
       </div>
 
-      {/* Messages */}
+      {/* Success Message */}
       {searchParams.success && (
         <div className="bg-green-50 border border-green-200 rounded-lg p-4 flex items-center gap-3">
           <CheckCircle className="w-5 h-5 text-green-600" />
@@ -97,20 +76,21 @@ export default async function CatalogoMateriais({ searchParams }: { searchParams
         </div>
       )}
 
-      {searchParams.error && (
+      {/* Error Message */}
+      {(searchParams.error || error) && (
         <div className="bg-red-50 border border-red-200 rounded-lg p-4 flex items-center gap-3">
           <XCircle className="w-5 h-5 text-red-600" />
-          <p className="text-red-800 font-medium">{searchParams.error}</p>
+          <p className="text-red-800 font-medium">{searchParams.error || error}</p>
         </div>
       )}
 
       {/* Actions */}
       <div className="flex justify-center gap-4 mb-8">
         <Link href="/mm/materials/new" className="btn-fiori-primary">Novo Material</Link>
-        <ExportCSVButton materiais={materiais} />
+        <ExportCSVButton materiais={materials} />
       </div>
 
-      {materiais.length === 0 ? (
+      {materials.length === 0 ? (
         <div className="card-fiori text-center py-12">
           <div className="text-fiori-secondary text-lg">Nenhum material encontrado.</div>
           <Link href="/mm/materials/new" className="btn-fiori-primary mt-4 inline-block">Criar Primeiro Material</Link>
@@ -136,7 +116,7 @@ export default async function CatalogoMateriais({ searchParams }: { searchParams
                 </tr>
               </thead>
               <tbody>
-                {materiais.map((material) => (
+                {materials.map((material) => (
                   <tr key={material.mm_material}>
                     <td className="font-mono text-sm font-medium text-blue-600">{material.mm_material}</td>
                     <td>
@@ -146,10 +126,10 @@ export default async function CatalogoMateriais({ searchParams }: { searchParams
                     <td>{material.mm_mat_type || "-"}</td>
                     <td>{material.mm_mat_class || "-"}</td>
                     <td className="text-right font-medium">
-                      {material.mm_purchase_price_cents != null ? `R$ ${(material.mm_purchase_price_cents / 10000).toFixed(2)}` : "-"}
+                      {material.mm_purchase_price_cents != null ? formatBRL(material.mm_purchase_price_cents) : "-"}
                     </td>
                     <td className="text-right font-medium">
-                      {material.mm_price_cents != null ? `R$ ${(material.mm_price_cents / 100).toFixed(2)}` : "-"}
+                      {material.mm_price_cents != null ? formatBRL(material.mm_price_cents) : "-"}
                     </td>
                     <td>
                       {(material.mm_vendor?.vendor_name ?? material.mm_vendor_id ?? "-")}
@@ -168,15 +148,15 @@ export default async function CatalogoMateriais({ searchParams }: { searchParams
                     </td>
                     <td>
                       <span className={`badge-fiori ${
-                        (material.status ?? 'active') === 'active'
-                          ? 'badge-fiori-success'
-                          : 'badge-fiori-danger'
+                        material.status === 'active' ? 'badge-fiori-success' : 
+                        material.status === 'inactive' ? 'badge-fiori-warning' : 
+                        'badge-fiori-error'
                       }`}>
-                        {material.status ?? 'active'}
+                        {material.status || "-"}
                       </span>
                     </td>
                     <td className="text-right">
-                      {material.lead_time_days != null ? `${material.lead_time_days} dias` : "-"}
+                      {material.lead_time_days ? `${material.lead_time_days} dias` : "-"}
                     </td>
                     <td>
                       <div className="flex gap-2">

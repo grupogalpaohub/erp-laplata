@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import { createSupabaseServerClient } from '@/lib/supabaseServer'
 import { getTenantId } from '@/lib/auth'
+import { formatCurrency } from '@/lib/currency'
 import { ArrowLeft, Save, X, Plus, Trash2 } from 'lucide-react'
 import EditSalesOrderForm from './EditSalesOrderForm'
 

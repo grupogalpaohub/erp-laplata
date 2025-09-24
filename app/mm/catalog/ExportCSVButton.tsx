@@ -1,5 +1,7 @@
 'use client'
 
+import { formatBRL } from '@/lib/money'
+
 interface Material {
   mm_material: string
   mm_comercial: string | null
@@ -40,7 +42,7 @@ export default function ExportCSVButton({ materiais }: ExportCSVButtonProps) {
         `"${material.mm_desc.replace(/"/g, '""')}"`,
         material.mm_mat_type || '',
         material.mm_mat_class || '',
-        material.mm_price_cents ? (material.mm_price_cents / 100).toFixed(2) : '',
+        material.mm_price_cents ? formatBRL(material.mm_price_cents ) : '',
         `"${(material.mm_vendor?.[0]?.vendor_name ?? material.mm_vendor_id ?? '').replace(/"/g, '""')}"`,
         material.status || 'active',
         material.lead_time_days || ''
@@ -67,3 +69,4 @@ export default function ExportCSVButton({ materiais }: ExportCSVButtonProps) {
     </button>
   )
 }
+

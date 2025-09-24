@@ -9,7 +9,7 @@ interface PurchaseOrder {
   vendor_id: string
   po_date: string
   status: string
-  total_amount: number
+  total_cents: number
   expected_delivery?: string
   notes?: string
   created_at: string
@@ -42,7 +42,7 @@ export default function PurchaseOrderClient({ order, items }: PurchaseOrderClien
         const { data, error } = await supabase
           .from('mm_vendor')
           .select('*')
-          .eq('mm_vendor', order.vendor_id)
+          .eq('vendor_id', order.vendor_id)
           .eq('tenant_id', 'LaplataLunaria')
           .single()
 
@@ -81,7 +81,7 @@ export default function PurchaseOrderClient({ order, items }: PurchaseOrderClien
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-700">Fornecedor</label>
-            <p className="mt-1 text-sm text-gray-900">{vendor?.name || 'Carregando...'}</p>
+            <p className="mt-1 text-sm text-gray-900">{vendor?.vendor_name || 'Carregando...'}</p>
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-700">Data do Pedido</label>

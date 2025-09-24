@@ -3,6 +3,8 @@
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { Save, X, Plus, Trash2 } from 'lucide-react'
+import { formatCurrency, toCents } from '@/lib/currency'
+import { updateOrderAction, addOrderItemAction, removeOrderItemAction } from '../_actions'
 
 interface OrderItem {
   temp_id: string
@@ -43,7 +45,7 @@ export default function EditSalesOrderForm({ order, customers, materials }: Edit
   const [notes, setNotes] = useState(order.notes || '')
   const [status, setStatus] = useState(order.status || 'draft')
   const [totalNegotiatedReais, setTotalNegotiatedReais] = useState(
-    order.total_negotiated_cents ? (order.total_negotiated_cents / 100).toFixed(2) : ''
+    order.total_negotiated_cents ? formatCurrency(order.total_negotiated_cents) : ''
   )
   const [items, setItems] = useState<OrderItem[]>([])
   const [isLoading, setIsLoading] = useState(false)

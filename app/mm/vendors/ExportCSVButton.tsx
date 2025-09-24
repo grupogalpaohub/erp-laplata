@@ -1,5 +1,7 @@
 'use client'
 
+import { formatBRL } from '@/lib/money'
+
 interface Vendor {
   vendor_id: string
   vendor_name: string
@@ -54,7 +56,7 @@ export default function ExportCSVButton({ vendors }: ExportCSVButtonProps) {
           : '').replace(/"/g, '""')}"`,
         vendor.payment_terms ? `${vendor.payment_terms} dias` : '',
         vendor.status === 'active' ? 'Ativo' : 'Inativo',
-        (vendor.total_movimentado || 0).toFixed(2)
+        formatBRL(vendor.total_movimentado || 0)
       ].join(','))
     ].join('\n')
     

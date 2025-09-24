@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { Save, X, Plus, Trash2 } from 'lucide-react'
+import { formatBRL, toCents } from '@/lib/money'
 
 interface OrderItem {
   temp_id: string
@@ -95,7 +96,7 @@ export default function NewSalesOrderForm({ customers, materials, selectedCustom
   
   // Cálculo de KPIs
   const totalNegotiatedCents = totalNegotiatedReais ? 
-    Math.round(parseFloat(totalNegotiatedReais.replace(',', '.')) * 100) : 
+    toCents(totalNegotiatedReais) : 
     totalFinalCents
   
   // Gap entre valor final e valor negociado
@@ -363,7 +364,7 @@ export default function NewSalesOrderForm({ customers, materials, selectedCustom
                     <td>
                       <input
                         type="text"
-                        value={(item.unit_price_cents / 100).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                        value={formatBRL(item.unit_price_cents)}
                         readOnly
                         className="input-fiori bg-fiori-bg-secondary w-24 text-right"
                       />
@@ -371,7 +372,7 @@ export default function NewSalesOrderForm({ customers, materials, selectedCustom
                     <td>
                       <input
                         type="text"
-                        value={(item.line_total_cents / 100).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                        value={formatBRL(item.line_total_cents)}
                         readOnly
                         className="input-fiori bg-fiori-bg-secondary w-24 text-right"
                       />
@@ -408,7 +409,7 @@ export default function NewSalesOrderForm({ customers, materials, selectedCustom
                 type="text"
                 id="total_final_cents"
                 name="total_final_cents"
-                value={(totalFinalCents / 100).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                value={formatBRL(totalFinalCents)}
                 readOnly
                 className="input-fiori bg-fiori-bg-secondary"
               />
@@ -443,7 +444,7 @@ export default function NewSalesOrderForm({ customers, materials, selectedCustom
               <div className="bg-yellow-50 p-4 rounded-lg">
                 <div className="text-sm text-yellow-600 font-medium">Gap Final vs Negociado</div>
                 <div className="text-2xl font-bold text-yellow-800">
-                  R$ {(valueGapCents / 100).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                  {formatBRL(valueGapCents)}
                 </div>
                 <div className="text-xs text-yellow-600">
                   {valueGapCents > 0 ? `Desconto (${valueGapPercent.toFixed(1)}%)` : valueGapCents < 0 ? `Acréscimo (${Math.abs(valueGapPercent).toFixed(1)}%)` : 'Iguais (0%)'}
@@ -453,7 +454,7 @@ export default function NewSalesOrderForm({ customers, materials, selectedCustom
               <div className="bg-blue-50 p-4 rounded-lg">
                 <div className="text-sm text-blue-600 font-medium">Lucro (Valor Final) R$</div>
                 <div className="text-2xl font-bold text-blue-800">
-                  R$ {(profitFinalCents / 100).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                  {formatBRL(profitFinalCents)}
                 </div>
                 <div className="text-xs text-blue-600">
                   Sobre valor final
@@ -473,7 +474,7 @@ export default function NewSalesOrderForm({ customers, materials, selectedCustom
               <div className="bg-green-50 p-4 rounded-lg">
                 <div className="text-sm text-green-600 font-medium">Lucro (Negociado) R$</div>
                 <div className="text-2xl font-bold text-green-800">
-                  R$ {(profitNegotiatedCents / 100).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                  {formatBRL(profitNegotiatedCents)}
                 </div>
                 <div className="text-xs text-green-600">
                   Sobre valor negociado
@@ -517,3 +518,5 @@ export default function NewSalesOrderForm({ customers, materials, selectedCustom
     </form>
   )
 }
+
+

@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import { createSupabaseServerClient } from '@/lib/supabaseServer'
 import { getTenantId } from '@/lib/auth'
+import { formatBRL } from '@/lib/money'
 import { Search, Download, Plus, Eye, Edit, CheckCircle, XCircle } from 'lucide-react'
 import StatusActionButtons from './StatusActionButtons'
 
@@ -215,13 +216,13 @@ export default async function SalesOrdersPage() {
                       </td>
                       <td>
                         <div className="text-sm font-semibold">
-                          R$ {((order.total_cents || 0) / 100).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                          {formatBRL(order.total_cents || 0)}
                         </div>
                       </td>
                       <td>
                         <div className="text-sm">
                           {order.total_negotiated_cents 
-                            ? `R$ ${(order.total_negotiated_cents / 100).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`
+                            ? formatBRL(order.total_negotiated_cents)
                             : '-'
                           }
                         </div>
@@ -288,3 +289,5 @@ export default async function SalesOrdersPage() {
     </div>
   )
 }
+
+

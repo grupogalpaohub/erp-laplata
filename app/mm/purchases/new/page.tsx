@@ -1,35 +1,65 @@
-import { createClient } from '@supabase/supabase-js'
-import { getTenantId } from '@/lib/auth'
+'use client'
+
+import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import NewPOClient from './NewPOClient'
 
-export const dynamic = 'force-dynamic'
-export const revalidate = 0
+type Vendor = {
+  vendor_id: string
+  vendor_name: string
+}
 
-export default async function NewPOPage() {
-  const supabase = createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!
-  )
-  const tenantId = await getTenantId()
+type Material = {
+  mm_material: string
+  mm_comercial: string | null
+  mm_desc: string
+  mm_purchase_price_cents: number | null
+}
 
-  // Buscar dados iniciais
-  const [vendorsResult, materialsResult] = await Promise.all([
-    supabase
-      .from('mm_vendor')
-      .select('vendor_id, vendor_name')
-      .eq('tenant_id', tenantId)
-      .eq('status', 'active')
-      .order('vendor_name'),
-    supabase
-      .from('mm_material')
-      .select('mm_material, mm_comercial, mm_desc, mm_purchase_price_cents')
-      .eq('tenant_id', tenantId)
-      .order('mm_material')
-  ])
+export default function NewPOPage() {
+  const [vendors, setVendors] = useState<Vendor[]>([])
+  const [materials, setMaterials] = useState<Material[]>([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
 
-  const vendors = vendorsResult.data || []
-  const materials = materialsResult.data || []
+  useEffect(() => {
+    const loadData = async () => {
+      try {
+        const [vendorsRes, materialsRes] = await Promise.all([
+          fetch('/api/mm/vendors'),
+          fetch('/api/mm/materials')
+        ])
+
+        if (vendorsRes.ok) {
+          const vendorsData = await vendorsRes.json()
+          setVendors(vendorsData)
+        }
+
+        if (materialsRes.ok) {
+          const materialsData = await materialsRes.json()
+          setMaterials(materialsData)
+        }
+      } catch (err) {
+        console.error('Erro ao carregar dados:', err)
+        setError('Erro ao carregar dados iniciais')
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    loadData()
+  }, [])
+
+  if (loading) {
+    return (
+      <div className="space-y-8">
+        <div className="text-center mb-12">
+          <h1 className="text-4xl font-bold text-fiori-primary mb-4">Criar Pedido de Compras</h1>
+          <p className="text-xl text-fiori-secondary mb-2">Carregando...</p>
+        </div>
+      </div>
+    )
+  }
 
   return (
     <div className="space-y-8">
@@ -39,6 +69,13 @@ export default async function NewPOPage() {
         <p className="text-xl text-fiori-secondary mb-2">Gerar novo pedido de compras</p>
         <p className="text-lg text-fiori-muted">Selecione fornecedor e materiais para criar o pedido</p>
       </div>
+
+      {/* Error Message */}
+      {error && (
+        <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+          <p className="text-red-800 font-medium">{error}</p>
+        </div>
+      )}
 
       {/* Back Button */}
       <div className="flex justify-center">

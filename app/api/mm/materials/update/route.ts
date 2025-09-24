@@ -1,6 +1,7 @@
 import { createClient } from '@supabase/supabase-js'
 import { getTenantId } from '@/lib/auth'
 import { NextRequest, NextResponse } from 'next/server'
+import { toCents, formatBRL } from '@/lib/money'
 
 export const runtime = 'nodejs'
 
@@ -31,8 +32,8 @@ export async function POST(request: NextRequest) {
     }
 
     // Converter preços para centavos
-    const priceCents = mm_price_cents ? Math.round(parseFloat(mm_price_cents) * 100) : null
-    const purchasePriceCents = mm_purchase_price_cents ? Math.round(parseFloat(mm_purchase_price_cents) * 10000) : null
+    const priceCents = mm_price_cents ? toCents(mm_price_cents) : null
+    const purchasePriceCents = mm_purchase_price_cents ? toCents(mm_purchase_price_cents) : null
 
     // Preparar dados para atualização
     const updateData: any = {
@@ -71,3 +72,4 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'Erro interno do servidor' }, { status: 500 })
   }
 }
+

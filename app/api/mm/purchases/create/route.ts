@@ -1,8 +1,7 @@
+import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import { getTenantId } from '@/lib/auth'
-import { NextRequest, NextResponse } from 'next/server'
-
-export const runtime = 'nodejs'
+import { toCents, formatBRL } from '@/lib/money'
 
 export async function POST(request: NextRequest) {
   try {
@@ -15,123 +14,110 @@ export async function POST(request: NextRequest) {
     const body = await request.json()
     const { vendor_id, po_date, expected_delivery, notes, items } = body
 
+    // Validar campos obrigatórios
     if (!vendor_id) {
-      return NextResponse.json({ error: 'Fornecedor é obrigatório' }, { status: 400 })
+      return NextResponse.json({ 
+        success: false, 
+        error: 'Fornecedor é obrigatório' 
+      }, { status: 400 })
+    }
+
+    if (!po_date) {
+      return NextResponse.json({ 
+        success: false, 
+        error: 'Data do pedido é obrigatória' 
+      }, { status: 400 })
     }
 
     if (!items || items.length === 0) {
-      return NextResponse.json({ error: 'Adicione pelo menos um item ao pedido' }, { status: 400 })
+      return NextResponse.json({ 
+        success: false, 
+        error: 'Adicione pelo menos um item' 
+      }, { status: 400 })
     }
 
-    // Gerar ID do pedido único
-    const generateOrderId = async () => {
-      let attempts = 0
-      const maxAttempts = 10
+    // Gerar ID do pedido
+    const generatePOId = async () => {
+      const { data: lastPO } = await supabase
+        .from('mm_purchase_order')
+        .select('po_id')
+        .eq('tenant_id', tenantId)
+        .order('po_id', { ascending: false })
+        .limit(1)
       
-      while (attempts < maxAttempts) {
-        // Buscar último pedido para este tenant
-        const { data: lastOrder } = await supabase
-          .from('mm_purchase_order')
-          .select('mm_order')
-          .eq('tenant_id', tenantId)
-          .order('mm_order', { ascending: false })
-          .limit(1)
-        
-        let nextNum = 1
-        if (lastOrder && lastOrder.length > 0) {
-          const lastId = lastOrder[0].mm_order
-          const lastNum = parseInt(lastId.replace('PO-', ''))
-          nextNum = lastNum + 1
-        }
-        
-        const candidateId = `PO-${nextNum.toString().padStart(6, '0')}`
-        
-        // Verificar se o ID já existe
-        const { data: existingOrder } = await supabase
-          .from('mm_purchase_order')
-          .select('mm_order')
-          .eq('mm_order', candidateId)
-          .single()
-        
-        if (!existingOrder) {
-          return candidateId
-        }
-        
-        attempts++
+      let nextNum = 1
+      if (lastPO && lastPO.length > 0) {
+        const lastId = lastPO[0].po_id
+        const lastNum = parseInt(lastId.replace('PO-', ''))
+        nextNum = lastNum + 1
       }
       
-      // Se chegou aqui, usar timestamp como fallback
-      return `PO-${Date.now().toString().slice(-6)}`
+      return `PO-${nextNum.toString().padStart(6, '0')}`
     }
 
-    const orderId = await generateOrderId()
+    const poId = await generatePOId()
 
-    // Criar header do pedido
-    const header = {
-      tenant_id: tenantId,
-      mm_order: orderId,
-      vendor_id: vendor_id,
-      po_date: po_date,
-      expected_delivery: expected_delivery || null,
-      notes: notes || null,
-      status: 'draft' as const,
-      total_amount: 0, // Será calculado
-    }
+    // Calcular total
+    const totalCents = items.reduce((sum: number, item: any) => {
+      return sum + toCents(item.total)
+    }, 0)
 
-    const { data: headerData, error: headerError } = await supabase
+    // Criar cabeçalho do pedido
+    const { data: poData, error: poError } = await supabase
       .from('mm_purchase_order')
-      .insert(header)
-      .select('mm_order')
+      .insert([{
+        tenant_id: tenantId,
+        po_id: poId,
+        vendor_id: vendor_id,
+        po_date: po_date,
+        expected_delivery: expected_delivery || null,
+        notes: notes || null,
+        status: 'draft',
+        total_cents: totalCents,
+        created_at: new Date().toISOString()
+      }])
+      .select('po_id')
       .single()
 
-    if (headerError) {
-      console.error('Erro ao criar cabeçalho do pedido:', headerError)
-      return NextResponse.json({ error: `Erro ao criar pedido: ${headerError.message}` }, { status: 500 })
+    if (poError) {
+      console.error('Error creating purchase order:', poError)
+      return NextResponse.json({ 
+        success: false, 
+        error: poError.message 
+      }, { status: 500 })
     }
 
     // Criar itens do pedido
-    const orderItems = items.map((item: any, index: number) => ({
+    const orderItems = items.map((item: any) => ({
       tenant_id: tenantId,
-      mm_order: headerData.mm_order,
-      plant_id: 'WH-001',
-      mm_material: item.material,
+      po_id: poId,
+      material_id: item.material_id,
       mm_qtt: item.quantity,
-      unit_cost_cents: Math.round(item.unitPrice * 10000),
-      line_total_cents: Math.round(item.total * 10000),
-      currency: 'BRL'
+      unit_cost_cents: toCents(item.unit_price),
+      line_total_cents: toCents(item.total)
     }))
 
-    // Inserir itens do pedido
     const { error: itemsError } = await supabase
       .from('mm_purchase_order_item')
       .insert(orderItems)
 
     if (itemsError) {
-      console.error('Erro ao inserir itens do pedido:', itemsError)
-      return NextResponse.json({ error: `Erro ao inserir itens do pedido: ${itemsError.message}` }, { status: 500 })
-    }
-
-    // Atualizar total_amount no cabeçalho do pedido (já em centavos)
-    const totalAmount = items.reduce((sum: number, item: any) => sum + Math.round(item.total * 10000), 0)
-    const { error: updateError } = await supabase
-      .from('mm_purchase_order')
-      .update({ total_amount: totalAmount })
-      .eq('mm_order', headerData.mm_order)
-
-    if (updateError) {
-      console.error('Erro ao atualizar total do pedido:', updateError)
-      return NextResponse.json({ error: `Erro ao atualizar total do pedido: ${updateError.message}` }, { status: 500 })
+      console.error('Error creating purchase order items:', itemsError)
+      return NextResponse.json({ 
+        success: false, 
+        error: itemsError.message 
+      }, { status: 500 })
     }
 
     return NextResponse.json({ 
       success: true, 
-      mm_order: headerData.mm_order,
-      message: 'Pedido criado com sucesso'
+      po_id: poData.po_id 
     })
 
   } catch (error) {
-    console.error('Erro inesperado ao criar pedido:', error)
+    console.error('Error creating purchase order:', error)
     return NextResponse.json({ 
+      success: false, 
       error: 'Erro interno do servidor' 
     }, { status: 500 })
   }

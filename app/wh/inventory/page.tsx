@@ -1,291 +1,213 @@
-import Link from 'next/link'
 import { createSupabaseServerClient } from '@/lib/supabaseServer'
 import { getTenantId } from '@/lib/auth'
-import { Search, Download, Filter, Package, AlertTriangle, XCircle } from 'lucide-react'
+import Link from 'next/link'
+import { Package, Eye, TrendingUp, AlertTriangle } from 'lucide-react'
 
 export const dynamic = 'force-dynamic'
 export const revalidate = 0
-export const fetchCache = 'force-no-store'
 
 interface InventoryItem {
-  material_id: string
-  qty_on_hand: number
-  qty_reserved: number
-  unit: string
-  warehouse_id: string
-  mm_material: {
-    mm_material: string
+  tenant_id: string
+  plant_id: string
+  mm_material: string
+  on_hand_qty: number
+  reserved_qty: number
+  available_qty: number
+  mm_material_data?: {
     mm_comercial: string
     mm_desc: string
-    collection: string
-    material_unit: string
-  }[]
+    mm_price_cents: number
+  }
 }
 
 export default async function InventoryPage() {
-  let items: InventoryItem[] = []
-  let totalCount = 0
+  const supabase = createSupabaseServerClient()
+  const tenantId = await getTenantId()
 
-  try {
-    const supabase = createSupabaseServerClient()
-    const tenantId = await getTenantId()
+  // Buscar posição de estoque
+  const { data: inventoryData, error } = await supabase
+    .from('v_wh_stock')
+    .select(`
+      *,
+      mm_material_data:mm_material(
+        mm_comercial,
+        mm_desc,
+        mm_price_cents
+      )
+    `)
+    .eq('tenant_id', tenantId)
+    .order('mm_material')
 
-    // Buscar itens de estoque com paginação
-    const { data, count, error } = await supabase
-      .from('wh_inventory_balance')
-      .select(`
-        material_id,
-        qty_on_hand,
-        qty_reserved,
-        unit,
-        warehouse_id,
-        mm_material!inner(mm_material, mm_comercial, mm_desc, collection, material_unit)
-      `, { count: 'exact' })
-      .eq('tenant_id', tenantId)
-      .gt('qty_on_hand', 0)
-      .order('mm_material(mm_comercial)')
-      .limit(50)
-
-    if (error) {
-      console.error('Error loading inventory items:', error)
-    } else {
-      items = data || []
-      totalCount = count || 0
-    }
-
-  } catch (error) {
-    console.error('Error loading inventory items:', error)
+  if (error) {
+    console.error('Error fetching inventory:', error)
   }
 
-  const getStatusBadge = (status: string) => {
-    switch (status) {
-      case 'Ativo':
-        return <span className="badge-fiori badge-fiori-success">Ativo</span>
-      case 'Em Reposição':
-        return <span className="badge-fiori badge-fiori-warning">Em Reposição</span>
-      case 'Zerado':
-        return <span className="badge-fiori badge-fiori-danger">Zerado</span>
-      case 'Bloqueado':
-        return <span className="badge-fiori badge-fiori-neutral">Bloqueado</span>
-      default:
-        return <span className="badge-fiori badge-fiori-neutral">{status}</span>
-    }
-  }
+  const inventory: InventoryItem[] = inventoryData || []
 
-  const getStatusIcon = (status: string) => {
-    switch (status) {
-      case 'Em Reposição':
-        return <AlertTriangle className="w-4 h-4 text-fiori-warning" />
-      case 'Zerado':
-        return <XCircle className="w-4 h-4 text-fiori-danger" />
-      default:
-        return <Package className="w-4 h-4 text-fiori-muted" />
-    }
-  }
+  // Calcular estatísticas
+  const totalValue = inventory.reduce((total, item) => {
+    const price = item.mm_material_data?.mm_price_cents || 0
+    return total + (item.on_hand_qty * price)
+  }, 0)
+
+  const lowStockItems = inventory.filter(item => item.on_hand_qty < 10).length
+  const zeroStockItems = inventory.filter(item => item.on_hand_qty === 0).length
 
   return (
-    <div className="space-y-8">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold text-fiori-primary">Central de Estoque</h1>
-          <p className="text-fiori-secondary mt-2">
-            {totalCount} item{totalCount !== 1 ? 's' : ''} em estoque
-          </p>
+    <div className="container-fiori">
+      <div className="section-fiori">
+        <div className="flex items-center justify-between mb-8">
+          <div>
+            <h1 className="text-3xl font-bold text-fiori-primary">Posição de Estoque</h1>
+            <p className="text-fiori-secondary mt-2">Visão completa do inventário por material</p>
+          </div>
+          <div className="flex gap-4">
+            <Link href="/wh" className="btn-fiori-secondary">
+              ← Voltar
+            </Link>
+            <Link href="/wh/movements" className="btn-fiori-primary">
+              Ver Movimentações
+            </Link>
+          </div>
         </div>
-        <div className="flex gap-3">
-          <Link href="/wh" className="btn-fiori-outline">
-            Voltar para WH
-          </Link>
-        </div>
-      </div>
 
-      {/* Filtros */}
-      <div className="card-fiori">
-        <div className="card-fiori-header">
-          <h3 className="card-fiori-title">Filtros</h3>
-        </div>
-        <div className="card-fiori-content">
-          <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
-            <div>
-              <label className="label-fiori">Pesquisar</label>
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-fiori-muted" />
-                <input
-                  type="text"
-                  placeholder="Material, coleção..."
-                  className="input-fiori pl-10"
-                />
+        {/* Estatísticas */}
+        <div className="grid-fiori-4 mb-8">
+          <div className="tile-fiori">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="tile-fiori-subtitle">Valor Total</p>
+                <p className="tile-fiori-metric">
+                  R$ {(totalValue / 100).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                </p>
               </div>
-            </div>
-            <div>
-              <label className="label-fiori">Status</label>
-              <select className="select-fiori">
-                <option value="">Todos</option>
-                <option value="Ativo">Ativo</option>
-                <option value="Em Reposição">Em Reposição</option>
-                <option value="Zerado">Zerado</option>
-                <option value="Bloqueado">Bloqueado</option>
-              </select>
-            </div>
-            <div>
-              <label className="label-fiori">Coleção</label>
-              <input
-                type="text"
-                placeholder="Nome da coleção..."
-                className="input-fiori"
-              />
-            </div>
-            <div>
-              <label className="label-fiori">Depósito</label>
-              <select className="select-fiori">
-                <option value="">Todos</option>
-                <option value="WH001">Depósito Principal</option>
-              </select>
-            </div>
-            <div>
-              <label className="label-fiori">Estoque Baixo</label>
-              <select className="select-fiori">
-                <option value="">Todos</option>
-                <option value="true">Sim</option>
-                <option value="false">Não</option>
-              </select>
+              <Package className="tile-fiori-icon" />
             </div>
           </div>
-          <div className="flex gap-3 mt-4">
-            <button className="btn-fiori-primary">Aplicar Filtros</button>
-            <button className="btn-fiori-outline">Limpar</button>
-            <button className="btn-fiori-outline flex items-center gap-2">
-              <Download className="w-4 h-4" />
-              Exportar CSV
-            </button>
-          </div>
-        </div>
-      </div>
 
-      {/* Tabela de Estoque */}
-      <div className="card-fiori">
-        <div className="card-fiori-header">
-          <h3 className="card-fiori-title">Posição de Estoque</h3>
+          <div className="tile-fiori">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="tile-fiori-subtitle">Total de Itens</p>
+                <p className="tile-fiori-metric">{inventory.length}</p>
+              </div>
+              <TrendingUp className="tile-fiori-icon" />
+            </div>
+          </div>
+
+          <div className="tile-fiori">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="tile-fiori-subtitle">Estoque Baixo</p>
+                <p className="tile-fiori-metric text-fiori-warning">{lowStockItems}</p>
+              </div>
+              <AlertTriangle className="tile-fiori-icon text-fiori-warning" />
+            </div>
+          </div>
+
+          <div className="tile-fiori">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="tile-fiori-subtitle">Sem Estoque</p>
+                <p className="tile-fiori-metric text-fiori-danger">{zeroStockItems}</p>
+              </div>
+              <AlertTriangle className="tile-fiori-icon text-fiori-danger" />
+            </div>
+          </div>
         </div>
-        <div className="card-fiori-content p-0">
-          {items.length > 0 ? (
+
+        {/* Tabela de Estoque */}
+        <div className="card-fiori">
+          <div className="card-fiori-header">
+            <h2 className="card-fiori-title">Posição por Material</h2>
+          </div>
+          <div className="card-fiori-body">
             <div className="overflow-x-auto">
               <table className="table-fiori">
                 <thead>
                   <tr>
                     <th>Material</th>
-                    <th>Coleção</th>
-                    <th className="text-right">Estoque Total</th>
+                    <th>Descrição</th>
+                    <th className="text-right">Em Mão</th>
                     <th className="text-right">Reservado</th>
                     <th className="text-right">Disponível</th>
-                    <th>Unidade</th>
+                    <th className="text-right">Valor Unit.</th>
+                    <th className="text-right">Valor Total</th>
                     <th>Status</th>
-                    <th>Depósito</th>
-                    <th>Última Movimentação</th>
                     <th>Ações</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {items.map((item) => (
-                    <tr key={item.material_id}>
-                      <td>
-                        <div className="flex items-center gap-2">
-                          {getStatusIcon('Ativo')}
+                  {inventory.map((item) => {
+                    const unitPrice = item.mm_material_data?.mm_price_cents || 0
+                    const totalValue = item.on_hand_qty * unitPrice
+                    const isLowStock = item.on_hand_qty < 10
+                    const isZeroStock = item.on_hand_qty === 0
+
+                    return (
+                      <tr key={`${item.plant_id}-${item.mm_material}`}>
+                        <td>
+                          <span className="font-mono text-sm text-fiori-primary">
+                            {item.mm_material}
+                          </span>
+                        </td>
+                        <td>
                           <div>
-                            <div className="font-semibold text-fiori-primary">
-                              {item.mm_material[0]?.mm_comercial || item.mm_material[0]?.mm_desc || 'N/A'}
+                            <div className="font-semibold">
+                              {item.mm_material_data?.mm_comercial || 'N/A'}
                             </div>
-                            <div className="text-xs text-fiori-muted font-mono">
-                              {item.mm_material[0]?.mm_material || 'N/A'}
+                            <div className="text-xs text-fiori-muted">
+                              {item.mm_material_data?.mm_desc || 'Sem descrição'}
                             </div>
                           </div>
-                        </div>
-                      </td>
-                      <td>
-                        <div className="text-sm">
-                          {item.mm_material[0]?.collection || '-'}
-                        </div>
-                      </td>
-                      <td className="text-right">
-                        <div className="text-sm font-semibold">
-                          {item.qty_on_hand.toLocaleString('pt-BR')}
-                        </div>
-                      </td>
-                      <td className="text-right">
-                        <div className="text-sm">
-                          {item.qty_reserved.toLocaleString('pt-BR')}
-                        </div>
-                      </td>
-                      <td className="text-right">
-                        <div className="text-sm font-semibold text-fiori-primary">
-                          {(item.qty_on_hand - item.qty_reserved).toLocaleString('pt-BR')}
-                        </div>
-                      </td>
-                      <td>
-                        <div className="text-sm">
-                          {item.unit || item.mm_material[0]?.material_unit || '-'}
-                        </div>
-                      </td>
-                      <td>
-                        {getStatusBadge('Ativo')}
-                      </td>
-                      <td>
-                        <div className="text-sm">
-                          {item.warehouse_id}
-                        </div>
-                      </td>
-                      <td>
-                        <div className="text-sm text-fiori-muted">
-                          -
-                        </div>
-                      </td>
-                      <td>
-                        <div className="flex gap-2">
-                          <Link
-                            href={`/wh/inventory/${item.material_id}`}
-                            className="btn-fiori-outline text-xs"
-                          >
-                            Ver Detalhes
-                          </Link>
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
+                        </td>
+                        <td className="text-right font-medium">
+                          {item.on_hand_qty.toLocaleString()}
+                        </td>
+                        <td className="text-right">
+                          <span className="text-fiori-info">
+                            {item.reserved_qty.toLocaleString()}
+                          </span>
+                        </td>
+                        <td className="text-right font-medium">
+                          <span className={item.available_qty > 0 ? 'text-fiori-success' : 'text-fiori-danger'}>
+                            {item.available_qty.toLocaleString()}
+                          </span>
+                        </td>
+                        <td className="text-right">
+                          R$ {(unitPrice / 100).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                        </td>
+                        <td className="text-right font-medium">
+                          R$ {(totalValue / 100).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                        </td>
+                        <td>
+                          {isZeroStock ? (
+                            <span className="badge-fiori badge-fiori-danger">Sem Estoque</span>
+                          ) : isLowStock ? (
+                            <span className="badge-fiori badge-fiori-warning">Estoque Baixo</span>
+                          ) : (
+                            <span className="badge-fiori badge-fiori-success">Normal</span>
+                          )}
+                        </td>
+                        <td>
+                          <div className="flex gap-2">
+                            <Link
+                              href={`/wh/movements?material=${item.mm_material}`}
+                              className="btn-fiori-outline text-xs"
+                            >
+                              <Eye className="w-4 h-4" />
+                            </Link>
+                          </div>
+                        </td>
+                      </tr>
+                    )
+                  })}
                 </tbody>
               </table>
             </div>
-          ) : (
-            <div className="text-center py-12">
-              <svg className="w-16 h-16 text-fiori-muted mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
-              </svg>
-              <h3 className="text-lg font-semibold text-fiori-primary mb-2">Nenhum item encontrado</h3>
-              <p className="text-fiori-muted">Os itens de estoque aparecerão aqui quando houver movimentações</p>
-            </div>
-          )}
+          </div>
         </div>
       </div>
-
-      {/* Paginação */}
-      {items.length > 0 && (
-        <div className="flex items-center justify-between">
-          <div className="text-sm text-fiori-muted">
-            Mostrando 1-{items.length} de {totalCount} itens
-          </div>
-          <div className="flex gap-2">
-            <button className="btn-fiori-outline text-sm" disabled>
-              Anterior
-            </button>
-            <button className="btn-fiori-primary text-sm">
-              1
-            </button>
-            <button className="btn-fiori-outline text-sm" disabled>
-              Próximo
-            </button>
-          </div>
-        </div>
-      )}
     </div>
   )
 }

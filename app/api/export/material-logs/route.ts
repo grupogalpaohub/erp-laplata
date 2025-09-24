@@ -2,6 +2,7 @@ export const dynamic = 'force-dynamic'
 export const runtime = 'nodejs'
 import { NextResponse } from 'next/server'
 import { createSupabaseServerClient } from '@/lib/supabase/server'
+import { formatBRL } from '@/lib/money'
 
 export async function GET() {
   const supabase = createSupabaseServerClient()
@@ -17,8 +18,8 @@ export async function GET() {
       'price',
       csv(r.mm_material),
       '',
-      csv((Number(r.old_price||0)/100).toFixed(2)),
-      csv((Number(r.new_price||0)/100).toFixed(2)),
+        csv(formatBRL(Number(r.old_price||0))),
+        csv(formatBRL(Number(r.new_price||0))),
       csv(new Date(r.changed_at).toISOString()),
       csv(r.changed_by ?? '')
     ].join(','))

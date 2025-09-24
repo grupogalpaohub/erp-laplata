@@ -1,30 +1,28 @@
-#!/bin/bash
-# Script para sincronizar com GitHub (excluindo .env.local)
-set -e
+#!/usr/bin/env bash
+set -euo pipefail
+MSG="${1:-chore(sync): auto-sync by Cursor @ $(date -u +'%Y-%m-%dT%H:%M:%SZ')}"
+git reset --quiet
+git add -A
+git reset .env .env.* 2>/dev/null || true
+git reset .vercel 2>/dev/null || true
+git reset vercel.json 2>/dev/null || true
 
-echo "🔄 Sincronizando com GitHub..."
-
-# Adicionar todos os arquivos exceto .env.local
-git add .
-git reset .env.local
-
-# Verificar se há mudanças para commitar
 if git diff --cached --quiet; then
-  echo "✅ Nenhuma mudança para commitar"
+  echo "ℹ️  Nada para commitar/push."
   exit 0
 fi
 
-# Commit com mensagem automática
-git commit -m "feat: atualizações do sistema ERP
+CUR_BRANCH=$(git rev-parse --abbrev-ref HEAD || echo "HEAD")
+if [ "$CUR_BRANCH" = "HEAD" ]; then
+  CUR_BRANCH="local-server"
+  git checkout -B "$CUR_BRANCH"
+fi
 
-- Correções em pedidos de venda
-- Melhorias na edição de pedidos
-- Guardrails implementados
-- Dependências atualizadas"
-
-# Push para o branch atual
-CURRENT_BRANCH=$(git branch --show-current)
-echo "📤 Fazendo push para branch: $CURRENT_BRANCH"
-git push origin $CURRENT_BRANCH
-
-echo "✅ Sincronização concluída!"
+git remote get-url origin >/dev/null 2>&1 || { echo "❌ Remote 'origin' não configurado."; exit 2; }
+git commit -m "$MSG"
+if ! git rev-parse --abbrev-ref --symbolic-full-name @{u} >/dev/null 2>&1; then
+  git push -u origin "$CUR_BRANCH"
+else
+  git push
+fi
+echo "✅ Sincronizado com origin/$CUR_BRANCH"

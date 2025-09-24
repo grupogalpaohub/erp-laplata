@@ -1,123 +1,128 @@
-/**
- * Preflight hierárquico p/ alterações CRÍTICAS (auth/schema/env/middleware/next-config)
- * - Não exige aprovação humana; só bloqueia se falhar.
- * - Hierarquia:
- *   A) Porta/SITE_URL -> PORT deve ser 3000 e SITE_URL localhost:3000 (local)
- *   B) Auth/ENV       -> Se AUTH_DISABLED != true, exige SUPABASE_URL/ANON e health OK
- *   C) DB REST        -> Confere acesso a /rest/v1 para 1 tabela chave (se B aplicável)
- *   D) Schema diff    -> Se alterar SQL/migrations, exige arquivo docs/change-intent.json
- */
+/* eslint-disable no-console */
+const { execSync } = require('child_process');
 const fs = require('fs');
 const path = require('path');
-const fetch = require('node-fetch');
-require('dotenv').config({ path: path.resolve(process.cwd(), '.env.local') });
 
-const CHANGED = (process.env.GIT_STAGED_LIST || '').split('\n').filter(Boolean);
+function listChanged() {
+  const envList = process.env.GIT_STAGED_LIST;
+  if (envList && envList.trim()) return [...new Set(envList.split(/\s+/).filter(Boolean))];
+  const out = execSync('git diff --name-only HEAD', { stdio: ['ignore','pipe','ignore'] }).toString();
+  return out.split('\n').filter(Boolean);
+}
+function readFileSafe(f){ try { return fs.readFileSync(f,'utf8'); } catch { return ''; } }
+function fail(msg){ console.error('\n❌ '+msg+'\n'); process.exit(2); }
+const changed = listChanged();
+if (!changed.length) process.exit(0);
 
-const ENV = {
-  PORT: process.env.PORT,
-  SITE_URL: process.env.NEXT_PUBLIC_SITE_URL || process.env.SITE_URL || 'http://localhost:3000',
-  AUTH_DISABLED: (process.env.NEXT_PUBLIC_AUTH_DISABLED === 'true' || process.env.NEXT_PUBLIC_AUTH_DISABLED === '1'),
-  SUPA_URL: process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.SUPABASE_URL,
-  SUPA_ANON: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || process.env.SUPABASE_ANON_KEY
-};
-
-const CRITICAL_PATTERNS = [
-  /^\.env\.local$/,
-  /^lib\/env/i, /^lib\/supabase/i,
-  /^app\/auth\//i, /^middleware\.ts$/i,
-  /^next\.config\.(js|mjs)$/i,
-  /^supabase\//i, /_schema\.sql$/i, /_data\.sql$/i, /migrations?\//i
+/** 1) Supabase/schema proibidos (Cursor não toca) */
+const forbidSupabase = [
+  /^supabase\//, /^migrations?\//, /^database\//, /^infra\//,
+  /^.*supabase.*\.sql$/i, /^supabase_schema\.sql$/i, /^supabase_full\.sql$/i, /^supabase_full\.dump$/i
 ];
+const supTouched = changed.filter(f => forbidSupabase.some(rx=>rx.test(f)));
+if (supTouched.length) fail(`Mudanças em Supabase/schema não são permitidas:\n- ${supTouched.join('\n- ')}`);
 
-function touchesCritical(files) {
-  return files.some(f => CRITICAL_PATTERNS.some(p => p.test(f)));
+/** 2) Env/Infra proibidos */
+const envTouched = changed.filter(f => /^\.env($|\.|\/)/.test(f) || /^\.vercel\//.test(f) || /^vercel\.json$/.test(f));
+if (envTouched.length) fail(`Mudanças em env/vercel não são permitidas:\n- ${envTouched.join('\n- ')}`);
+
+/** 3) DDL proibido em código (exceto patches propostos em patches/sql_outbox/*.sql) */
+const ddlRx = /\b(CREATE|ALTER|DROP)\s+(TABLE|FUNCTION|VIEW|INDEX|POLICY|TRIGGER)\b|\b(ENABLE|DISABLE)\s+ROW\s+LEVEL\b/gi;
+const sqlOutbox = /^patches\/sql_outbox\/.*\.sql$/i;
+const ddlBad = [];
+for (const f of changed) {
+  const isAllowedSql = sqlOutbox.test(f);
+  const ext = path.extname(f).toLowerCase();
+  if (isAllowedSql) continue;
+  if (['.ts','.tsx','.js','.jsx','.sql'].includes(ext)) {
+    const txt = readFileSafe(f);
+    if (ddlRx.test(txt)) ddlBad.push(f);
+  }
+}
+if (ddlBad.length) fail(`DDL detectado em arquivos não permitidos (Cursor não pode mexer no banco):\n- ${ddlBad.join('\n- ')}`);
+
+/** 4) Proibição de service-role em app/front */
+const serviceRoleRx = /(SUPABASE_SERVICE_ROLE|service_role)/i;
+const serviceRoleBad = changed.filter(f => /\.(ts|tsx|js|jsx)$/.test(f) && serviceRoleRx.test(readFileSafe(f)));
+if (serviceRoleBad.length) fail(`Referências a service-role detectadas (proibido expor/usar no app):\n- ${serviceRoleBad.join('\n- ')}`);
+
+/** 5) Moeda: proíbe *10000 e /10000 */
+const money10000Rx = /(\*\s*10000)|(\/\s*10000)/;
+const moneyWrong = changed.filter(f => /\.(ts|tsx|js|jsx)$/.test(f) && money10000Rx.test(readFileSafe(f)));
+if (moneyWrong.length) fail(`Conversão monetária proibida detectada (*10000 ou /10000):\n- ${moneyWrong.join('\n- ')}`);
+
+/** 6) Helpers obrigatórios: toCents/formatBRL precisam existir */
+const moneyHelperPath = ['src/lib/money.ts','app/lib/money.ts','lib/money.ts'].find(p => fs.existsSync(p));
+if (!moneyHelperPath) fail(`Arquivo de helpers monetários (money.ts) não encontrado em src/lib/ ou app/lib/ ou lib/.`);
+const moneyTxt = readFileSafe(moneyHelperPath);
+if (!/\bexport\s+function\s+toCents\s*\(/.test(moneyTxt) || !/\bexport\s+function\s+formatBRL\s*\(/.test(moneyTxt)) {
+  fail(`money.ts deve exportar 'toCents' e 'formatBRL'.`);
 }
 
-function ok(v, note) { return { ok: !!v, note }; }
-function fail(note)  { return { ok: false, note }; }
-
-(async () => {
-  const result = { A: {}, B: {}, C: {}, D: {}, errors: [] };
-
-  // A) PORTA e SITE_URL (sempre confere)
-  const portIs3000 =
-    ENV.PORT === '3000' ||
-    !ENV.PORT || // se vazio, Next usa 3000 por padrão
-    (ENV.SITE_URL.includes(':3000'));
-
-  result.A.port = portIs3000 ? ok(true, `PORT=${ENV.PORT||'unset'} SITE_URL=${ENV.SITE_URL}`) :
-                               fail(`Porta deve ser 3000 (PORT=${ENV.PORT||'unset'} SITE_URL=${ENV.SITE_URL})`);
-
-  // B) Auth/ENV: só exige Supabase se não estiver em bypass
-  if (!ENV.AUTH_DISABLED) {
-    if (!ENV.SUPA_URL || !ENV.SUPA_ANON) {
-      result.B.env = fail('SUPABASE_URL/ANON ausentes e AUTH_DISABLED=false');
-    } else {
-      result.B.env = ok(true, 'ENV ok');
-      // tentamos health leve
-      try {
-        const r = await fetch(ENV.SUPA_URL.replace(/\/$/,'')+'/.well-known/health').catch(()=>null);
-        result.B.health = (r && r.ok) ? ok(true, 'health ok') :
-                          ok(true, 'health não disponível, prosseguindo (não é erro bloqueante)');
-      } catch(e) {
-        result.B.health = ok(true, 'exceção no health, prosseguindo');
-      }
-    }
-  } else {
-    result.B.skip = ok(true, 'AUTH_DISABLED=true (bypass de auth local)');
+/** 7) Uso correto dos helpers em arquivos que mexem com *_cents */
+const moneyFiles = changed.filter(f => /\.(ts|tsx)$/.test(f));
+const moneyFilesBad = [];
+for (const f of moneyFiles) {
+  const txt = readFileSafe(f);
+  const touchesCents = /\b(price|purchase_price|unit_price|total|amount)_cents\b/.test(txt);
+  if (touchesCents) {
+    const usesFormat = /\bformatBRL\s*\(/.test(txt);
+    const usesToCents = /\btoCents\s*\(/.test(txt);
+    if (!usesFormat || !usesToCents) moneyFilesBad.push(f);
   }
+}
+if (moneyFilesBad.length) fail(`Arquivos que lidam com *_cents devem usar helpers formatBRL/toCents:\n- ${moneyFilesBad.join('\n- ')}`);
 
-  // C) DB REST: só tenta se não estiver em bypass e ENV ok
-  if (!ENV.AUTH_DISABLED && result.B.env?.ok) {
-    try {
-      const t = 'mm_material'; // tabela-sentinela (ajuste se necessário)
-      const url = `${ENV.SUPA_URL.replace(/\/$/,'')}/rest/v1/${t}?select=count`;
-      const r = await fetch(url, { headers: { apikey: ENV.SUPA_ANON, Accept: 'application/json' }});
-      result.C.rest = r.ok ? ok(true, `REST ok (${t})`) : fail(`REST falhou ${r.status} (${t})`);
-    } catch(e) {
-      result.C.rest = fail('exceção no REST');
-    }
-  } else {
-    result.C.skip = ok(true, 'REST não requerido');
+/** 8) SD/MM exibindo dinheiro devem importar lib/money */
+const criticalDirs = [/^app\/mm\//, /^app\/sd\//];
+const criticalFiles = changed.filter(f => criticalDirs.some(rx => rx.test(f)) && /\.(ts|tsx)$/.test(f));
+const missingImport = [];
+for (const f of criticalFiles) {
+  const t = readFileSafe(f);
+  const showsMoney = /\b(price|amount|total|_cents)\b/.test(t);
+  const hasImport = /from\s+['"](?:@\/)?(src\/)?lib\/money['"]/.test(t);
+  if (showsMoney && !hasImport) missingImport.push(f);
+}
+if (missingImport.length) fail(`Arquivos SD/MM que exibem valores devem importar lib/money:\n- ${missingImport.join('\n- ')}`);
+
+/** 9) Sem tenant: proíbe tenant_id em payloads e hardcode "LaplataLunaria" no app */
+const tenantBad = changed.filter(f => /\.(ts|tsx|js|jsx)$/.test(f)).filter(f => {
+  const t = readFileSafe(f);
+  const isTestOrPatch = /^tests?\//.test(f) || sqlOutbox.test(f);
+  if (isTestOrPatch) return false;
+  const hasTenantIdInPayload = /\btenant_id\b\s*[:=]/.test(t) || /\.eq\(['"]tenant_id['"],/.test(t);
+  const hardcodedTenant = /['"]LaplataLunaria['"]/.test(t);
+  return hasTenantIdInPayload || hardcodedTenant;
+});
+if (tenantBad.length) fail(`Proibido aceitar/enviar tenant_id ou hardcode de tenant no app:\n- ${tenantBad.join('\n- ')}`);
+
+/** 10) Anti-hardcode de dados: listas/constantes de materiais/clientes/preços */
+const dataHardcodeBad = [];
+for (const f of changed.filter(f => /\.(ts|tsx|js|jsx)$/.test(f))) {
+  const t = readFileSafe(f);
+  const isTestOrPatch = /^tests?\//.test(f) || sqlOutbox.test(f);
+  if (isTestOrPatch) continue;
+  const manyMaterialCodes = (t.match(/['"][A-Z]_\d{3,}['"]/g) || []).length >= 3;
+  const inlinePriceLike = /\b(price|purchase_price|unit_price|amount|total)\b[^;]*=\s*\[/.test(t);
+  const inlineCustomers = /\b(customers?|clients?)\b[^;]*=\s*\[/.test(t);
+  const inlineMaterials = /\bmaterials?\b[^;]*=\s*\[/.test(t);
+  if (manyMaterialCodes || inlinePriceLike || inlineCustomers || inlineMaterials) {
+    dataHardcodeBad.push(f);
   }
+}
+if (dataHardcodeBad.length) fail(`Dados hardcoded detectados (materiais/clientes/preços) — devem vir do DB:\n- ${dataHardcodeBad.join('\n- ')}`);
 
-  // D) Schema/migrations mudando? então exigir docs/change-intent.json com justificativa (sem aprovação humana)
-  const isSchemaChange = touchesCritical(CHANGED);
-  if (isSchemaChange) {
-    const intentPath = path.resolve('docs/change-intent.json');
-    if (!fs.existsSync(intentPath)) {
-      result.D.intent = fail('docs/change-intent.json ausente para mudança crítica');
-    } else {
-      try {
-        const obj = JSON.parse(fs.readFileSync(intentPath,'utf8'));
-        if (!obj || !obj.reason || !obj.tables) {
-          result.D.intent = fail('change-intent.json inválido (exige {reason, tables[], impact?})');
-        } else {
-          result.D.intent = ok(true, 'intent presente');
-        }
-      } catch(e) {
-        result.D.intent = fail('change-intent.json inválido (JSON parse)');
-      }
-    }
-  } else {
-    result.D.skip = ok(true, 'sem mudança crítica');
-  }
+/** 11) Anti-loop: impede commits redundantes/no-op */
+try {
+  const diff = execSync('git diff --cached --unified=0', { stdio: ['ignore','pipe','ignore'] }).toString();
+  const significant = diff
+    .split('\n')
+    .filter(l => /^[+-]/.test(l))
+    .filter(l => !/^\s*\/\/|^\s*\/\*|^\s*\*/.test(l)) // comentários TS/JS
+    .filter(l => !/^\s*--/.test(l)) // comentários SQL
+    .filter(l => !/^\s*$/.test(l)); // vazio
+  if (!significant.length) fail(`Commit bloqueado: alterações são no-op (somente comentários/espaços) — previne loop do Cursor.`);
+} catch {}
 
-  // Decisão: só bloqueia se:
-  // - Porta errada, OU
-  // - (AUTH habilitada e faltando ENV supabase) OU
-  // - (AUTH habilitada e REST falhou) OU
-  // - (mudança crítica sem change-intent.json)
-  const block =
-    !result.A.port.ok ||
-    (!ENV.AUTH_DISABLED && (result.B.env?.ok === false || result.C.rest?.ok === false)) ||
-    (isSchemaChange && result.D.intent?.ok === false);
-
-  if (block) {
-    console.error('[GUARDRAIL] Bloqueado pelo preflight.', JSON.stringify(result, null, 2));
-    process.exit(2);
-  }
-  console.log('[GUARDRAIL] Preflight OK.', JSON.stringify(result, null, 2));
-  process.exit(0);
-})();
+console.log('✅ Preflight aprovado.');
+process.exit(0);

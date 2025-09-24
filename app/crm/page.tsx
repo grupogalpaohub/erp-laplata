@@ -1,10 +1,7 @@
 import Link from 'next/link'
-import { ArrowLeft, Users, UserPlus, Phone, Mail, Calendar } from 'lucide-react'
+import { ArrowLeft } from 'lucide-react'
 import { createSupabaseServerClient } from '@/lib/supabaseServer'
 import { getTenantId } from '@/lib/auth'
-import TileCard from '@/components/ui/TileCard'
-import KpiCard from '@/components/ui/KpiCard'
-import ListSection from '@/components/ui/ListSection'
 
 export const dynamic = 'force-dynamic'
 export const revalidate = 0

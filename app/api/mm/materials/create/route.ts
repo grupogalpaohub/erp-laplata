@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import { getTenantId } from '@/lib/auth'
 import { toCents, formatBRL } from '@/lib/money'
+import { revalidatePath } from 'next/cache'
 
 export async function POST(request: NextRequest) {
   try {
@@ -96,6 +97,7 @@ export async function POST(request: NextRequest) {
       }, { status: 500 })
     }
 
+    revalidatePath('/mm/materials')
     return NextResponse.json({ 
       success: true, 
       material_id: data.mm_material 

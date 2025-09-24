@@ -2,6 +2,7 @@ import { createClient } from '@supabase/supabase-js'
 import { getTenantId } from '@/lib/auth'
 import { NextRequest, NextResponse } from 'next/server'
 import { toCents, formatBRL } from '@/lib/money'
+import { revalidatePath } from 'next/cache'
 
 export const runtime = 'nodejs'
 
@@ -64,6 +65,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Erro ao atualizar material' }, { status: 500 })
     }
 
+    revalidatePath('/mm/materials')
     // Redirecionar para o catálogo com mensagem de sucesso
     return NextResponse.redirect(new URL('/mm/catalog?success=Material atualizado com sucesso', request.url))
 

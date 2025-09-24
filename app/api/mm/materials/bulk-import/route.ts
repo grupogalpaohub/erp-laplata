@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import { getTenantId } from '@/lib/auth'
+import { revalidatePath } from 'next/cache'
 
 export async function POST(request: NextRequest) {
   try {
@@ -109,6 +110,7 @@ export async function POST(request: NextRequest) {
     const successCount = results.filter(r => r.success).length
     const errorCount = results.filter(r => !r.success).length
 
+    revalidatePath('/mm/materials')
     return NextResponse.json({
       success: true,
       imported: successCount,

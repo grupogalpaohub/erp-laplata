@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createSupabaseServerClient } from '@/lib/supabaseServer'
 import { getTenantId } from '@/lib/auth'
+import { revalidatePath } from 'next/cache'
 
 export async function PUT(
   request: NextRequest,
@@ -98,6 +99,7 @@ export async function PUT(
       )
     }
 
+    revalidatePath('/sd/orders')
     return NextResponse.json({
       success: true,
       message: 'Pedido de venda atualizado com sucesso',

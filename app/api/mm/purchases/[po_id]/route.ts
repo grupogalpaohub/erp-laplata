@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import { getTenantId } from '@/lib/auth'
+import { revalidatePath } from 'next/cache'
 
 export const runtime = 'nodejs'
 
@@ -68,6 +69,7 @@ export async function PUT(
       return NextResponse.json({ error: 'Erro ao atualizar pedido' }, { status: 500 })
     }
 
+    revalidatePath('/mm/purchases')
     return NextResponse.json({ success: true })
 
   } catch (error) {

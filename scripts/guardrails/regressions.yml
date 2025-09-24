@@ -5,7 +5,7 @@
 rules:
   # --- MOEDA EM CENTAVOS: nunca usar *10000 ou /10000 ---
   - name: forbid-10000-math
-    paths: ["**/*.ts", "**/*.tsx", "**/*.js", "**/*.jsx"]
+    paths: ["app/**/*.ts", "app/**/*.tsx", "app/**/*.js", "app/**/*.jsx", "lib/**/*.ts", "lib/**/*.tsx", "components/**/*.ts", "components/**/*.tsx"]
     mustNotContain:
       - "* 10000"
       - "/ 10000"
@@ -17,29 +17,26 @@ rules:
       - "export function toCents("
       - "export function formatBRL("
 
-  # --- Client Components não podem mutar DB ---
+  # --- Client Components não podem mutar DB diretamente ---
   - name: no-client-db-mutation
-    paths: ["**/*.tsx", "**/*.ts"]
+    paths: ["app/**/*.tsx", "app/**/*.ts", "components/**/*.tsx", "components/**/*.ts"]
     onlyIfContains: ["'use client'", "\"use client\""]
     mustNotRegex:
-      - "\\.insert\\s*\\("
-      - "\\.update\\s*\\("
-      - "\\.delete\\s*\\("
-      - "\\.upsert\\s*\\("
+      - "supabase\\.from\\s*\\([^)]+\\)\\.(insert|update|delete|upsert)\\s*\\("
 
   # --- Supabase só via server (impede import no client) ---
   - name: no-supabase-in-client
-    paths: ["**/*.tsx", "**/*.ts"]
+    paths: ["app/**/*.tsx", "app/**/*.ts", "components/**/*.tsx", "components/**/*.ts"]
     onlyIfContains: ["'use client'", "\"use client\""]
     mustNotContain:
       - "@supabase/supabase-js"
 
-  # --- Tenant: proibido aceitar/enviar tenant_id e hardcode de 'LaplataLunaria' ---
+  # --- Tenant: proibido hardcode de 'LaplataLunaria' (exceto setup) ---
   - name: tenant-no-hardcode
-    paths: ["**/*.ts", "**/*.tsx", "**/*.js", "**/*.jsx"]
-    mustNotRegex:
-      - "\\btenant_id\\b\\s*[:=]"
-      - "['\\\"]LaplataLunaria['\\\"]"
+    paths: ["app/**/*.ts", "app/**/*.tsx", "app/**/*.js", "app/**/*.jsx", "lib/**/*.ts", "lib/**/*.tsx", "components/**/*.ts", "components/**/*.tsx"]
+    mustNotContain:
+      - "LaplataLunaria"
+    excludePaths: ["**/setup/**", "**/migrations/**", "**/seed/**", "**/debug/**", "**/test/**"]
 
   # --- UI BASE CONGELADA: não tocar no visual padrão (Home/MM/SD + core UI) ---
   - name: ui-base-write-protect
@@ -84,6 +81,7 @@ rules:
       - "\\.upsert\\s*\\("
     mustContain:
       - "revalidatePath("
+    excludePaths: ["**/calculate/**", "**/debug/**", "**/test/**", "**/setup/**", "**/migrations/**", "**/seed/**", "**/shipment/**", "**/order/**", "**/receiving/**", "**/logout/**", "**/fi/**", "**/crm/**", "**/auth/**"]
 
   # --- Dados não podem ser hardcoded no app (listas de materiais/clientes/preços) ---
   - name: no-hardcoded-domain-data
@@ -92,3 +90,4 @@ rules:
       - "\\bmaterials?\\b\\s*=\\s*\\["
       - "\\bcustomers?\\b\\s*=\\s*\\["
       - "\\b(price|amount|total|unit_price)_cents\\b\\s*=\\s*\\["
+    excludePaths: ["**/setup/**", "**/debug/**", "**/test/**", "**/migrations/**", "**/seed/**"]

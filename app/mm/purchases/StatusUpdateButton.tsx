@@ -54,7 +54,7 @@ export default function StatusUpdateButton({ poId, currentStatus }: StatusUpdate
       const supabase = createSupabaseClient()
       
       // Usar tenant fixo para desenvolvimento
-      const tenantId = 'LaplataLunaria'
+      const tenantId = process.env.NEXT_PUBLIC_TENANT_ID || 'default'
 
       const { error: updateError } = await supabase
         .from('mm_purchase_order')

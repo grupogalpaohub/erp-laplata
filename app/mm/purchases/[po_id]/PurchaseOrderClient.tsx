@@ -43,7 +43,7 @@ export default function PurchaseOrderClient({ order, items }: PurchaseOrderClien
           .from('mm_vendor')
           .select('*')
           .eq('vendor_id', order.vendor_id)
-          .eq('tenant_id', 'LaplataLunaria')
+          .eq('tenant_id', process.env.NEXT_PUBLIC_TENANT_ID || 'default')
           .single()
 
         if (error) {

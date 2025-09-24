@@ -24,7 +24,7 @@ export async function createMaterial(prevState: { ok: boolean; error?: string },
   )
 
   const payload = {
-    tenant_id: 'LaplataLunaria',
+    tenant_id: process.env.TENANT_ID || 'default',
     mm_material: String(formData.get('mm_material') ?? '').trim(),
     mm_comercial: (formData.get('mm_comercial') as string | null) ?? null,
     mm_desc: String(formData.get('mm_desc') ?? '').trim(),

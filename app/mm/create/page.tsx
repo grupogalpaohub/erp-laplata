@@ -25,7 +25,7 @@ export default async function CreateMaterialPage() {
     const { data, error } = await supabase
       .from('mm_vendor')
       .select('vendor_id, vendor_name')
-      .eq('tenant_id', 'LaplataLunaria')
+      .eq('tenant_id', process.env.TENANT_ID || 'default')
       .order('vendor_name', { ascending: true })
     
     if (error) {

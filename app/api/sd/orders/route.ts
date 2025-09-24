@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createSupabaseServerClient } from '@/lib/supabaseServer'
 import { getTenantId } from '@/lib/auth'
+import { revalidatePath } from 'next/cache'
 
 export async function GET(request: NextRequest) {
   try {
@@ -145,6 +146,7 @@ export async function POST(request: NextRequest) {
       )
     }
 
+    revalidatePath('/sd/orders')
     return NextResponse.json({
       success: true,
       so_id: salesOrder.so_id,

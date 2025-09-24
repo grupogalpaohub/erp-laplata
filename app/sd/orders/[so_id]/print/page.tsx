@@ -4,7 +4,7 @@ import { notFound } from 'next/navigation'
 
 async function getSalesOrder(soId: string) {
   const supabase = createSupabaseServerClient()
-  const tenantId = 'LaplataLunaria'
+  const tenantId = process.env.TENANT_ID || 'default'
 
   try {
     // Buscar dados do pedido

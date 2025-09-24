@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createSupabaseServerClient } from '@/lib/supabaseServer'
 import { getTenantId } from '@/lib/auth'
+import { revalidatePath } from 'next/cache'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
@@ -103,6 +104,7 @@ export async function PUT(
       console.log('Itens inseridos:', insertedItems?.length || 0)
     }
 
+    revalidatePath('/mm/purchases')
     return NextResponse.json({ success: true })
 
   } catch (error) {

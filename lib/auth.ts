@@ -3,15 +3,15 @@ import { ENV } from '@/lib/env';
 
 export async function getTenantId() {
   if (ENV.AUTH_DISABLED) {
-    return 'LaplataLunaria';
+    return process.env.TENANT_ID || 'default';
   }
   
   try {
     const supabase = createSupabaseServerClient();
     const { data: { user } } = await supabase.auth.getUser();
-    return user?.id || 'LaplataLunaria';
+    return user?.id || process.env.TENANT_ID || 'default';
   } catch (error) {
     console.warn('Auth error, using default tenant:', error);
-    return 'LaplataLunaria';
+    return process.env.TENANT_ID || 'default';
   }
 }

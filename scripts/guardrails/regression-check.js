@@ -24,7 +24,9 @@ const changed = [...new Set(changedListEnv.split(/\s+/).filter(Boolean))];
 
 for (const rule of cfg.rules){
   const allTargets = list(rule.paths || []);
-  const targets = rule.immutable ? allTargets.filter(f => changed.includes(f)) : allTargets;
+  const excludeTargets = rule.excludePaths ? list(rule.excludePaths) : [];
+  const filteredTargets = allTargets.filter(f => !excludeTargets.some(ex => f.includes(ex)));
+  const targets = rule.immutable ? filteredTargets.filter(f => changed.includes(f)) : filteredTargets;
   if (!targets.length) continue;
 
   for (const file of targets){

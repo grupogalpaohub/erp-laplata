@@ -1,4 +1,4 @@
-import { createSupabaseServerClient } from '@/lib/supabaseServer'
+stsort { createSupabaseServerClient } from '@/lib/supabaseServer'
 import Link from 'next/link'
 import { ArrowLeft, Printer, Edit } from 'lucide-react'
 import PurchaseOrderClient from './PurchaseOrderClient'
@@ -8,7 +8,7 @@ interface PurchaseOrder {
   vendor_id: string
   po_date: string
   status: string
-  total_amount: number
+  total_cents: number
   expected_delivery?: string
   notes?: string
   created_at: string
@@ -27,7 +27,7 @@ interface PurchaseOrderItem {
 
 async function getPurchaseOrder(po_id: string): Promise<PurchaseOrder | null> {
   const supabase = createSupabaseServerClient()
-  const tenantId = 'LaplataLunaria'
+  const tenantId = process.env.TENANT_ID || 'default'
   
   const { data, error } = await supabase
     .from('mm_purchase_order')
@@ -46,7 +46,7 @@ async function getPurchaseOrder(po_id: string): Promise<PurchaseOrder | null> {
 
 async function getPurchaseOrderItems(po_id: string): Promise<PurchaseOrderItem[]> {
   const supabase = createSupabaseServerClient()
-  const tenantId = 'LaplataLunaria'
+  const tenantId = process.env.TENANT_ID || 'default'
   
   const { data, error } = await supabase
     .from('mm_purchase_order_item')

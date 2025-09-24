@@ -3,6 +3,7 @@
 import { createSupabaseServerClient } from '@/lib/supabaseServer'
 import { getTenantId } from '@/lib/auth'
 import { toCents, formatBRL } from '@/lib/money'
+import { revalidatePath } from 'next/cache'
 
 export async function createOrderAction(input: {
   customer_id: string
@@ -39,6 +40,7 @@ export async function createOrderAction(input: {
       return { success: false, error: orderError.message }
     }
 
+    revalidatePath('/sd/orders')
     return { success: true, so_id: salesOrder.so_id }
 
   } catch (error) {
@@ -104,6 +106,7 @@ export async function addOrderItemAction(input: {
       return { success: false, error: error.message }
     }
 
+    revalidatePath('/sd/orders')
     return { success: true }
 
   } catch (error) {
@@ -132,6 +135,7 @@ export async function removeOrderItemAction(input: {
       return { success: false, error: error.message }
     }
 
+    revalidatePath('/sd/orders')
     return { success: true }
 
   } catch (error) {
@@ -171,6 +175,7 @@ export async function updateOrderAction(input: {
       return { success: false, error: error.message }
     }
 
+    revalidatePath('/sd/orders')
     return { success: true }
 
   } catch (error) {
@@ -207,6 +212,7 @@ export async function updateOrderStatusAction(input: {
       return { success: false, error: error.message }
     }
 
+    revalidatePath('/sd/orders')
     return { success: true }
 
   } catch (error) {

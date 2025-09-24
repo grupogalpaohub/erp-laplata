@@ -60,6 +60,15 @@ export function centsToReais(cents: number): number {
 }
 
 /**
+ * Alias para centsToReais (compatibilidade)
+ * @param cents - Valor em centavos (number)
+ * @returns Número em reais (number)
+ */
+export function toReais(cents: number): number {
+  return centsToReais(cents)
+}
+
+/**
  * Converte reais para centavos (alias para toCents)
  * @param reais - Valor em reais (string ou number)
  * @returns Valor em centavos (number)

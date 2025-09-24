@@ -1,20 +1,30 @@
 'use client'
 
 import Link from 'next/link'
-import { LucideIcon } from 'lucide-react'
+import { 
+  Users, UserPlus, Phone, Mail, Calendar, Package, TrendingUp, AlertTriangle, 
+  BarChart3, Warehouse, ArrowRightLeft, Calculator, DollarSign, TrendingDown, 
+  CreditCard, Receipt, Target, PieChart, ArrowLeft
+} from 'lucide-react'
 
 interface TileCardProps {
   title: string
   subtitle: string
-  icon: LucideIcon
+  iconName: string
   href: string
   color?: 'blue' | 'green' | 'purple' | 'orange' | 'red' | 'cyan'
 }
 
+const iconMap = {
+  Users, UserPlus, Phone, Mail, Calendar, Package, TrendingUp, AlertTriangle,
+  BarChart3, Warehouse, ArrowRightLeft, Calculator, DollarSign, TrendingDown,
+  CreditCard, Receipt, Target, PieChart, ArrowLeft
+} as const
+
 export default function TileCard({
   title,
   subtitle,
-  icon: Icon,
+  iconName,
   href,
   color = 'blue'
 }: TileCardProps) {
@@ -26,6 +36,8 @@ export default function TileCard({
     red: 'text-red-500',
     cyan: 'text-cyan-500'
   }
+
+  const Icon = iconMap[iconName as keyof typeof iconMap] || Package
 
   return (
     <Link href={href} className="group">

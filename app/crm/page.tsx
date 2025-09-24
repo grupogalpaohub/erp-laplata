@@ -88,7 +88,7 @@ export default async function CRMPage() {
           <TileCard
             title="Central de Clientes"
             subtitle="Lista de clientes ativos"
-            icon={Users}
+            iconName="Users"
             href="/crm/customers"
             color="blue"
           />
@@ -96,7 +96,7 @@ export default async function CRMPage() {
           <TileCard
             title="Novo Cliente"
             subtitle="Cadastrar novo cliente"
-            icon={UserPlus}
+            iconName="UserPlus"
             href="/crm/customers/new"
             color="green"
           />
@@ -104,7 +104,7 @@ export default async function CRMPage() {
           <TileCard
             title="Oportunidades"
             subtitle="Pipeline de vendas"
-            icon={Phone}
+            iconName="Phone"
             href="/crm/opportunities"
             color="purple"
           />
@@ -116,7 +116,7 @@ export default async function CRMPage() {
             title="Total de Clientes"
             value={totalCustomers}
             subtitle="Clientes ativos"
-            icon={Users}
+            iconName="Users"
             color="blue"
           />
           
@@ -124,7 +124,7 @@ export default async function CRMPage() {
             title="Oportunidades Ativas"
             value={activeOpportunities}
             subtitle="Em andamento"
-            icon={Phone}
+            iconName="Phone"
             color="green"
           />
           
@@ -132,7 +132,7 @@ export default async function CRMPage() {
             title="Atividades do Mês"
             value={totalActivities}
             subtitle="Interações realizadas"
-            icon={Calendar}
+            iconName="Calendar"
             color="orange"
           />
           
@@ -140,7 +140,7 @@ export default async function CRMPage() {
             title="Taxa de Conversão"
             value={`${conversionRate}%`}
             subtitle="Oportunidades/Clientes"
-            icon={Mail}
+            iconName="Mail"
             color="green"
           />
         </div>
@@ -151,9 +151,9 @@ export default async function CRMPage() {
             title="Últimos Clientes"
             viewAllHref="/crm/customers"
             viewAllText="Ver Todos"
-            icon={Users}
+            iconName="Users"
             emptyState={{
-              icon: UserPlus,
+              iconName: "UserPlus",
               title: "Nenhum cliente cadastrado",
               description: "Comece cadastrando seu primeiro cliente",
               actionText: "Cadastrar Cliente",
@@ -186,9 +186,9 @@ export default async function CRMPage() {
             title="Oportunidades Recentes"
             viewAllHref="/crm/opportunities"
             viewAllText="Ver Todas"
-            icon={Phone}
+            iconName="Phone"
             emptyState={{
-              icon: Phone,
+              iconName: "Phone",
               title: "Nenhuma oportunidade",
               description: "Crie oportunidades para acompanhar suas vendas",
               actionText: "Nova Oportunidade",

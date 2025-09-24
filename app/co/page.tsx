@@ -88,7 +88,7 @@ export default async function COPage() {
           <TileCard
             title="Custos de Produtos"
             subtitle="Análise de custos"
-            icon={Calculator}
+            iconName="Calculator"
             href="/co/product-costs"
             color="blue"
           />
@@ -96,7 +96,7 @@ export default async function COPage() {
           <TileCard
             title="Análise de Margens"
             subtitle="Performance"
-            icon={PieChart}
+            iconName="PieChart"
             href="/co/margin-analysis"
             color="green"
           />
@@ -104,7 +104,7 @@ export default async function COPage() {
           <TileCard
             title="Orçamento"
             subtitle="Planejamento"
-            icon={Target}
+            iconName="Target"
             href="/co/budget"
             color="purple"
           />
@@ -116,7 +116,7 @@ export default async function COPage() {
             title="Receita Total"
             value={formatBRL(totalRevenue)}
             subtitle="Receita bruta"
-            icon={DollarSign}
+            iconName="DollarSign"
             color="green"
           />
           
@@ -124,7 +124,7 @@ export default async function COPage() {
             title="Custos Totais"
             value={formatBRL(totalCosts)}
             subtitle="Custos operacionais"
-            icon={TrendingDown}
+            iconName="TrendingDown"
             color="red"
           />
           
@@ -132,7 +132,7 @@ export default async function COPage() {
             title="Margem Bruta"
             value={formatBRL(grossMargin)}
             subtitle="Lucro bruto"
-            icon={TrendingUp}
+            iconName="TrendingUp"
             color="green"
           />
           
@@ -140,7 +140,7 @@ export default async function COPage() {
             title="Margem %"
             value={`${grossMarginPercent}%`}
             subtitle="Percentual de margem"
-            icon={BarChart3}
+            iconName="BarChart3"
             color="blue"
           />
         </div>
@@ -151,9 +151,9 @@ export default async function COPage() {
             title="Produtos com Maior Margem"
             viewAllHref="/co/margin-analysis"
             viewAllText="Ver Todos"
-            icon={TrendingUp}
+            iconName="TrendingUp"
             emptyState={{
-              icon: PieChart,
+              iconName: "PieChart",
               title: "Nenhuma análise de margem",
               description: "Configure a análise de margens para seus produtos",
               actionText: "Configurar Análise",
@@ -184,9 +184,9 @@ export default async function COPage() {
             title="Orçamentos Recentes"
             viewAllHref="/co/budget"
             viewAllText="Ver Todos"
-            icon={Target}
+            iconName="Target"
             emptyState={{
-              icon: Target,
+              iconName: "Target",
               title: "Nenhum orçamento",
               description: "Crie orçamentos para planejamento financeiro",
               actionText: "Criar Orçamento",

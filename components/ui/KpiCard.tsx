@@ -1,20 +1,28 @@
 'use client'
 
-import { LucideIcon } from 'lucide-react'
+import { 
+  Users, Phone, Calendar, Mail, Package, BarChart3, AlertTriangle, 
+  TrendingUp, DollarSign, TrendingDown, Calculator, CreditCard, Receipt, Target, PieChart
+} from 'lucide-react'
 
 interface KpiCardProps {
   title: string
   value: string | number
   subtitle: string
-  icon: LucideIcon
+  iconName: string
   color?: 'green' | 'blue' | 'orange' | 'red'
 }
+
+const iconMap = {
+  Users, Phone, Calendar, Mail, Package, BarChart3, AlertTriangle,
+  TrendingUp, DollarSign, TrendingDown, Calculator, CreditCard, Receipt, Target, PieChart
+} as const
 
 export default function KpiCard({
   title,
   value,
   subtitle,
-  icon: Icon,
+  iconName,
   color = 'blue'
 }: KpiCardProps) {
   const colorClasses = {
@@ -23,6 +31,8 @@ export default function KpiCard({
     orange: 'text-orange-500',
     red: 'text-red-500'
   }
+
+  const Icon = iconMap[iconName as keyof typeof iconMap] || BarChart3
 
   return (
     <div className="bg-gray-800 rounded-lg p-6 border border-gray-700">

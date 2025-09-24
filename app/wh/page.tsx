@@ -95,7 +95,7 @@ export default async function WHPage() {
           <TileCard
             title="Inventário"
             subtitle="Controle de estoque"
-            icon={Package}
+            iconName="Package"
             href="/wh/inventory"
             color="blue"
           />
@@ -103,7 +103,7 @@ export default async function WHPage() {
           <TileCard
             title="Movimentações"
             subtitle="Entradas e saídas"
-            icon={TrendingUp}
+            iconName="TrendingUp"
             href="/wh/movements"
             color="green"
           />
@@ -111,7 +111,7 @@ export default async function WHPage() {
           <TileCard
             title="Transferências"
             subtitle="Entre locais"
-            icon={ArrowRightLeft}
+            iconName="ArrowRightLeft"
             href="/wh/transfers"
             color="purple"
           />
@@ -123,7 +123,7 @@ export default async function WHPage() {
             title="Total de Itens"
             value={totalItems}
             subtitle="Itens em estoque"
-            icon={Package}
+            iconName="Package"
             color="blue"
           />
           
@@ -131,7 +131,7 @@ export default async function WHPage() {
             title="Valor Total"
             value={formatBRL(totalValue)}
             subtitle="Valor do inventário"
-            icon={BarChart3}
+            iconName="BarChart3"
             color="green"
           />
           
@@ -139,7 +139,7 @@ export default async function WHPage() {
             title="Baixo Estoque"
             value={lowStockItems}
             subtitle="Itens críticos"
-            icon={AlertTriangle}
+            iconName="AlertTriangle"
             color="red"
           />
           
@@ -147,7 +147,7 @@ export default async function WHPage() {
             title="Movimentações Hoje"
             value={movementsToday}
             subtitle="Movimentações do dia"
-            icon={TrendingUp}
+            iconName="TrendingUp"
             color="orange"
           />
         </div>
@@ -158,9 +158,9 @@ export default async function WHPage() {
             title="Itens em Baixo Estoque"
             viewAllHref="/wh/inventory?filter=low-stock"
             viewAllText="Ver Todos"
-            icon={AlertTriangle}
+            iconName="AlertTriangle"
             emptyState={{
-              icon: Package,
+              iconName: "Package",
               title: "Estoque em dia",
               description: "Todos os itens estão com estoque adequado",
               actionText: "Ver Inventário",
@@ -186,9 +186,9 @@ export default async function WHPage() {
             title="Movimentações Recentes"
             viewAllHref="/wh/movements"
             viewAllText="Ver Todas"
-            icon={TrendingUp}
+            iconName="TrendingUp"
             emptyState={{
-              icon: TrendingUp,
+              iconName: "TrendingUp",
               title: "Nenhuma movimentação",
               description: "Não há movimentações registradas hoje",
               actionText: "Ver Histórico",

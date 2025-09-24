@@ -95,7 +95,7 @@ export default async function FIPage() {
           <TileCard
             title="Plano de Contas"
             subtitle="Estrutura contábil"
-            icon={BarChart3}
+            iconName="BarChart3"
             href="/fi/chart-of-accounts"
             color="blue"
           />
@@ -103,7 +103,7 @@ export default async function FIPage() {
           <TileCard
             title="Lançamentos"
             subtitle="Entradas contábeis"
-            icon={Receipt}
+            iconName="Receipt"
             href="/fi/entries"
             color="green"
           />
@@ -111,7 +111,7 @@ export default async function FIPage() {
           <TileCard
             title="Contas a Pagar"
             subtitle="Obrigações"
-            icon={CreditCard}
+            iconName="CreditCard"
             href="/fi/accounts-payable"
             color="red"
           />
@@ -123,7 +123,7 @@ export default async function FIPage() {
             title="Patrimônio Líquido"
             value={formatBRL(netWorth)}
             subtitle="Valor líquido"
-            icon={DollarSign}
+            iconName="DollarSign"
             color="green"
           />
           
@@ -131,7 +131,7 @@ export default async function FIPage() {
             title="Total de Ativos"
             value={totalAssets}
             subtitle="Recursos totais"
-            icon={TrendingUp}
+            iconName="TrendingUp"
             color="blue"
           />
           
@@ -139,7 +139,7 @@ export default async function FIPage() {
             title="Total de Passivos"
             value={totalLiabilities}
             subtitle="Obrigações totais"
-            icon={TrendingDown}
+            iconName="TrendingDown"
             color="red"
           />
           
@@ -147,7 +147,7 @@ export default async function FIPage() {
             title="Receita do Mês"
             value={formatBRL(monthlyRevenue)}
             subtitle="Receita do período"
-            icon={Calculator}
+            iconName="Calculator"
             color="green"
           />
         </div>
@@ -158,9 +158,9 @@ export default async function FIPage() {
             title="Contas a Pagar"
             viewAllHref="/fi/accounts-payable"
             viewAllText="Ver Todas"
-            icon={CreditCard}
+            iconName="CreditCard"
             emptyState={{
-              icon: CreditCard,
+              iconName: "CreditCard",
               title: "Nenhuma conta a pagar",
               description: "Não há obrigações pendentes",
               actionText: "Ver Contas",
@@ -190,9 +190,9 @@ export default async function FIPage() {
             title="Contas a Receber"
             viewAllHref="/fi/accounts-receivable"
             viewAllText="Ver Todas"
-            icon={Receipt}
+            iconName="Receipt"
             emptyState={{
-              icon: Receipt,
+              iconName: "Receipt",
               title: "Nenhuma conta a receber",
               description: "Não há recebimentos pendentes",
               actionText: "Ver Contas",

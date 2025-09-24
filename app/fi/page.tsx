@@ -1,174 +1,224 @@
-'use client'
-
-import { useState, useEffect } from 'react'
 import Link from 'next/link'
-import { DollarSign, TrendingUp, TrendingDown, BarChart3, ArrowLeft } from 'lucide-react'
+import { ArrowLeft, DollarSign, TrendingUp, TrendingDown, BarChart3, CreditCard, Receipt, Calculator } from 'lucide-react'
+import { createSupabaseServerClient } from '@/lib/supabaseServer'
+import { getTenantId } from '@/lib/auth'
 import { formatBRL } from '@/lib/money'
+import TileCard from '@/components/ui/TileCard'
+import KpiCard from '@/components/ui/KpiCard'
+import ListSection from '@/components/ui/ListSection'
 
-interface FIKPIs {
-  totalAssets: number
-  totalLiabilities: number
-  netWorth: number
-  monthlyRevenue: number
-}
+export const dynamic = 'force-dynamic'
+export const revalidate = 0
+export const fetchCache = 'force-no-store'
 
-export default function FIDashboard() {
-  const [kpis, setKpis] = useState<FIKPIs>({
-    totalAssets: 0,
-    totalLiabilities: 0,
-    netWorth: 0,
-    monthlyRevenue: 0
-  })
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
+export default async function FIPage() {
+  let accounts: any[] = []
+  let entries: any[] = []
+  let payables: any[] = []
+  let receivables: any[] = []
+  let totalAssets = 0
+  let totalLiabilities = 0
+  let netWorth = 0
+  let monthlyRevenue = 0
 
-  useEffect(() => {
-    const loadKPIs = async () => {
-      try {
-        // Por enquanto, usar dados mockados
-        // Futuramente, buscar da API
-        setKpis({
-          totalAssets: 50000000, // R$ 500.000,00 em centavos
-          totalLiabilities: 20000000, // R$ 200.000,00 em centavos
-          netWorth: 30000000, // R$ 300.000,00 em centavos
-          monthlyRevenue: 15000000 // R$ 150.000,00 em centavos
-        })
-      } catch (err) {
-        console.error('Erro ao carregar KPIs:', err)
-        setError('Erro ao carregar dados financeiros')
-      } finally {
-        setLoading(false)
-      }
-    }
+  try {
+    const supabase = createSupabaseServerClient()
+    const tenantId = await getTenantId()
 
-    loadKPIs()
-  }, [])
+    // Buscar dados para KPIs
+    const [accountsResult, entriesResult, payablesResult, receivablesResult] = await Promise.allSettled([
+      supabase
+        .from('fi_chart_of_accounts')
+        .select('account_id, account_name, account_type')
+        .eq('tenant_id', tenantId),
+      supabase
+        .from('fi_accounting_entry')
+        .select('entry_id, description, created_at')
+        .eq('tenant_id', tenantId)
+        .gte('created_at', new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString()),
+      supabase
+        .from('fi_accounts_payable')
+        .select('ap_id, amount_cents, due_date, status')
+        .eq('tenant_id', tenantId),
+      supabase
+        .from('fi_accounts_receivable')
+        .select('ar_id, amount_cents, due_date, status')
+        .eq('tenant_id', tenantId)
+    ])
 
-  if (loading) {
-    return (
-      <div className="space-y-8">
-        <div className="text-center mb-12">
-          <h1 className="text-4xl font-bold text-fiori-primary mb-4">Gestão Financeira</h1>
-          <p className="text-xl text-fiori-secondary mb-2">Carregando...</p>
-        </div>
-      </div>
-    )
+    accounts = accountsResult.status === 'fulfilled' ? (accountsResult.value.data || []) : []
+    entries = entriesResult.status === 'fulfilled' ? (entriesResult.value.data || []) : []
+    payables = payablesResult.status === 'fulfilled' ? (payablesResult.value.data || []) : []
+    receivables = receivablesResult.status === 'fulfilled' ? (receivablesResult.value.data || []) : []
+
+    // Calcular KPIs
+    totalAssets = accounts.filter(a => a.account_type === 'asset').length
+    totalLiabilities = accounts.filter(a => a.account_type === 'liability').length
+    netWorth = totalAssets - totalLiabilities
+    monthlyRevenue = receivables.reduce((sum, item) => sum + (item.amount_cents || 0), 0)
+
+  } catch (error) {
+    console.error('Error loading FI data:', error)
   }
 
   return (
-    <div className="space-y-8">
+    <div className="min-h-screen bg-gray-900">
       {/* Header */}
-      <div className="text-center mb-12">
-        <h1 className="text-4xl font-bold text-fiori-primary mb-4">Gestão Financeira</h1>
-        <p className="text-xl text-fiori-secondary mb-2">Controle financeiro e contabilidade</p>
-        <p className="text-lg text-fiori-muted">Monitore ativos, passivos e fluxo de caixa</p>
-      </div>
-
-      {/* Error Message */}
-      {error && (
-        <div className="bg-red-50 border border-red-200 rounded-lg p-4">
-          <p className="text-red-800 font-medium">{error}</p>
-        </div>
-      )}
-
-      {/* Back Button */}
-      <div className="flex justify-center">
-        <Link href="/" className="btn-fiori-outline flex items-center gap-2">
-          <ArrowLeft className="w-4 h-4" />
-          Voltar ao Início
-        </Link>
-      </div>
-
-      {/* KPIs Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-        <div className="card-fiori">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium text-fiori-muted">Patrimônio Líquido</p>
-              <p className={`text-2xl font-bold ${
-                kpis.netWorth >= 0 ? 'text-green-600' : 'text-red-600'
-              }`}>
-                {formatBRL(kpis.netWorth)}
-              </p>
+      <div className="bg-gray-800 border-b border-gray-700">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex items-center justify-between h-16">
+            <div className="flex items-center">
+              <Link 
+                href="/" 
+                className="inline-flex items-center text-gray-300 hover:text-white transition-colors mr-6"
+              >
+                <ArrowLeft className="w-4 h-4 mr-2" />
+                Voltar
+              </Link>
+              <h1 className="text-xl font-semibold text-white">FI - Gestão Financeira</h1>
             </div>
-            <DollarSign className="w-8 h-8 text-fiori-primary" />
-          </div>
-        </div>
-
-        <div className="card-fiori">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium text-fiori-muted">Total de Ativos</p>
-              <p className="text-2xl font-bold text-fiori-primary">
-                {formatBRL(kpis.totalAssets)}
-              </p>
-            </div>
-            <TrendingUp className="w-8 h-8 text-green-600" />
-          </div>
-        </div>
-
-        <div className="card-fiori">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium text-fiori-muted">Total de Passivos</p>
-              <p className="text-2xl font-bold text-fiori-primary">
-                {formatBRL(kpis.totalLiabilities)}
-              </p>
-            </div>
-            <TrendingDown className="w-8 h-8 text-red-600" />
-          </div>
-        </div>
-
-        <div className="card-fiori">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium text-fiori-muted">Receita do Mês</p>
-              <p className="text-2xl font-bold text-fiori-primary">
-                {formatBRL(kpis.monthlyRevenue)}
-              </p>
-            </div>
-            <BarChart3 className="w-8 h-8 text-blue-600" />
           </div>
         </div>
       </div>
 
-      {/* Quick Actions */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div className="card-fiori">
-          <h2 className="text-xl font-semibold mb-4">Ações Rápidas</h2>
-          <div className="grid grid-cols-2 gap-4">
-            <Link href="/fi/chart-of-accounts" className="btn-fiori-primary">
-              Plano de Contas
-            </Link>
-            <Link href="/fi/entries" className="btn-fiori-outline">
-              Lançamentos
-            </Link>
-            <Link href="/fi/accounts-payable" className="btn-fiori-outline">
-              Contas a Pagar
-            </Link>
-            <Link href="/fi/accounts-receivable" className="btn-fiori-outline">
-              Contas a Receber
-            </Link>
-          </div>
+      {/* Main Content */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {/* Title Section */}
+        <div className="text-center mb-12">
+          <h1 className="text-4xl font-bold text-white mb-4">FI - Gestão Financeira</h1>
+          <p className="text-xl text-gray-300 mb-2">Contas a pagar e receber</p>
+          <p className="text-lg text-gray-400">Controle contábil e fluxo de caixa</p>
         </div>
 
-        <div className="card-fiori">
-          <h2 className="text-xl font-semibold mb-4">Relatórios</h2>
-          <div className="space-y-3">
-            <Link href="/fi/reports/balance-sheet" className="btn-fiori-outline w-full justify-start">
-              Balanço Patrimonial
-            </Link>
-            <Link href="/fi/reports/income-statement" className="btn-fiori-outline w-full justify-start">
-              DRE - Demonstração de Resultado
-            </Link>
-            <Link href="/fi/reports/cash-flow" className="btn-fiori-outline w-full justify-start">
-              Fluxo de Caixa
-            </Link>
-          </div>
+        {/* Tiles Principais */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">
+          <TileCard
+            title="Plano de Contas"
+            subtitle="Estrutura contábil"
+            icon={BarChart3}
+            href="/fi/chart-of-accounts"
+            color="blue"
+          />
+          
+          <TileCard
+            title="Lançamentos"
+            subtitle="Entradas contábeis"
+            icon={Receipt}
+            href="/fi/entries"
+            color="green"
+          />
+          
+          <TileCard
+            title="Contas a Pagar"
+            subtitle="Obrigações"
+            icon={CreditCard}
+            href="/fi/accounts-payable"
+            color="red"
+          />
+        </div>
+
+        {/* Visão Geral - KPIs */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
+          <KpiCard
+            title="Patrimônio Líquido"
+            value={formatBRL(netWorth)}
+            subtitle="Valor líquido"
+            icon={DollarSign}
+            color="green"
+          />
+          
+          <KpiCard
+            title="Total de Ativos"
+            value={totalAssets}
+            subtitle="Recursos totais"
+            icon={TrendingUp}
+            color="blue"
+          />
+          
+          <KpiCard
+            title="Total de Passivos"
+            value={totalLiabilities}
+            subtitle="Obrigações totais"
+            icon={TrendingDown}
+            color="red"
+          />
+          
+          <KpiCard
+            title="Receita do Mês"
+            value={formatBRL(monthlyRevenue)}
+            subtitle="Receita do período"
+            icon={Calculator}
+            color="green"
+          />
+        </div>
+
+        {/* Seções de Listagem */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <ListSection
+            title="Contas a Pagar"
+            viewAllHref="/fi/accounts-payable"
+            viewAllText="Ver Todas"
+            icon={CreditCard}
+            emptyState={{
+              icon: CreditCard,
+              title: "Nenhuma conta a pagar",
+              description: "Não há obrigações pendentes",
+              actionText: "Ver Contas",
+              actionHref: "/fi/accounts-payable"
+            }}
+          >
+            {payables.length > 0 ? (
+              <div className="space-y-3">
+                {payables.slice(0, 5).map((payable) => (
+                  <div key={payable.ap_id} className="flex items-center justify-between p-3 bg-gray-700 rounded-lg">
+                    <div>
+                      <p className="text-white font-medium">Conta #{payable.ap_id}</p>
+                      <p className="text-gray-400 text-sm">{formatBRL(payable.amount_cents)}</p>
+                    </div>
+                    <span className={`text-sm font-medium ${
+                      payable.status === 'paid' ? 'text-green-400' : 'text-red-400'
+                    }`}>
+                      {payable.status === 'paid' ? 'Pago' : 'Pendente'}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            ) : null}
+          </ListSection>
+
+          <ListSection
+            title="Contas a Receber"
+            viewAllHref="/fi/accounts-receivable"
+            viewAllText="Ver Todas"
+            icon={Receipt}
+            emptyState={{
+              icon: Receipt,
+              title: "Nenhuma conta a receber",
+              description: "Não há recebimentos pendentes",
+              actionText: "Ver Contas",
+              actionHref: "/fi/accounts-receivable"
+            }}
+          >
+            {receivables.length > 0 ? (
+              <div className="space-y-3">
+                {receivables.slice(0, 5).map((receivable) => (
+                  <div key={receivable.ar_id} className="flex items-center justify-between p-3 bg-gray-700 rounded-lg">
+                    <div>
+                      <p className="text-white font-medium">Conta #{receivable.ar_id}</p>
+                      <p className="text-gray-400 text-sm">{formatBRL(receivable.amount_cents)}</p>
+                    </div>
+                    <span className={`text-sm font-medium ${
+                      receivable.status === 'paid' ? 'text-green-400' : 'text-blue-400'
+                    }`}>
+                      {receivable.status === 'paid' ? 'Recebido' : 'Pendente'}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            ) : null}
+          </ListSection>
         </div>
       </div>
     </div>
   )
 }
-
-

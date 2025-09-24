@@ -1,7 +1,14 @@
 #!/usr/bin/env bash
 set -e
 export GIT_STAGED_LIST="$(git diff --cached --name-only; echo; git diff --name-only)"
-node scripts/guardrails/preflight.js || {
-  echo "❌ Preflight reprovou. Corrija as violações acima e tente novamente."
-  exit 2
-}
+
+# 1) Bloqueios essenciais (rápidos)
+node scripts/guardrails/anti-loop.js
+node -e "try{require.resolve('js-yaml');}catch(e){process.exit(1)}" || npm i -D js-yaml >/dev/null 2>&1
+node scripts/guardrails/regression-check.js
+
+# 2) (Opcional) Lint + Tests — descomente se quiser travar também aqui
+# npm run lint
+# npm run test:e2e -w 1
+
+echo '✅ pre-push aprovado.'

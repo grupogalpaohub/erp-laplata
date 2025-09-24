@@ -1,0 +1,94 @@
+# scripts/guardrails/regressions.yml
+# Adicione regras aqui SEMPRE que corrigir um bug.
+# Cada regra impede o Cursor de reabrir o problema.
+
+rules:
+  # --- MOEDA EM CENTAVOS: nunca usar *10000 ou /10000 ---
+  - name: forbid-10000-math
+    paths: ["**/*.ts", "**/*.tsx", "**/*.js", "**/*.jsx"]
+    mustNotContain:
+      - "* 10000"
+      - "/ 10000"
+
+  # --- money.ts deve exportar toCents e formatBRL ---
+  - name: money-helpers-present
+    paths: ["**/lib/money.ts", "lib/money.ts", "src/lib/money.ts", "app/lib/money.ts"]
+    mustContain:
+      - "export function toCents("
+      - "export function formatBRL("
+
+  # --- Client Components não podem mutar DB ---
+  - name: no-client-db-mutation
+    paths: ["**/*.tsx", "**/*.ts"]
+    onlyIfContains: ["'use client'", "\"use client\""]
+    mustNotRegex:
+      - "\\.insert\\s*\\("
+      - "\\.update\\s*\\("
+      - "\\.delete\\s*\\("
+      - "\\.upsert\\s*\\("
+
+  # --- Supabase só via server (impede import no client) ---
+  - name: no-supabase-in-client
+    paths: ["**/*.tsx", "**/*.ts"]
+    onlyIfContains: ["'use client'", "\"use client\""]
+    mustNotContain:
+      - "@supabase/supabase-js"
+
+  # --- Tenant: proibido aceitar/enviar tenant_id e hardcode de 'LaplataLunaria' ---
+  - name: tenant-no-hardcode
+    paths: ["**/*.ts", "**/*.tsx", "**/*.js", "**/*.jsx"]
+    mustNotRegex:
+      - "\\btenant_id\\b\\s*[:=]"
+      - "['\\\"]LaplataLunaria['\\\"]"
+
+  # --- UI BASE CONGELADA: não tocar no visual padrão (Home/MM/SD + core UI) ---
+  - name: ui-base-write-protect
+    paths:
+      - "app/layout.tsx"
+      - "app/globals.css"
+      - "tailwind.config.js"
+      - "postcss.config.js"
+      - "components/ui/**"
+      - "components/common/**"
+      - "lib/theme.*"
+      - "lib/ui/**"
+      - "app/(home)/**"
+      - "app/(mm)/**"
+      - "app/(sd)/**"
+    immutable: true   # bloqueia qualquer alteração
+
+  # --- DB/ENV CONGELADOS (Cursor não altera) ---
+  - name: db-env-write-protect
+    paths:
+      - "supabase/**"
+      - "migrations/**"
+      - "database/**"
+      - "infra/**"
+      - "supabase_schema.sql"
+      - "supabase_full.sql"
+      - "supabase_full.dump"
+      - ".env"
+      - ".env.*"
+      - ".vercel/**"
+      - "vercel.json"
+    immutable: true
+
+  # --- Revalidate obrigatório após MUTATION em Server Actions/APIs ---
+  # heurística: se arquivo **server** tem insert/update/delete/upsert, exigir revalidatePath(
+  - name: mutation-requires-revalidate
+    paths: ["app/**/_actions.ts", "app/**/route.ts", "app/**/route.tsx", "lib/data/**.ts"]
+    ifRegex:
+      - "\\.insert\\s*\\("
+      - "\\.update\\s*\\("
+      - "\\.delete\\s*\\("
+      - "\\.upsert\\s*\\("
+    mustContain:
+      - "revalidatePath("
+
+  # --- Dados não podem ser hardcoded no app (listas de materiais/clientes/preços) ---
+  - name: no-hardcoded-domain-data
+    paths: ["app/**/**.ts", "app/**/**.tsx", "components/**/**.tsx"]
+    mustNotRegex:
+      - "\\bmaterials?\\b\\s*=\\s*\\["
+      - "\\bcustomers?\\b\\s*=\\s*\\["
+      - "\\b(price|amount|total|unit_price)_cents\\b\\s*=\\s*\\["

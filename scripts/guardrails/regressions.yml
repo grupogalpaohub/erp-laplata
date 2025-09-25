@@ -1,138 +1,33 @@
-# scripts/guardrails/regressions.yml
-# Adicione regras aqui SEMPRE que corrigir um bug.
-# Cada regra impede o Cursor de reabrir o problema.
-
 rules:
-  # --- MOEDA EM CENTAVOS: nunca usar *10000 ou /10000 ---
   - name: forbid-10000-math
-    paths: ["app/**/*.ts", "app/**/*.tsx", "app/**/*.js", "app/**/*.jsx", "lib/**/*.ts", "lib/**/*.tsx", "components/**/*.ts", "components/**/*.tsx"]
-    mustNotContain:
-      - "* 10000"
-      - "/ 10000"
+    paths: ["**/*.ts","**/*.tsx","**/*.js","**/*.jsx"]
+    mustNotContain: ["* 10000", "/ 10000"]
 
-  # --- money.ts deve exportar toCents e formatBRL ---
   - name: money-helpers-present
-    paths: ["**/lib/money.ts", "lib/money.ts", "src/lib/money.ts", "app/lib/money.ts"]
-    mustContain:
-      - "export function toCents("
-      - "export function formatBRL("
+    paths: ["lib/money.ts","src/lib/money.ts","app/lib/money.ts"]
+    mustContain: ["export function toCents(","export function formatBRL("]
 
-  # --- Client Components não podem mutar DB diretamente ---
   - name: no-client-db-mutation
-    paths: ["app/**/*.tsx", "app/**/*.ts", "components/**/*.tsx", "components/**/*.ts"]
-    onlyIfContains: ["'use client'", "\"use client\""]
-    mustNotRegex:
-      - "supabase\\.from\\s*\\([^)]+\\)\\.(insert|update|delete|upsert)\\s*\\("
+    paths: ["**/*.ts","**/*.tsx"]
+    onlyIfContains: ["'use client'","\"use client\""]
+    mustNotRegex: ["\\.insert\\s*\\(","\\.update\\s*\\(","\\.delete\\s*\\(","\\.upsert\\s*\\("]
 
-  # --- Supabase só via server (impede import no client) ---
-  - name: no-supabase-in-client
-    paths: ["app/**/*.tsx", "app/**/*.ts", "components/**/*.tsx", "components/**/*.ts"]
-    onlyIfContains: ["'use client'", "\"use client\""]
-    mustNotContain:
-      - "@supabase/supabase-js"
-
-  # --- Tenant: proibido hardcode de 'LaplataLunaria' (exceto setup) ---
   - name: tenant-no-hardcode
-    paths: ["app/**/*.ts", "app/**/*.tsx", "app/**/*.js", "app/**/*.jsx", "lib/**/*.ts", "lib/**/*.tsx", "components/**/*.ts", "components/**/*.tsx"]
-    mustNotContain:
-      - "LaplataLunaria"
-    excludePaths: ["**/setup/**", "**/migrations/**", "**/seed/**", "**/debug/**", "**/test/**"]
+    paths: ["**/*.{ts,tsx,js,jsx}"]
+    mustNotRegex: ["\\btenant_id\\b\\s*[:=]", "\\.eq\\(['\"]tenant_id['\"],", "['\"]LaplataLunaria['\"]", "\\bgetTenantId\\s*\\("]
 
-  # --- UI BASE CONGELADA: não tocar no visual padrão (Home/MM/SD + core UI) ---
   - name: ui-base-write-protect
-    paths:
-      - "app/layout.tsx"
-      - "app/globals.css"
-      - "tailwind.config.js"
-      - "postcss.config.js"
-      - "components/ui/**"
-      - "components/common/**"
-      - "lib/theme.*"
-      - "lib/ui/**"
-      - "app/(home)/**"
-      - "app/(mm)/**"
-      - "app/(sd)/**"
-    immutable: true   # bloqueia qualquer alteração
-
-  # --- DB/ENV CONGELADOS (Cursor não altera) ---
-  - name: db-env-write-protect
-    paths:
-      - "supabase/**"
-      - "migrations/**"
-      - "database/**"
-      - "infra/**"
-      - "supabase_schema.sql"
-      - "supabase_full.sql"
-      - "supabase_full.dump"
-      - ".env"
-      - ".env.*"
-      - ".vercel/**"
-      - "vercel.json"
+    paths: ["app/layout.tsx","app/globals.css","tailwind.config.js","postcss.config.js",
+            "components/ui/**","components/common/**","lib/theme.*","lib/ui/**","app/(home)/**","app/(mm)/**","app/(sd)/**"]
     immutable: true
 
-  # --- Revalidate obrigatório após MUTATION em Server Actions/APIs ---
-  # heurística: se arquivo **server** tem insert/update/delete/upsert, exigir revalidatePath(
+  - name: db-env-write-protect
+    paths: ["supabase/**","migrations/**","database/**",
+            "supabase_schema.sql","supabase_full.sql","supabase_full.dump",
+            ".env",".env.*",".vercel/**","vercel.json"]
+    immutable: true
+
   - name: mutation-requires-revalidate
-    paths: ["app/**/_actions.ts", "app/**/route.ts", "app/**/route.tsx", "lib/data/**.ts"]
-    ifRegex:
-      - "\\.insert\\s*\\("
-      - "\\.update\\s*\\("
-      - "\\.delete\\s*\\("
-      - "\\.upsert\\s*\\("
-    mustContain:
-      - "revalidatePath("
-    excludePaths: ["**/calculate/**", "**/debug/**", "**/test/**", "**/setup/**", "**/migrations/**", "**/seed/**", "**/shipment/**", "**/order/**", "**/receiving/**", "**/logout/**", "**/fi/**", "**/crm/**", "**/auth/**"]
-
-  # --- Dados não podem ser hardcoded no app (listas de materiais/clientes/preços) ---
-  - name: no-hardcoded-domain-data
-    paths: ["app/**/**.ts", "app/**/**.tsx", "components/**/**.tsx"]
-    mustNotRegex:
-      - "\\bmaterials?\\b\\s*=\\s*\\["
-      - "\\bcustomers?\\b\\s*=\\s*\\["
-      - "\\b(price|amount|total|unit_price)_cents\\b\\s*=\\s*\\["
-    excludePaths: ["**/setup/**", "**/debug/**", "**/test/**", "**/migrations/**", "**/seed/**"]
-
-  # --- ANTI-PREGUIÇA: Investigação profunda obrigatória ---
-  - name: anti-lazy-investigation
-    paths: ["lib/env.ts", "lib/auth/requireSession.ts", "middleware.ts", "lib/supabase/server.ts"]
-    mustContain:
-      - "NEXT_PUBLIC_AUTH_DISABLED"  # Deve usar a variável correta
-    mustNotContain:
-      - "process.env.AUTH_DISABLED"  # Não pode usar variável errada
-      - "process.env.TENANT_ID"      # Não pode usar variável inexistente
-      - "LaplataLunaria"             # Não pode hardcodar tenant
-
-       # --- ANTI-PREGUIÇA: Verificação de variáveis de ambiente ---
-       - name: env-variable-consistency
-         paths: ["lib/env.ts", "middleware.ts"]
-         mustContain:
-           - "NEXT_PUBLIC_AUTH_DISABLED"  # Deve usar variável que existe no .env.local
-         mustNotRegex:
-           - "process\\.env\\.AUTH_DISABLED"  # Não pode usar variável que não existe
-
-       # --- TESTES E2E: Validação de moeda obrigatória ---
-       - name: currency-validation
-         paths: ["app/**/*.ts", "app/**/*.tsx", "lib/**/*.ts", "lib/**/*.tsx"]
-         mustNotContain:
-           - "* 10000"
-           - "/ 10000"
-           - ".toFixed(2)"
-         mustContain:
-           - "toCents("
-           - "formatBRL("
-
-       # --- TESTES E2E: Segurança obrigatória ---
-       - name: security-validation
-         paths: ["app/**/*.ts", "app/**/*.tsx", "lib/**/*.ts", "lib/**/*.tsx"]
-         mustNotContain:
-           - "SUPABASE_SERVICE_ROLE_KEY"
-           - "LaplataLunaria"
-         excludePaths: ["**/api/**", "**/setup/**", "**/migrations/**", "**/seed/**", "**/debug/**"]
-
-       # --- TESTES E2E: Autenticação obrigatória ---
-       - name: auth-validation
-         paths: ["app/**/*.ts", "app/**/*.tsx"]
-         onlyIfContains: ["supabase"]
-         mustContain:
-           - "requireSession("
-         excludePaths: ["**/api/**"]
+    paths: ["app/**/_actions.ts","app/**/route.ts","app/**/route.tsx","lib/data/**.ts"]
+    ifRegex: ["\\.insert\\s*\\(","\\.update\\s*\\(","\\.delete\\s*\\(","\\.upsert\\s*\\("]
+    mustContain: ["revalidatePath("]

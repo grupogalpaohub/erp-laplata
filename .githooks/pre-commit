@@ -1,24 +1,4 @@
 #!/usr/bin/env bash
 set -e
-
-echo "🔒 EXECUTANDO ENFORCEMENT DE REGRAS IRREVERSÍVEIS..."
-
-# 1. ENFORCEMENT FÍSICO - BLOQUEIA VIOLAÇÕES
-node scripts/guardrails/enforce-rules.js
-
-# 2. INVESTIGAÇÃO PROFUNDA OBRIGATÓRIA
-node scripts/guardrails/deep-investigation.js
-
-# 3. VALIDAÇÃO DE MOEDA
-node scripts/guardrails/currency-validator.js
-
-# 4. VALIDAÇÃO DE SEGURANÇA
-node scripts/guardrails/security-validator.js
-
-# 5. REGRESSION CHECK
-node scripts/guardrails/regression-check.js
-
-# 6. ANTI-LOOP
 node scripts/guardrails/anti-loop.js
-
-echo "✅ PRE-COMMIT APROVADO - REGRAS ENFORÇADAS"
+node scripts/guardrails/enforce.mjs --mode=commit

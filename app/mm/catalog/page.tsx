@@ -30,7 +30,9 @@ export default function CatalogoMateriais({ searchParams }: { searchParams: { su
   useEffect(() => {
     const loadMaterials = async () => {
       try {
-        const response = await fetch('/api/mm/materials')
+        const response = await fetch('/api/dev/mm/materials', {
+          headers: { 'x-local-dev': 'true' }
+        })
         if (response.ok) {
           const data = await response.json()
           setMaterials(data)

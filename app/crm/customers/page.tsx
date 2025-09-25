@@ -1,6 +1,5 @@
 import Link from 'next/link'
 import { getSupabaseServerClient } from '@/lib/supabase/server'
-import { getTenantId } from '@/lib/auth'
 import { Plus, Edit, Eye } from 'lucide-react'
 
 export const dynamic = 'force-dynamic'
@@ -12,12 +11,10 @@ export default async function CustomersPage() {
 
   try {
     const supabase = getSupabaseServerClient()
-    const tenantId = await getTenantId()
 
     const { data, error } = await supabase
       .from('crm_customer')
-      .select('customer_id, name, contact_email, contact_phone, customer_type, created_date')
-      .eq('tenant_id', tenantId)
+      .select('customer_id, name, email, phone, customer_type, created_at')
       .eq('is_active', true)
       .order('name')
 
@@ -79,8 +76,8 @@ export default async function CustomersPage() {
                     <tr key={customer.customer_id}>
                       <td className="font-mono text-sm">{customer.customer_id}</td>
                       <td className="font-medium">{customer.name}</td>
-                      <td>{customer.contact_email}</td>
-                      <td>{customer.contact_phone || '-'}</td>
+                      <td>{customer.email}</td>
+                      <td>{customer.phone || '-'}</td>
                       <td>
                         <span className={`px-2 py-1 rounded-full text-xs ${
                           customer.customer_type === 'PF' 
@@ -91,7 +88,7 @@ export default async function CustomersPage() {
                         </span>
                       </td>
                       <td>
-                        {new Date(customer.created_date).toLocaleDateString('pt-BR')}
+                        {new Date(customer.created_at).toLocaleDateString('pt-BR')}
                       </td>
                       <td>
                         <div className="flex gap-2">

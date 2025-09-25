@@ -1,0 +1,17 @@
+REGRAS INEGOCIÁVEIS (valem para esta e futuras tarefas)
+
+1) NÃO alterar UI/tema/tokens. Corrigir apenas carregamento de dados.
+2) PROIBIDO SUPABASE_SERVICE_ROLE_KEY em app/lib/components/api.
+3) PROIBIDO hardcode de tenant ('LaplataLunaria','default', etc). RLS decide.
+4) PROIBIDO aceitar/enviar tenant_id do cliente. Remova filtros manuais de tenant.
+5) PROIBIDO criar/editar .env* ou mexer em Vercel/Supabase por aqui.
+6) Leituras: Server Components (SSR) com getSupabaseServerClient() (anon+cookies) → RLS.
+7) Mutações: Server Actions (ou API server-only) com requireSession() + revalidatePath().
+8) Moeda: DB em _cents; entrada toCents(); saída formatBRL(); proibidos *10000, /10000, toLocaleString() p/ dinheiro.
+9) Rotas DEV só em DEV; nada de tentar "mudar regra" do guardrail.
+10) Antes de remover qualquer coisa, garantir testes "como usuário" (UI=DB).
+
+OBJETIVO DA SESSÃO:
+- Deletar TODAS as rotas em app/api/**.
+- Ativar DEV login (sem Google) para ter sessão real em localhost.
+- Migrar leituras para SSR e criações/edições para Server Actions, começando por MM e replicando padrão em SD/CRM.

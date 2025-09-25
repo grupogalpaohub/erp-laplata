@@ -1,3 +1,4 @@
+import "@/styles/fiori-helpers.css";
 import './globals.css'
 import FioriShell from '@/components/FioriShell'
 import SuppressHydrationWarnings from '@/components/SuppressHydrationWarnings'
@@ -15,4 +16,5 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     </html>
   )
 }
+
 

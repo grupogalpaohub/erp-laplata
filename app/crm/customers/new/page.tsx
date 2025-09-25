@@ -1,14 +1,11 @@
+import { createCustomerAction } from "./actions";
+import CustomerForm from "@/components/crm/CustomerForm";
 import Link from 'next/link'
-import { getSupabaseServerClient } from '@/lib/supabase/server'
-import { getTenantId } from '@/lib/auth'
 import { ArrowLeft } from 'lucide-react'
-import NewCustomerForm from './NewCustomerForm'
 
-export const dynamic = 'force-dynamic'
-export const revalidate = 0
-export const fetchCache = 'force-no-store'
+export const dynamic = "force-dynamic"; // SSR sempre
 
-export default async function NewCustomerPage() {
+export default function NewCustomerPage() {
   return (
     <div className="container-fiori">
       <div className="mb-6">
@@ -26,8 +23,7 @@ export default async function NewCustomerPage() {
           Cadastre um novo cliente no sistema
         </p>
       </div>
-
-      <NewCustomerForm />
+      <CustomerForm onSubmit={createCustomerAction as any} />
     </div>
   )
 }

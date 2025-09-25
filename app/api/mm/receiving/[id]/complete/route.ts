@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createSupabaseServerClient } from '@/lib/supabaseServer'
+import { createClient } from '@supabase/supabase-js'
 import { getTenantId } from '@/lib/auth'
 
 export const runtime = 'nodejs'
@@ -10,7 +10,10 @@ export async function POST(
   { params }: { params: { id: string } }
 ) {
   try {
-    const supabase = createSupabaseServerClient()
+    const supabase = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.SUPABASE_SERVICE_ROLE_KEY!
+    )
     const tenantId = await getTenantId()
     const recvId = params.id
 

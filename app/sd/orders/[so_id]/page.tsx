@@ -1,7 +1,7 @@
 import Link from 'next/link'
-import { createSupabaseServerClient } from '@/lib/supabaseServer'
+import { createClient } from '@supabase/supabase-js'
 import { getTenantId } from '@/lib/auth'
-import { formatCurrency } from '@/lib/currency'
+import { formatBRL } from '@/lib/money'
 import { ArrowLeft, Edit, CheckCircle, XCircle, DollarSign, Percent } from 'lucide-react'
 
 export const dynamic = 'force-dynamic'
@@ -44,7 +44,10 @@ export default async function SalesOrderDetailPage({ params }: { params: { so_id
   let error = ''
 
   try {
-    const supabase = createSupabaseServerClient()
+    const supabase = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+    )
     const tenantId = await getTenantId()
 
     // Buscar pedido

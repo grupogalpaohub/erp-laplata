@@ -3,7 +3,7 @@ export const revalidate = 0;
 export const fetchCache = 'force-no-store';
 
 import { getSupabaseServerClient } from '@/lib/supabase/server'
-import { DataTable } from '@/src/components/DataTable'
+// import { DataTable } from '@/components/DataTable'
 
 type Row = {
   mm_order: string

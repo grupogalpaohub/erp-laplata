@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { Plus, Trash2, Calculator } from 'lucide-react'
-import { formatBRL, toCents, toReais } from '@/lib/money'
+import { formatBRL, toCents } from '@/lib/money'
 
 interface Material {
   mm_material: string

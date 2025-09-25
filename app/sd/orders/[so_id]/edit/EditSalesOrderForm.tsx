@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { Save, X, Plus, Trash2 } from 'lucide-react'
-import { formatCurrency, toCents } from '@/lib/currency'
+import { formatBRL, toCents } from '@/lib/money'
 import { updateOrderAction, addOrderItemAction, removeOrderItemAction } from '../_actions'
 
 interface OrderItem {

@@ -1,6 +1,6 @@
 import Link from 'next/link'
-import { createSupabaseServerClient } from '@/lib/supabaseServer'
-import { getTenantId } from '@/src/lib/auth'
+import { createClient } from '@supabase/supabase-js'
+import { getTenantId } from '@/lib/auth'
 import { ArrowLeft, Save, X } from 'lucide-react'
 import { notFound, redirect } from 'next/navigation'
 
@@ -48,7 +48,10 @@ async function updateCustomer(formData: FormData) {
   'use server'
   
   try {
-    const supabase = createSupabaseServerClient()
+    const supabase = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+    )
     const tenantId = await getTenantId()
     const customerId = String(formData.get('customer_id') || '')
 
@@ -163,7 +166,10 @@ export default async function EditCustomerPage({ params }: PageProps) {
   let customer: Customer | null = null
 
   try {
-    const supabase = createSupabaseServerClient()
+    const supabase = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+    )
     const tenantId = await getTenantId()
 
     // Buscar dados do cliente

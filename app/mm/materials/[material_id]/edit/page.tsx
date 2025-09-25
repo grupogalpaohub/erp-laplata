@@ -6,7 +6,7 @@ import Link from 'next/link'
 import { ArrowLeft, Save, X } from 'lucide-react'
 import MaterialTypeSelect from '@/components/MaterialTypeSelect'
 import MaterialClassSelect from '@/components/MaterialClassSelect'
-import { formatBRL, toCents, centsToReais, toReais } from '@/lib/money'
+import { formatBRL, toCents } from '@/lib/money'
 
 type Material = {
   mm_material: string

@@ -1,9 +1,12 @@
-import { createSupabaseServerClient } from '@/lib/supabaseServer'
+import { createClient } from '@supabase/supabase-js'
 import { formatBRL } from '@/lib/money'
 import { notFound } from 'next/navigation'
 
 async function getSalesOrder(soId: string) {
-  const supabase = createSupabaseServerClient()
+    const supabase = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+    )
   const tenantId = process.env.TENANT_ID || 'default'
 
   try {

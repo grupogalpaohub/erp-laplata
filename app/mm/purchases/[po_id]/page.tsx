@@ -1,4 +1,4 @@
-stsort { createSupabaseServerClient } from '@/lib/supabaseServer'
+import { createClient } from '@supabase/supabase-js'
 import Link from 'next/link'
 import { ArrowLeft, Printer, Edit } from 'lucide-react'
 import PurchaseOrderClient from './PurchaseOrderClient'

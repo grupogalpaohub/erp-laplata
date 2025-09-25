@@ -1,5 +1,5 @@
 import Link from 'next/link'
-import { createSupabaseServerClient } from '@/lib/supabaseServer'
+import { getSupabaseServerClient } from '@/lib/supabase/server'
 import { getTenantId } from '@/lib/auth'
 import { ArrowLeft, Download, FileText, BarChart3, TrendingUp, Calendar } from 'lucide-react'
 
@@ -13,7 +13,7 @@ export default async function ReportsPage() {
   let totalProfit = 0
 
   try {
-    const supabase = createSupabaseServerClient()
+    const supabase = getSupabaseServerClient()
     const tenantId = await getTenantId()
 
     // Buscar dados para relatórios
@@ -150,3 +150,4 @@ export default async function ReportsPage() {
     </div>
   )
 }
+

@@ -1,4 +1,4 @@
-import { createSupabaseServerClient } from '@/lib/supabaseServer'
+import { getSupabaseServerClient } from '@/lib/supabase/server'
 import { getTenantId } from '@/lib/auth'
 import Link from 'next/link'
 import { Package, Eye, TrendingUp, AlertTriangle } from 'lucide-react'
@@ -21,7 +21,7 @@ interface InventoryItem {
 }
 
 export default async function InventoryPage() {
-  const supabase = createSupabaseServerClient()
+  const supabase = getSupabaseServerClient()
   const tenantId = await getTenantId()
 
   // Buscar posição de estoque
@@ -211,3 +211,4 @@ export default async function InventoryPage() {
     </div>
   )
 }
+

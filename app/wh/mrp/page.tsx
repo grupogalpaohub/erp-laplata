@@ -1,4 +1,4 @@
-import { createSupabaseServerClient } from '@/lib/supabaseServer'
+import { getSupabaseServerClient } from '@/lib/supabase/server'
 import { getTenantId } from '@/lib/auth'
 import Link from 'next/link'
 import { TrendingUp, Package, AlertTriangle, ShoppingCart } from 'lucide-react'
@@ -26,7 +26,7 @@ interface MRPSuggestion {
 }
 
 export default async function MRPPage() {
-  const supabase = createSupabaseServerClient()
+  const supabase = getSupabaseServerClient()
   const tenantId = await getTenantId()
 
   // Buscar sugestões MRP
@@ -283,3 +283,4 @@ export default async function MRPPage() {
     </div>
   )
 }
+

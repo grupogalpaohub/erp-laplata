@@ -1,4 +1,4 @@
-import { createSupabaseServerClient } from '@/lib/supabaseServer';
+import { getSupabaseServerClient } from '@/lib/supabase/server';
 import { ENV } from '@/lib/env';
 
 export async function getTenantId() {
@@ -7,7 +7,7 @@ export async function getTenantId() {
   }
   
   try {
-    const supabase = createSupabaseServerClient();
+    const supabase = getSupabaseServerClient();
     const { data: { user } } = await supabase.auth.getUser();
     return user?.id || process.env.TENANT_ID || 'default';
   } catch (error) {
@@ -15,3 +15,4 @@ export async function getTenantId() {
     return process.env.TENANT_ID || 'default';
   }
 }
+

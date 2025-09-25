@@ -9,3 +9,4 @@ export async function GET(req: NextRequest) {
   const cookies = req.cookies.getAll();
   return NextResponse.json({ cookies }, { status: 200 });
 }
+

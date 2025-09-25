@@ -1,7 +1,6 @@
 import Link from 'next/link'
 import { ArrowLeft } from 'lucide-react'
-import { createSupabaseServerClient } from '@/lib/supabaseServer'
-import { getTenantId } from '@/lib/auth'
+import { requireSession } from '@/lib/auth/requireSession'
 import { formatBRL } from '@/lib/money'
 
 export const dynamic = 'force-dynamic'
@@ -18,23 +17,19 @@ export default async function COPage() {
   let grossMarginPercent = 0
 
   try {
-    const supabase = createSupabaseServerClient()
-    const tenantId = await getTenantId()
+    const { supabase } = await requireSession()
 
-    // Buscar dados para KPIs
+    // Buscar dados para KPIs (RLS filtra automaticamente por tenant)
     const [productsResult, marginsResult, budgetsResult] = await Promise.allSettled([
       supabase
         .from('co_product_cost')
-        .select('product_id, cost_cents, revenue_cents')
-        .eq('tenant_id', tenantId),
+        .select('product_id, cost_cents, revenue_cents'),
       supabase
         .from('co_margin_analysis')
-        .select('product_id, margin_percent, revenue_cents')
-        .eq('tenant_id', tenantId),
+        .select('product_id, margin_percent, revenue_cents'),
       supabase
         .from('co_budget')
         .select('budget_id, planned_amount_cents, actual_amount_cents')
-        .eq('tenant_id', tenantId)
     ])
 
     products = productsResult.status === 'fulfilled' ? (productsResult.value.data || []) : []

@@ -1,7 +1,6 @@
 import Link from 'next/link'
 import { ArrowLeft } from 'lucide-react'
-import { createClient } from '@supabase/supabase-js'
-import { getTenantId } from '@/lib/auth'
+import { requireSession } from '@/lib/auth/requireSession'
 
 export const dynamic = 'force-dynamic'
 export const revalidate = 0
@@ -18,30 +17,22 @@ export default async function MMIndex() {
   let monthlyValue = 0
 
   try {
-    const supabase = createClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.SUPABASE_SERVICE_ROLE_KEY!
-    )
-    const tenantId = await getTenantId()
+    const { supabase } = await requireSession()
 
-    // Buscar dados para KPIs
+    // Buscar dados para KPIs (RLS filtra automaticamente por tenant)
     const [materialsResult, vendorsResult, ordersResult, monthlyOrdersResult] = await Promise.allSettled([
       supabase
         .from('mm_material')
-        .select('mm_material, mm_comercial, mm_purchase_price_cents, mm_price_cents')
-        .eq('tenant_id', tenantId),
+        .select('mm_material, mm_comercial, mm_purchase_price_cents, mm_price_cents'),
       supabase
         .from('mm_vendor')
-        .select('vendor_id, vendor_name, status')
-        .eq('tenant_id', tenantId),
+        .select('vendor_id, vendor_name, status'),
+      supabase
+        .from('mm_purchase_order')
+        .select('mm_order, total_cents, status, po_date'),
       supabase
         .from('mm_purchase_order')
         .select('mm_order, total_cents, status, po_date')
-        .eq('tenant_id', tenantId),
-      supabase
-        .from('mm_purchase_order')
-        .select('mm_order, total_cents, status, po_date')
-        .eq('tenant_id', tenantId)
         .gte('po_date', new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString().split('T')[0])
         .lte('po_date', new Date(new Date().getFullYear(), new Date().getMonth() + 1, 0).toISOString().split('T')[0])
     ])
@@ -237,3 +228,4 @@ export default async function MMIndex() {
     </div>
   )
 }
+

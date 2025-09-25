@@ -1,7 +1,6 @@
 import Link from 'next/link'
 import { ArrowLeft } from 'lucide-react'
-import { createSupabaseServerClient } from '@/lib/supabaseServer'
-import { getTenantId } from '@/lib/auth'
+import { requireSession } from '@/lib/auth/requireSession'
 
 export const dynamic = 'force-dynamic'
 export const revalidate = 0
@@ -17,23 +16,19 @@ export default async function CRMPage() {
   let conversionRate = 0
 
   try {
-    const supabase = createSupabaseServerClient()
-    const tenantId = await getTenantId()
+    const { supabase } = await requireSession()
 
-    // Buscar dados para KPIs
+    // Buscar dados para KPIs (RLS filtra automaticamente por tenant)
     const [customersResult, opportunitiesResult, activitiesResult] = await Promise.allSettled([
       supabase
         .from('crm_customer')
-        .select('customer_id, name, is_active')
-        .eq('tenant_id', tenantId),
+        .select('customer_id, name, is_active'),
       supabase
         .from('crm_opportunity')
-        .select('opportunity_id, status, value_cents')
-        .eq('tenant_id', tenantId),
+        .select('opportunity_id, status, value_cents'),
       supabase
         .from('crm_activity')
         .select('activity_id, type, created_at')
-        .eq('tenant_id', tenantId)
         .gte('created_at', new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString())
     ])
 

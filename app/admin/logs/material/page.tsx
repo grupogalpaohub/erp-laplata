@@ -1,11 +1,11 @@
 export const dynamic = 'force-dynamic'
 export const revalidate = 0
 export const runtime = 'nodejs'
-import { createSupabaseServerClient } from '@/lib/supabase/server'
+import { getSupabaseServerClient } from '@/lib/supabase/server'
 import { formatBRL } from '@/lib/money'
 
 export default async function MaterialLogsPage() {
-  const supabase = createSupabaseServerClient()
+  const supabase = getSupabaseServerClient()
 
   // Consolidar: preço + campos (duas tabelas)
   const [{ data: price }, { data: change }] = await Promise.all([
@@ -82,3 +82,4 @@ export default async function MaterialLogsPage() {
     </main>
   )
 }
+

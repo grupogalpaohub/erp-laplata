@@ -2,13 +2,17 @@
 set -e
 export GIT_STAGED_LIST="$(git diff --cached --name-only; echo; git diff --name-only)"
 
-# 1) Bloqueios essenciais (rápidos)
+# 1) INVESTIGAÇÃO PROFUNDA OBRIGATÓRIA (anti-preguiça)
+echo "🔍 EXECUTANDO INVESTIGAÇÃO PROFUNDA OBRIGATÓRIA..."
+node scripts/guardrails/deep-investigation.js
+
+# 2) Bloqueios essenciais (rápidos)
 node scripts/guardrails/anti-loop.js
 node -e "try{require.resolve('js-yaml');}catch(e){process.exit(1)}" || npm i -D js-yaml >/dev/null 2>&1
 node scripts/guardrails/regression-check.js
 
-# 2) (Opcional) Lint + Tests — descomente se quiser travar também aqui
+# 3) (Opcional) Lint + Tests — descomente se quiser travar também aqui
 # npm run lint
 # npm run test:e2e -w 1
 
-echo '✅ pre-push aprovado.'
+echo '✅ pre-push aprovado - investigação profunda concluída.'

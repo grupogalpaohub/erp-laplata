@@ -9,3 +9,4 @@ export function getRequestOrigin() {
   } catch {}
   return ENV.SITE_URL || 'http://localhost:3000';
 }
+

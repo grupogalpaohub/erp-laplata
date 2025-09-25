@@ -1,5 +1,5 @@
 import Link from 'next/link'
-import { createSupabaseServerClient } from '@/lib/supabaseServer'
+import { getSupabaseServerClient } from '@/lib/supabase/server'
 import { getTenantId } from '@/lib/auth'
 import { ArrowLeft, Download, Search, Filter, Calendar } from 'lucide-react'
 
@@ -22,7 +22,7 @@ export default async function AuditPage() {
   let totalCount = 0
 
   try {
-    const supabase = createSupabaseServerClient()
+    const supabase = getSupabaseServerClient()
     const tenantId = await getTenantId()
 
     // Buscar logs de auditoria do CRM
@@ -298,3 +298,4 @@ export default async function AuditPage() {
     </div>
   )
 }
+

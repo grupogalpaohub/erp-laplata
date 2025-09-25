@@ -32,3 +32,4 @@ export default function MaterialClassSelect({ name, id, className, defaultValue 
     </select>
   )
 }
+

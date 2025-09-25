@@ -1,7 +1,6 @@
 import Link from 'next/link'
 import { ArrowLeft, Save } from 'lucide-react'
-import { createClient } from '@supabase/supabase-js'
-import { getTenantId } from '@/lib/auth'
+import { requireSession } from '@/lib/auth/requireSession'
 import { redirect } from 'next/navigation'
 
 export const dynamic = 'force-dynamic'
@@ -9,17 +8,13 @@ export const revalidate = 0
 
 async function getVendor(vendorId: string) {
   try {
-    const supabase = createClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.SUPABASE_SERVICE_ROLE_KEY!
-    )
-    const tenantId = await getTenantId()
+  const { supabase } = await requireSession()
 
     const { data, error } = await supabase
       .from('mm_vendor')
       .select('*')
       .eq('vendor_id', vendorId)
-      .eq('tenant_id', tenantId)
+      // RLS filtra automaticamente por tenant
       .single()
 
     if (error) {
@@ -37,11 +32,7 @@ async function getVendor(vendorId: string) {
 async function updateVendor(vendorId: string, formData: FormData) {
   'use server'
   
-  const supabase = createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!
-  )
-  const tenantId = await getTenantId()
+  const { supabase } = await requireSession()
 
   const vendorData = {
     vendor_name: formData.get('vendor_name') as string,
@@ -66,7 +57,7 @@ async function updateVendor(vendorId: string, formData: FormData) {
       .from('mm_vendor')
       .update(vendorData)
       .eq('vendor_id', vendorId)
-      .eq('tenant_id', tenantId)
+      // RLS filtra automaticamente por tenant
 
     if (error) {
       console.error('Error updating vendor:', error)

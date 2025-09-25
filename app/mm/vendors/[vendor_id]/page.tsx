@@ -1,7 +1,6 @@
 import Link from 'next/link'
 import { ArrowLeft, Edit, Eye, Phone, Mail, MapPin, Building, Calendar } from 'lucide-react'
-import { createClient } from '@supabase/supabase-js'
-import { getTenantId } from '@/lib/auth'
+import { requireSession } from '@/lib/auth/requireSession'
 
 export const dynamic = 'force-dynamic'
 export const revalidate = 0
@@ -28,17 +27,13 @@ interface Vendor {
 
 async function getVendor(vendorId: string): Promise<Vendor | null> {
   try {
-    const supabase = createClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.SUPABASE_SERVICE_ROLE_KEY!
-    )
-    const tenantId = await getTenantId()
+  const { supabase } = await requireSession()
 
     const { data, error } = await supabase
       .from('mm_vendor')
       .select('*')
       .eq('vendor_id', vendorId)
-      .eq('tenant_id', tenantId)
+      // RLS filtra automaticamente por tenant
       .single()
 
     if (error) {

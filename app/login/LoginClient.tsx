@@ -37,3 +37,4 @@ export default function LoginClient({ next }: { next: string }) {
     </main>
   )
 }
+

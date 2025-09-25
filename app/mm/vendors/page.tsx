@@ -1,7 +1,6 @@
 import Link from 'next/link'
 import { ArrowLeft, Plus, Search, Edit, Eye } from 'lucide-react'
-import { createClient } from '@supabase/supabase-js'
-import { getTenantId } from '@/lib/auth'
+import { requireSession } from '@/lib/auth/requireSession'
 import ExportCSVButton from './ExportCSVButton'
 
 export const dynamic = 'force-dynamic'
@@ -34,11 +33,7 @@ export default async function VendorsPage() {
   let activeVendors = 0
 
   try {
-    const supabase = createClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.SUPABASE_SERVICE_ROLE_KEY!
-    )
-    const tenantId = await getTenantId()
+    const { supabase } = await requireSession()
 
     // Buscar fornecedores com total movimentado
     const { data, error } = await supabase
@@ -62,7 +57,7 @@ export default async function VendorsPage() {
         status,
         created_at
       `)
-      .eq('tenant_id', tenantId)
+      // RLS filtra automaticamente por tenant
       .order('vendor_name', { ascending: true })
 
     if (error) {
@@ -273,3 +268,4 @@ export default async function VendorsPage() {
     </div>
   )
 }
+

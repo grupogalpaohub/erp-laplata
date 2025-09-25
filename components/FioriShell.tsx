@@ -73,3 +73,4 @@ export default async function FioriShell({ children }: { children: React.ReactNo
     </div>
   )
 }
+

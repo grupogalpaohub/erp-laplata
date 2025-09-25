@@ -1,5 +1,5 @@
 'use server';
-import { createSupabaseServerClient } from '@/lib/supabaseServer';
+import { getSupabaseServerClient } from '@/lib/supabase/server';
 import { ENV } from '@/lib/env';
 
 export async function loginWithGoogle(next?: string) {
@@ -8,7 +8,7 @@ export async function loginWithGoogle(next?: string) {
     return `${ENV.SITE_URL}${next || '/'}`;
   }
   
-  const supabase = createSupabaseServerClient();
+  const supabase = getSupabaseServerClient();
   const redirectTo = `${ENV.SITE_URL}/auth/callback${next ? `?next=${encodeURIComponent(next)}` : ''}`;
   console.log('[auth] redirectTo =>', redirectTo);
   const { data, error } = await supabase.auth.signInWithOAuth({
@@ -18,3 +18,4 @@ export async function loginWithGoogle(next?: string) {
   if (error) throw error;
   return data.url!;
 }
+

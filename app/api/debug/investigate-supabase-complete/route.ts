@@ -1,11 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createSupabaseServerClient } from '@/lib/supabaseServer'
+import { getSupabaseServerClient } from '@/lib/supabase/server'
 
 export const runtime = 'nodejs'
 
 export async function GET(request: NextRequest) {
   try {
-    const supabase = createSupabaseServerClient()
+    const supabase = getSupabaseServerClient()
     
     console.log('🔍 INVESTIGAÇÃO COMPLETA DO SUPABASE...')
     
@@ -234,3 +234,4 @@ export async function GET(request: NextRequest) {
     }, { status: 500 })
   }
 }
+

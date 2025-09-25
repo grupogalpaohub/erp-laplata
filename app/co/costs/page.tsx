@@ -1,5 +1,5 @@
 import Link from 'next/link'
-import { createSupabaseServerClient } from '@/lib/supabaseServer'
+import { getSupabaseServerClient } from '@/lib/supabase/server'
 import { getTenantId } from '@/lib/auth'
 import { ArrowLeft, Search, Download, Filter, Plus, Eye, Edit, Trash2 } from 'lucide-react'
 
@@ -22,7 +22,7 @@ export default async function CostsPage() {
   let totalCount = 0
 
   try {
-    const supabase = createSupabaseServerClient()
+    const supabase = getSupabaseServerClient()
     const tenantId = await getTenantId()
 
     // Buscar centros de custo
@@ -285,3 +285,4 @@ export default async function CostsPage() {
     </div>
   )
 }
+

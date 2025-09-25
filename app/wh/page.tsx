@@ -1,7 +1,6 @@
 import Link from 'next/link'
 import { ArrowLeft } from 'lucide-react'
-import { createSupabaseServerClient } from '@/lib/supabaseServer'
-import { getTenantId } from '@/lib/auth'
+import { requireSession } from '@/lib/auth/requireSession'
 import { formatBRL } from '@/lib/money'
 
 export const dynamic = 'force-dynamic'
@@ -18,28 +17,23 @@ export default async function WHPage() {
   let movementsToday = 0
 
   try {
-    const supabase = createSupabaseServerClient()
-    const tenantId = await getTenantId()
+    const { supabase } = await requireSession()
 
-    // Buscar dados para KPIs
+    // Buscar dados para KPIs (RLS filtra automaticamente por tenant)
     const [inventoryResult, movementsResult, transfersResult, lowStockResult] = await Promise.allSettled([
       supabase
         .from('wh_inventory_balance')
-        .select('mm_material, quantity, unit_cost_cents')
-        .eq('tenant_id', tenantId),
+        .select('mm_material, quantity, unit_cost_cents'),
       supabase
         .from('wh_inventory_ledger')
         .select('movement_id, movement_type, quantity, created_at')
-        .eq('tenant_id', tenantId)
         .gte('created_at', new Date().toISOString().split('T')[0]),
       supabase
         .from('wh_transfer')
-        .select('transfer_id, status, created_at')
-        .eq('tenant_id', tenantId),
+        .select('transfer_id, status, created_at'),
       supabase
         .from('wh_inventory_balance')
         .select('mm_material, quantity')
-        .eq('tenant_id', tenantId)
         .lt('quantity', 10)
     ])
 

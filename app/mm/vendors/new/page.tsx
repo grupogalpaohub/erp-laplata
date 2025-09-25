@@ -1,7 +1,6 @@
 import Link from 'next/link'
 import { ArrowLeft } from 'lucide-react'
-import { createClient } from '@supabase/supabase-js'
-import { getTenantId } from '@/lib/auth'
+import { requireSession } from '@/lib/auth/requireSession'
 import { redirect } from 'next/navigation'
 
 export const dynamic = 'force-dynamic'
@@ -10,14 +9,10 @@ export const revalidate = 0
 async function createVendor(formData: FormData) {
   'use server'
   
-  const supabase = createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!
-  )
-  const tenantId = await getTenantId()
+  const { supabase } = await requireSession()
 
   const vendorData = {
-    tenant_id: tenantId,
+    // tenant_id será preenchido automaticamente pelo RLS
     vendor_id: `V${Date.now()}`, // ID simples baseado em timestamp
     vendor_name: formData.get('vendor_name') as string,
     email: formData.get('email') as string,
@@ -359,3 +354,4 @@ export default async function NewVendorPage() {
     </div>
   )
 }
+

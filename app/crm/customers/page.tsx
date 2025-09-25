@@ -1,5 +1,5 @@
 import Link from 'next/link'
-import { createSupabaseServerClient } from '@/lib/supabaseServer'
+import { getSupabaseServerClient } from '@/lib/supabase/server'
 import { getTenantId } from '@/lib/auth'
 import { Plus, Edit, Eye } from 'lucide-react'
 
@@ -11,7 +11,7 @@ export default async function CustomersPage() {
   let customers: any[] = []
 
   try {
-    const supabase = createSupabaseServerClient()
+    const supabase = getSupabaseServerClient()
     const tenantId = await getTenantId()
 
     const { data, error } = await supabase
@@ -120,3 +120,4 @@ export default async function CustomersPage() {
     </div>
   )
 }
+

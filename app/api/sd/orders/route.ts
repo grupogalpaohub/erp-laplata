@@ -1,11 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createSupabaseServerClient } from '@/lib/supabaseServer'
+import { getSupabaseServerClient } from '@/lib/supabase/server'
 import { getTenantId } from '@/lib/auth'
 import { revalidatePath } from 'next/cache'
 
 export async function GET(request: NextRequest) {
   try {
-    const supabase = createSupabaseServerClient()
+    const supabase = getSupabaseServerClient()
     const tenantId = await getTenantId()
     
     // Buscar pedidos de venda (incluir doc_no e campos de valor)
@@ -56,7 +56,7 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
-    const supabase = createSupabaseServerClient()
+    const supabase = getSupabaseServerClient()
     const tenantId = await getTenantId()
     
     const body = await request.json()
@@ -162,3 +162,4 @@ export async function POST(request: NextRequest) {
     )
   }
 }
+

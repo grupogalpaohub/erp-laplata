@@ -1,9 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createSupabaseServerClient } from '@/lib/supabaseServer'
+import { getSupabaseServerClient } from '@/lib/supabase/server'
 
 export async function POST(request: NextRequest) {
   try {
-    const supabase = createSupabaseServerClient()
+    const supabase = getSupabaseServerClient()
     
     // Criar tabela doc_numbering
     const createTable = `
@@ -118,3 +118,4 @@ export async function POST(request: NextRequest) {
     )
   }
 }
+

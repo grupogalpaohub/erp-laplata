@@ -4,11 +4,11 @@ export const fetchCache = 'force-no-store';
 export const runtime = 'nodejs';
 
 import { NextRequest, NextResponse } from 'next/server'
-import { createSupabaseServerClient } from '@/lib/supabaseServer'
+import { getSupabaseServerClient } from '@/lib/supabase/server'
 
 export async function POST(req: NextRequest) {
   try {
-    const supabase = createSupabaseServerClient()
+    const supabase = getSupabaseServerClient()
     
     // Fazer logout no Supabase
     await supabase.auth.signOut()
@@ -35,3 +35,4 @@ export async function POST(req: NextRequest) {
     return NextResponse.redirect(new URL('/login', req.url))
   }
 }
+

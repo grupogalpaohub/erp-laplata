@@ -1,8 +1,7 @@
 export const dynamic = 'force-dynamic'
 export const revalidate = 0
 export const runtime = 'nodejs'
-import { createClient } from '@supabase/supabase-js'
-import { getTenantId } from '@/lib/auth'
+import { requireSession } from '@/lib/auth/requireSession'
 import Link from 'next/link'
 import ExportCSVButton from './ExportCSVButton'
 import StatusUpdateButton from './StatusUpdateButton'
@@ -19,11 +18,7 @@ type PO = {
 }
 
 export default async function PurchaseOrdersPage({ searchParams }: { searchParams: any }) {
-  const supabase = createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!
-  )
-  const tenantId = await getTenantId()
+  const { supabase } = await requireSession()
   
   let q = supabase
     .from('mm_purchase_order')
@@ -35,7 +30,7 @@ export default async function PurchaseOrdersPage({ searchParams }: { searchParam
       total_cents,
       mm_vendor!left(vendor_name)
     `)
-    .eq('tenant_id', tenantId)
+    // RLS filtra automaticamente por tenant
     .order('po_date', { ascending: false })
 
   if (searchParams.status) q = q.eq('status', searchParams.status)
@@ -133,3 +128,4 @@ export default async function PurchaseOrdersPage({ searchParams }: { searchParam
     </div>
   )
 }
+

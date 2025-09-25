@@ -1,22 +1,24 @@
 #!/usr/bin/env bash
 set -e
 
-CHANGED=$(git diff --cached --name-only)
-export GIT_STAGED_LIST="$CHANGED"
+echo "🔒 EXECUTANDO ENFORCEMENT DE REGRAS IRREVERSÍVEIS..."
 
-# Nunca comitar .env.local (sem travar o resto do commit)
-if echo "$CHANGED" | grep -qE '^\.env\.local$'; then
-  echo "❌ Não commitar .env.local. Mantenha apenas local."
-  exit 1
-fi
+# 1. ENFORCEMENT FÍSICO - BLOQUEIA VIOLAÇÕES
+node scripts/guardrails/enforce-rules.js
 
-# Se não há arquivos críticos, libera
-if ! echo "$CHANGED" | grep -E '^(lib/(env|supabase)|app/auth/|middleware\.ts$|next\.config\.(js|mjs)$|supabase/|.*_schema\.sql$|.*_data\.sql$|migrations?/)' >/dev/null; then
-  exit 0
-fi
+# 2. INVESTIGAÇÃO PROFUNDA OBRIGATÓRIA
+node scripts/guardrails/deep-investigation.js
 
-# Arquivos críticos: roda preflight hierárquico (sem pedir aprovação humana)
-node scripts/guardrails/preflight.js || {
-  echo "❌ Preflight reprovou (auth/api/db/porta/schema). Leia o log acima."
-  exit 2
-}
+# 3. VALIDAÇÃO DE MOEDA
+node scripts/guardrails/currency-validator.js
+
+# 4. VALIDAÇÃO DE SEGURANÇA
+node scripts/guardrails/security-validator.js
+
+# 5. REGRESSION CHECK
+node scripts/guardrails/regression-check.js
+
+# 6. ANTI-LOOP
+node scripts/guardrails/anti-loop.js
+
+echo "✅ PRE-COMMIT APROVADO - REGRAS ENFORÇADAS"

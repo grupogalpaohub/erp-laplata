@@ -1,9 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createSupabaseServerClient } from '@/lib/supabaseServer'
+import { getSupabaseServerClient } from '@/lib/supabase/server'
 
 export async function POST(request: NextRequest) {
   try {
-    const supabase = createSupabaseServerClient()
+    const supabase = getSupabaseServerClient()
     const { sql } = await request.json()
     
     if (!sql) {
@@ -44,3 +44,4 @@ export async function POST(request: NextRequest) {
     )
   }
 }
+

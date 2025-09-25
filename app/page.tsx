@@ -1,6 +1,5 @@
 import Link from 'next/link'
-import { createSupabaseServerClient } from '@/lib/supabaseServer'
-import { getTenantId } from '@/lib/auth'
+import { requireSession } from '@/lib/auth/requireSession'
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic'
@@ -20,27 +19,22 @@ export default async function HomePage() {
   let totalProfit = 0
 
   try {
-    const supabase = createSupabaseServerClient()
-    const tenantId = await getTenantId()
+    const { supabase } = await requireSession()
 
-          // Buscar dados para KPIs com tratamento de erro
+          // Buscar dados para KPIs com tratamento de erro (RLS filtra automaticamente por tenant)
           const [materialsResult, vendorsResult, ordersResult, salesResult, inventoryResult] = await Promise.allSettled([
             supabase
               .from('mm_material')
-              .select('mm_material, mm_comercial, mm_price_cents')
-              .eq('tenant_id', tenantId),
+              .select('mm_material, mm_comercial, mm_price_cents'),
             supabase
               .from('mm_vendor')
-              .select('vendor_id, vendor_name')
-              .eq('tenant_id', tenantId),
+              .select('vendor_id, vendor_name'),
             supabase
               .from('mm_purchase_order')
-              .select('mm_order, vendor_id, total_amount_cents, status')
-              .eq('tenant_id', tenantId),
+              .select('mm_order, vendor_id, total_amount_cents, status'),
             supabase
               .from('sd_sales_order')
               .select('so_id, total_final_cents, order_date')
-              .eq('tenant_id', tenantId)
               .gte('order_date', new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString().split('T')[0]),
             supabase
               .from('wh_inventory_balance')
@@ -48,7 +42,6 @@ export default async function HomePage() {
                 mm_material, 
                 on_hand_qty
               `)
-              .eq('tenant_id', tenantId)
               .gt('on_hand_qty', 0)
           ])
 
@@ -258,3 +251,4 @@ export default async function HomePage() {
     </div>
   )
 }
+

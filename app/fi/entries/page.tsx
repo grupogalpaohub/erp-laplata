@@ -1,4 +1,4 @@
-import { createSupabaseServerClient } from '@/lib/supabaseServer'
+import { getSupabaseServerClient } from '@/lib/supabase/server'
 import { getTenantId } from '@/lib/auth'
 import Link from 'next/link'
 import { FileText, Plus, Eye, Calendar } from 'lucide-react'
@@ -27,7 +27,7 @@ interface AccountingEntry {
 }
 
 export default async function EntriesPage() {
-  const supabase = createSupabaseServerClient()
+  const supabase = getSupabaseServerClient()
   const tenantId = await getTenantId()
 
   // Buscar lançamentos contábeis
@@ -235,3 +235,4 @@ export default async function EntriesPage() {
     </div>
   )
 }
+

@@ -1,4 +1,4 @@
-import { createSupabaseServerClient } from '@/lib/supabaseServer'
+import { getSupabaseServerClient } from '@/lib/supabase/server'
 import { getTenantId } from '@/lib/auth'
 import Link from 'next/link'
 import { DollarSign, AlertTriangle, CheckCircle, Clock } from 'lucide-react'
@@ -21,7 +21,7 @@ interface AccountsReceivable {
 }
 
 export default async function AccountsReceivablePage() {
-  const supabase = createSupabaseServerClient()
+  const supabase = getSupabaseServerClient()
   const tenantId = await getTenantId()
 
   // Buscar contas a receber
@@ -265,3 +265,4 @@ export default async function AccountsReceivablePage() {
     </div>
   )
 }
+

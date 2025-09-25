@@ -1,180 +1,64 @@
-'use client'
-
-import { useState, useEffect } from 'react'
-import Link from 'next/link'
-import { CheckCircle, XCircle } from 'lucide-react'
-import { formatBRL } from '@/lib/money'
-import ExportCSVButton from './ExportCSVButton'
+// app/mm/catalog/page.tsx (Server Component)
+import { getSupabaseServerClient } from "@/lib/supabase/server";
+import { formatBRL } from "@/lib/money";
+import { requireSession } from "@/lib/auth/requireSession";
 
 type Material = {
-  mm_material: string
-  mm_comercial: string | null
-  mm_desc: string
-  mm_mat_type: string | null
-  mm_mat_class: string | null
-  mm_price_cents: number | null
-  mm_purchase_price_cents: number | null
-  mm_pur_link: string | null
-  commercial_name: string | null
-  lead_time_days: number | null
-  mm_vendor_id: string | null
-  status: string | null
-  mm_vendor?: { vendor_name: string }
-}
+  mm_material: string;
+  name?: string | null;
+  mm_comercial?: string | null;
+  status?: string | null;
+  mm_price_cents?: number | null;
+  mm_purchase_price_cents?: number | null;
+};
 
-export default function CatalogoMateriais({ searchParams }: { searchParams: { success?: string; error?: string } }) {
-  const [materials, setMaterials] = useState<Material[]>([])
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
+export default async function CatalogPage() {
+  await requireSession();
+  const supabase = getSupabaseServerClient();
 
-  useEffect(() => {
-    const loadMaterials = async () => {
-      try {
-        const response = await fetch('/api/mm/materials')
-        if (response.ok) {
-          const data = await response.json()
-          setMaterials(data)
-        } else {
-          setError('Erro ao carregar materiais')
-        }
-      } catch (err) {
-        console.error('Erro ao carregar materiais:', err)
-        setError('Erro interno do servidor')
-      } finally {
-        setLoading(false)
-      }
-    }
+  const { data, error } = await supabase
+    .from("mm_material")
+    .select("*") // tolerante a variações
+    .order("mm_material", { ascending: true })
+    .limit(50);
 
-    loadMaterials()
-  }, [])
-
-  if (loading) {
-    return (
-      <div className="space-y-8">
-        <div className="text-center mb-12">
-          <h1 className="text-4xl font-bold text-fiori-primary mb-4">Catálogo de Materiais</h1>
-          <p className="text-xl text-fiori-secondary mb-2">Carregando catálogo...</p>
-        </div>
-      </div>
-    )
-  }
+  if (error) throw error;
+  const materials = (data ?? []) as Material[];
 
   return (
-    <div className="space-y-8">
-      {/* Header */}
-      <div className="text-center mb-12">
-        <h1 className="text-4xl font-bold text-fiori-primary mb-4">Catálogo de Materiais</h1>
-        <p className="text-xl text-fiori-secondary mb-2">Gerencie materiais e fornecedores</p>
-        <p className="text-lg text-fiori-muted">Visualize e gerencie todos os materiais cadastrados</p>
+    <main className="p-4 space-y-4">
+      <h1 className="text-xl font-semibold">Catálogo de Materiais</h1>
+      <div className="border rounded-lg overflow-hidden">
+        <table className="min-w-full text-sm">
+          <thead className="bg-gray-50">
+            <tr>
+              <th className="px-3 py-2 text-left">Código</th>
+              <th className="px-3 py-2 text-left">Nome</th>
+              <th className="px-3 py-2 text-left">Status</th>
+              <th className="px-3 py-2 text-right">Preço Venda</th>
+              <th className="px-3 py-2 text-right">Preço Compra</th>
+            </tr>
+          </thead>
+          <tbody>
+            {materials.map((m) => (
+              <tr key={m.mm_material} className="border-t">
+                <td className="px-3 py-2">{m.mm_material}</td>
+                <td className="px-3 py-2">{m.name ?? m.mm_comercial ?? "-"}</td>
+                <td className="px-3 py-2">{m.status ?? "-"}</td>
+                <td className="px-3 py-2 text-right">{formatBRL(m.mm_price_cents ?? 0)}</td>
+                <td className="px-3 py-2 text-right">{formatBRL(m.mm_purchase_price_cents ?? 0)}</td>
+              </tr>
+            ))}
+            {materials.length === 0 && (
+              <tr>
+                <td className="px-3 py-6 text-center text-gray-500" colSpan={5}>
+                  Nenhum material encontrado (faça login DEV: POST /auth/dev-login).
+                </td>
+              </tr>
+            )}
+          </tbody>
+        </table>
       </div>
-
-      {/* Success Message */}
-      {searchParams.success && (
-        <div className="bg-green-50 border border-green-200 rounded-lg p-4 flex items-center gap-3">
-          <CheckCircle className="w-5 h-5 text-green-600" />
-          <p className="text-green-800 font-medium">{searchParams.success}</p>
-        </div>
-      )}
-
-      {/* Error Message */}
-      {(searchParams.error || error) && (
-        <div className="bg-red-50 border border-red-200 rounded-lg p-4 flex items-center gap-3">
-          <XCircle className="w-5 h-5 text-red-600" />
-          <p className="text-red-800 font-medium">{searchParams.error || error}</p>
-        </div>
-      )}
-
-      {/* Actions */}
-      <div className="flex justify-center gap-4 mb-8">
-        <Link href="/mm/materials/new" className="btn-fiori-primary">Novo Material</Link>
-        <ExportCSVButton materiais={materials} />
-      </div>
-
-      {materials.length === 0 ? (
-        <div className="card-fiori text-center py-12">
-          <div className="text-fiori-secondary text-lg">Nenhum material encontrado.</div>
-          <Link href="/mm/materials/new" className="btn-fiori-primary mt-4 inline-block">Criar Primeiro Material</Link>
-        </div>
-      ) : (
-        <div className="card-fiori">
-          <div className="overflow-x-auto">
-            <table className="table-fiori">
-              <thead>
-                <tr>
-                  <th>SKU</th>
-                  <th>Nome Comercial</th>
-                  <th>Descrição</th>
-                  <th>Tipo</th>
-                  <th>Classe</th>
-                  <th>Preço Compra (R$)</th>
-                  <th>Preço Venda (R$)</th>
-                  <th>Fornecedor</th>
-                  <th>Link de Compra</th>
-                  <th>Status</th>
-                  <th>Lead Time</th>
-                  <th>Ações</th>
-                </tr>
-              </thead>
-              <tbody>
-                {materials.map((material) => (
-                  <tr key={material.mm_material}>
-                    <td className="font-mono text-sm font-medium text-blue-600">{material.mm_material}</td>
-                    <td>
-                      {material.mm_comercial || material.commercial_name || "-"}
-                    </td>
-                    <td className="max-w-xs truncate">{material.mm_desc}</td>
-                    <td>{material.mm_mat_type || "-"}</td>
-                    <td>{material.mm_mat_class || "-"}</td>
-                    <td className="text-right font-medium">
-                      {material.mm_purchase_price_cents != null ? formatBRL(material.mm_purchase_price_cents) : "-"}
-                    </td>
-                    <td className="text-right font-medium">
-                      {material.mm_price_cents != null ? formatBRL(material.mm_price_cents) : "-"}
-                    </td>
-                    <td>
-                      {(material.mm_vendor?.vendor_name ?? material.mm_vendor_id ?? "-")}
-                    </td>
-                    <td>
-                      {material.mm_pur_link ? (
-                        <a 
-                          href={material.mm_pur_link} 
-                          target="_blank" 
-                          rel="noopener noreferrer"
-                          className="text-blue-600 hover:text-blue-800 underline text-sm"
-                        >
-                          Ver Produto
-                        </a>
-                      ) : "-"}
-                    </td>
-                    <td>
-                      <span className={`badge-fiori ${
-                        material.status === 'active' ? 'badge-fiori-success' : 
-                        material.status === 'inactive' ? 'badge-fiori-warning' : 
-                        'badge-fiori-error'
-                      }`}>
-                        {material.status || "-"}
-                      </span>
-                    </td>
-                    <td className="text-right">
-                      {material.lead_time_days ? `${material.lead_time_days} dias` : "-"}
-                    </td>
-                    <td>
-                      <div className="flex gap-2">
-                        <Link 
-                          href={`/mm/materials/${material.mm_material}/edit`}
-                          className="btn-fiori-outline btn-sm"
-                        >
-                          Editar
-                        </Link>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </div>
-      )}
-    </div>
-  )
+    </main>
+  );
 }

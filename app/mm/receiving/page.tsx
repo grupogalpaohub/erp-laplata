@@ -2,7 +2,7 @@ export const dynamic = 'force-dynamic';
 export const revalidate = 0;
 export const fetchCache = 'force-no-store';
 
-import { createSupabaseServerClient } from '@/lib/supabase/server'
+import { getSupabaseServerClient } from '@/lib/supabase/server'
 import { DataTable } from '@/src/components/DataTable'
 
 type Row = {
@@ -14,7 +14,7 @@ type Row = {
 }
 
 export default async function ReceivingPage() {
-  const sb = createSupabaseServerClient()
+  const sb = getSupabaseServerClient()
   const { data, error } = await sb
     .from('mm_receiving' as any)
     .select('mm_order,plant_id,mm_material,qty_received,received_at')
@@ -43,4 +43,5 @@ export default async function ReceivingPage() {
     </main>
   )
 }
+
 

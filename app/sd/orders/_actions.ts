@@ -1,6 +1,6 @@
 'use server'
 
-import { createSupabaseServerClient } from '@/lib/supabaseServer'
+import { getSupabaseServerClient } from '@/lib/supabase/server'
 import { getTenantId } from '@/lib/auth'
 import { toCents, formatBRL } from '@/lib/money'
 import { revalidatePath } from 'next/cache'
@@ -12,7 +12,7 @@ export async function createOrderAction(input: {
   notes?: string | null
 }) {
   try {
-    const supabase = createSupabaseServerClient()
+    const supabase = getSupabaseServerClient()
     const tenantId = await getTenantId()
     
     // Gerar ID único baseado em timestamp
@@ -56,7 +56,7 @@ export async function addOrderItemAction(input: {
   unit_price_brl?: string // opcional se houver negociação manual
 }) {
   try {
-    const supabase = createSupabaseServerClient()
+    const supabase = getSupabaseServerClient()
     const tenantId = await getTenantId()
     
     // Buscar preço do material se não fornecido
@@ -120,7 +120,7 @@ export async function removeOrderItemAction(input: {
   row_no: number
 }) {
   try {
-    const supabase = createSupabaseServerClient()
+    const supabase = getSupabaseServerClient()
     const tenantId = await getTenantId()
     
     const { error } = await supabase
@@ -152,7 +152,7 @@ export async function updateOrderAction(input: {
   total_negotiated_cents?: number | null
 }) {
   try {
-    const supabase = createSupabaseServerClient()
+    const supabase = getSupabaseServerClient()
     const tenantId = await getTenantId()
     
     const updateData: any = {
@@ -189,7 +189,7 @@ export async function updateOrderStatusAction(input: {
   status: string
 }) {
   try {
-    const supabase = createSupabaseServerClient()
+    const supabase = getSupabaseServerClient()
     const tenantId = await getTenantId()
     
     // Validar status permitidos (conforme enum order_status no Supabase)
@@ -220,5 +220,6 @@ export async function updateOrderStatusAction(input: {
     return { success: false, error: 'Erro interno do servidor' }
   }
 }
+
 
 

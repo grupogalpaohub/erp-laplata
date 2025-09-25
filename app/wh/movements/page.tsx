@@ -1,4 +1,4 @@
-import { createSupabaseServerClient } from '@/lib/supabaseServer'
+import { getSupabaseServerClient } from '@/lib/supabase/server'
 import { getTenantId } from '@/lib/auth'
 import Link from 'next/link'
 import { ArrowUpDown, ArrowUp, ArrowDown, Package, Calendar } from 'lucide-react'
@@ -26,7 +26,7 @@ interface Movement {
 }
 
 export default async function MovementsPage({ searchParams }: { searchParams: { material?: string } }) {
-  const supabase = createSupabaseServerClient()
+  const supabase = getSupabaseServerClient()
   const tenantId = await getTenantId()
 
   // Buscar movimentações
@@ -269,3 +269,4 @@ export default async function MovementsPage({ searchParams }: { searchParams: { 
     </div>
   )
 }
+

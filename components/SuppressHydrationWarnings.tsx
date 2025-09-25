@@ -47,3 +47,4 @@ export default function SuppressHydrationWarnings() {
 
   return null; // Este componente não renderiza nada
 }
+

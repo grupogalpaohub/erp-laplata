@@ -1,6 +1,5 @@
 import Link from 'next/link'
-import { createSupabaseServerClient } from '@/lib/supabaseServer'
-import { getTenantId } from '@/lib/auth'
+import { requireSession } from '@/lib/auth/requireSession'
 import { ArrowLeft } from 'lucide-react'
 
 export const dynamic = 'force-dynamic'
@@ -14,10 +13,9 @@ export default async function SDPage() {
   let totalValue = 0
 
   try {
-    const supabase = createSupabaseServerClient()
-    const tenantId = await getTenantId()
+    const { supabase } = await requireSession()
 
-    // Buscar dados para KPIs
+    // Buscar dados para KPIs (RLS filtra automaticamente por tenant)
     const [ordersResult, customersResult, totalOrdersResult, totalValueResult] = await Promise.allSettled([
       supabase
         .from('sd_sales_order')
@@ -31,23 +29,19 @@ export default async function SDPage() {
           total_negotiated_cents,
           crm_customer!inner(name)
         `)
-        .eq('tenant_id', tenantId)
         .order('order_date', { ascending: false })
         .limit(5),
       supabase
         .from('crm_customer')
         .select('customer_id, name')
-        .eq('tenant_id', tenantId)
         .eq('is_active', true)
         .limit(5),
       supabase
         .from('sd_sales_order')
-        .select('so_id', { count: 'exact' })
-        .eq('tenant_id', tenantId),
+        .select('so_id', { count: 'exact' }),
       supabase
         .from('sd_sales_order')
         .select('total_final_cents')
-        .eq('tenant_id', tenantId)
     ])
 
     salesOrders = ordersResult.status === 'fulfilled' ? (ordersResult.value.data || []) : []
@@ -300,3 +294,4 @@ export default async function SDPage() {
     </div>
   )
 }
+

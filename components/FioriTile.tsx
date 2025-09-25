@@ -24,3 +24,4 @@ export default function FioriTile({ title, value, kpiState, footer, href }: Prop
   }
   return content
 }
+

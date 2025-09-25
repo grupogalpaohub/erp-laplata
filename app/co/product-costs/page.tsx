@@ -1,4 +1,4 @@
-import { createSupabaseServerClient } from '@/lib/supabaseServer'
+import { getSupabaseServerClient } from '@/lib/supabase/server'
 import { getTenantId } from '@/lib/auth'
 import Link from 'next/link'
 import { Calculator, TrendingUp, TrendingDown, AlertTriangle } from 'lucide-react'
@@ -21,7 +21,7 @@ interface ProductCost {
 }
 
 export default async function ProductCostsPage() {
-  const supabase = createSupabaseServerClient()
+  const supabase = getSupabaseServerClient()
   const tenantId = await getTenantId()
 
   // Buscar custos de produtos
@@ -267,3 +267,4 @@ export default async function ProductCostsPage() {
     </div>
   )
 }
+

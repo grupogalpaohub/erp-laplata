@@ -1,5 +1,5 @@
 import Link from 'next/link'
-import { createSupabaseServerClient } from '@/lib/supabaseServer'
+import { getSupabaseServerClient } from '@/lib/supabase/server'
 import { getTenantId } from '@/lib/auth'
 import { formatBRL } from '@/lib/money'
 import { Search, Download, Plus, Eye, Edit, CheckCircle, XCircle } from 'lucide-react'
@@ -33,7 +33,7 @@ export default async function SalesOrdersPage() {
   let totalCount = 0
 
   try {
-    const supabase = createSupabaseServerClient()
+    const supabase = getSupabaseServerClient()
     const tenantId = await getTenantId()
 
     // Buscar pedidos com paginação (incluir doc_no)
@@ -289,5 +289,6 @@ export default async function SalesOrdersPage() {
     </div>
   )
 }
+
 
 

@@ -1,5 +1,5 @@
 import Link from 'next/link'
-import { createSupabaseServerClient } from '@/lib/supabaseServer'
+import { getSupabaseServerClient } from '@/lib/supabase/server'
 import { getTenantId } from '@/lib/auth'
 import { ArrowLeft, TrendingUp, TrendingDown, DollarSign, BarChart3 } from 'lucide-react'
 
@@ -15,7 +15,7 @@ export default async function CODashboardPage() {
   let recentCosts: any[] = []
 
   try {
-    const supabase = createSupabaseServerClient()
+    const supabase = getSupabaseServerClient()
     const tenantId = await getTenantId()
 
     // Buscar dados para KPIs
@@ -200,3 +200,4 @@ export default async function CODashboardPage() {
     </div>
   )
 }
+

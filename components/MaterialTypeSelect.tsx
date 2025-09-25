@@ -1,34 +1,30 @@
-'use client'
+"use client";
+type Props = { name?: string; id?: string; className?: string; required?: boolean; defaultValue?: string; value?: string; onChange?: (v: string) => void; };
 
-import React from 'react'
+const materialTypes = [
+  { value: "",    label: "Selecione o tipo..." },
+  { value: "AL",  label: "Aço / Liga" },
+  { value: "AU",  label: "Ouro" },
+  { value: "AG",  label: "Prata" },
+  { value: "PD",  label: "Paládio" },
+  { value: "PT",  label: "Platina" },
+  { value: "OT",  label: "Outro" },
+];
 
-interface MaterialTypeSelectProps {
-  name: string
-  id?: string
-  className?: string
-  defaultValue?: string
-}
-
-export default function MaterialTypeSelect({ name, id, className, defaultValue }: MaterialTypeSelectProps) {
-  const materialTypes = [
-    { value: '', label: 'Selecione o tipo...' },
-    { value: 'Gargantilha', label: 'Gargantilha' },
-    { value: 'Pulseira', label: 'Pulseira' },
-    { value: 'Anel', label: 'Anel' },
-    { value: 'Brinco', label: 'Brinco' },
-    { value: 'Colar', label: 'Colar' },
-    { value: 'Kit', label: 'Kit' },
-    { value: 'Acessório', label: 'Acessório' },
-    { value: 'Outros', label: 'Outros' }
-  ]
-
+export default function MaterialTypeSelect({
+  name, id, className, required, defaultValue, value, onChange
+}: Props) {
   return (
-    <select id={id} name={name} className={className} defaultValue={defaultValue}>
-      {materialTypes.map((type) => (
-        <option key={type.value} value={type.value}>
-          {type.label}
-        </option>
-      ))}
+    <select
+      name={name}
+      id={id}
+      className={className ?? "border rounded px-2 py-1 w-full"}
+      required={required}
+      defaultValue={defaultValue}
+      value={value}
+      onChange={onChange ? (e) => onChange(e.target.value) : undefined}
+    >
+      {materialTypes.map((t) => <option key={t.value} value={t.value}>{t.label}</option>)}
     </select>
-  )
+  );
 }

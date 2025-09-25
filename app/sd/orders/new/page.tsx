@@ -1,5 +1,5 @@
 import Link from 'next/link'
-import { createSupabaseServerClient } from '@/lib/supabaseServer'
+import { getSupabaseServerClient } from '@/lib/supabase/server'
 import { getTenantId } from '@/lib/auth'
 import { ArrowLeft, Save, X, Plus, Trash2 } from 'lucide-react'
 import NewSalesOrderForm from './NewSalesOrderForm'
@@ -19,7 +19,7 @@ export default async function NewSalesOrderPage({ searchParams }: NewSalesOrderP
   let paymentTerms: any[] = []
 
   try {
-    const supabase = createSupabaseServerClient()
+    const supabase = getSupabaseServerClient()
     const tenantId = await getTenantId()
 
     // Buscar dados necessários
@@ -94,3 +94,4 @@ export default async function NewSalesOrderPage({ searchParams }: NewSalesOrderP
     </div>
   )
 }
+

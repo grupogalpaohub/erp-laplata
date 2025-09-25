@@ -1,4 +1,4 @@
-import { createSupabaseServerClient } from '@/lib/supabaseServer'
+import { getSupabaseServerClient } from '@/lib/supabase/server'
 import { getTenantId } from '@/lib/auth'
 import Link from 'next/link'
 import { BarChart3, TrendingUp, Target, AlertCircle } from 'lucide-react'
@@ -19,7 +19,7 @@ interface MarginAnalysis {
 }
 
 export default async function MarginAnalysisPage() {
-  const supabase = createSupabaseServerClient()
+  const supabase = getSupabaseServerClient()
   const tenantId = await getTenantId()
 
   // Buscar análise de margens
@@ -253,3 +253,4 @@ export default async function MarginAnalysisPage() {
     </div>
   )
 }
+

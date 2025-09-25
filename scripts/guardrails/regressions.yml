@@ -91,3 +91,48 @@ rules:
       - "\\bcustomers?\\b\\s*=\\s*\\["
       - "\\b(price|amount|total|unit_price)_cents\\b\\s*=\\s*\\["
     excludePaths: ["**/setup/**", "**/debug/**", "**/test/**", "**/migrations/**", "**/seed/**"]
+
+  # --- ANTI-PREGUIÇA: Investigação profunda obrigatória ---
+  - name: anti-lazy-investigation
+    paths: ["lib/env.ts", "lib/auth/requireSession.ts", "middleware.ts", "lib/supabase/server.ts"]
+    mustContain:
+      - "NEXT_PUBLIC_AUTH_DISABLED"  # Deve usar a variável correta
+    mustNotContain:
+      - "process.env.AUTH_DISABLED"  # Não pode usar variável errada
+      - "process.env.TENANT_ID"      # Não pode usar variável inexistente
+      - "LaplataLunaria"             # Não pode hardcodar tenant
+
+       # --- ANTI-PREGUIÇA: Verificação de variáveis de ambiente ---
+       - name: env-variable-consistency
+         paths: ["lib/env.ts", "middleware.ts"]
+         mustContain:
+           - "NEXT_PUBLIC_AUTH_DISABLED"  # Deve usar variável que existe no .env.local
+         mustNotRegex:
+           - "process\\.env\\.AUTH_DISABLED"  # Não pode usar variável que não existe
+
+       # --- TESTES E2E: Validação de moeda obrigatória ---
+       - name: currency-validation
+         paths: ["app/**/*.ts", "app/**/*.tsx", "lib/**/*.ts", "lib/**/*.tsx"]
+         mustNotContain:
+           - "* 10000"
+           - "/ 10000"
+           - ".toFixed(2)"
+         mustContain:
+           - "toCents("
+           - "formatBRL("
+
+       # --- TESTES E2E: Segurança obrigatória ---
+       - name: security-validation
+         paths: ["app/**/*.ts", "app/**/*.tsx", "lib/**/*.ts", "lib/**/*.tsx"]
+         mustNotContain:
+           - "SUPABASE_SERVICE_ROLE_KEY"
+           - "LaplataLunaria"
+         excludePaths: ["**/api/**", "**/setup/**", "**/migrations/**", "**/seed/**", "**/debug/**"]
+
+       # --- TESTES E2E: Autenticação obrigatória ---
+       - name: auth-validation
+         paths: ["app/**/*.ts", "app/**/*.tsx"]
+         onlyIfContains: ["supabase"]
+         mustContain:
+           - "requireSession("
+         excludePaths: ["**/api/**"]

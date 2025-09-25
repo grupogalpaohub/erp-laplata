@@ -1,5 +1,5 @@
 import Link from 'next/link'
-import { createSupabaseServerClient } from '@/lib/supabaseServer'
+import { getSupabaseServerClient } from '@/lib/supabase/server'
 import { getTenantId } from '@/lib/auth'
 import { ArrowLeft } from 'lucide-react'
 import NewCustomerForm from './NewCustomerForm'
@@ -31,3 +31,4 @@ export default async function NewCustomerPage() {
     </div>
   )
 }
+

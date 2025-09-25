@@ -4,12 +4,12 @@ export const fetchCache = 'force-no-store';
 export const runtime = 'nodejs';
 
 import { NextResponse } from 'next/server'
-import { createSupabaseServerClient } from '@/lib/supabaseServer'
+import { getSupabaseServerClient } from '@/lib/supabase/server'
 import { getTenantId } from '@/lib/auth'
 
 export async function GET() {
   try {
-    const supabase = createSupabaseServerClient()
+    const supabase = getSupabaseServerClient()
     const tenantId = await getTenantId()
     
     console.log('Public test materials - tenantId:', tenantId)
@@ -48,4 +48,5 @@ export async function GET() {
     }, { status: 500 })
   }
 }
+
 

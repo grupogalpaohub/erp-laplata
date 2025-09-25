@@ -1,5 +1,5 @@
 import { ENV } from '@/lib/env';
-import { createSupabaseServerClient } from '@/lib/supabaseServer';
+import { getSupabaseServerClient } from '@/lib/supabase/server';
 
 export async function getUserServer() {
   if (ENV.AUTH_DISABLED) {
@@ -9,7 +9,8 @@ export async function getUserServer() {
       user_metadata: { name: 'Dev User', role: 'ADMIN' },
     };
   }
-  const supabase = createSupabaseServerClient();
+  const supabase = getSupabaseServerClient();
   const { data: { user } } = await supabase.auth.getUser();
   return user ?? null;
 }
+

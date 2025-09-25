@@ -1,4 +1,4 @@
-import { createSupabaseServerClient } from '@/lib/supabaseServer'
+import { getSupabaseServerClient } from '@/lib/supabase/server'
 import { getTenantId } from '@/lib/auth'
 import Link from 'next/link'
 import { BookOpen, Plus, Edit, Eye } from 'lucide-react'
@@ -17,7 +17,7 @@ interface ChartOfAccounts {
 }
 
 export default async function ChartOfAccountsPage() {
-  const supabase = createSupabaseServerClient()
+  const supabase = getSupabaseServerClient()
   const tenantId = await getTenantId()
 
   // Buscar plano de contas
@@ -217,3 +217,4 @@ export default async function ChartOfAccountsPage() {
     </div>
   )
 }
+

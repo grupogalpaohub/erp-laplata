@@ -1,7 +1,6 @@
 import Link from 'next/link'
 import { ArrowLeft } from 'lucide-react'
-import { createSupabaseServerClient } from '@/lib/supabaseServer'
-import { getTenantId } from '@/lib/auth'
+import { requireSession } from '@/lib/auth/requireSession'
 import { formatBRL } from '@/lib/money'
 
 export const dynamic = 'force-dynamic'
@@ -19,28 +18,23 @@ export default async function FIPage() {
   let monthlyRevenue = 0
 
   try {
-    const supabase = createSupabaseServerClient()
-    const tenantId = await getTenantId()
+    const { supabase } = await requireSession()
 
-    // Buscar dados para KPIs
+    // Buscar dados para KPIs (RLS filtra automaticamente por tenant)
     const [accountsResult, entriesResult, payablesResult, receivablesResult] = await Promise.allSettled([
       supabase
         .from('fi_chart_of_accounts')
-        .select('account_id, account_name, account_type')
-        .eq('tenant_id', tenantId),
+        .select('account_id, account_name, account_type'),
       supabase
         .from('fi_accounting_entry')
         .select('entry_id, description, created_at')
-        .eq('tenant_id', tenantId)
         .gte('created_at', new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString()),
       supabase
         .from('fi_accounts_payable')
-        .select('ap_id, amount_cents, due_date, status')
-        .eq('tenant_id', tenantId),
+        .select('ap_id, amount_cents, due_date, status'),
       supabase
         .from('fi_accounts_receivable')
         .select('ar_id, amount_cents, due_date, status')
-        .eq('tenant_id', tenantId)
     ])
 
     accounts = accountsResult.status === 'fulfilled' ? (accountsResult.value.data || []) : []

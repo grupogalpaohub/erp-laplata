@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createSupabaseServerClient } from '@/lib/supabaseServer'
+import { getSupabaseServerClient } from '@/lib/supabase/server'
 import { getTenantId } from '@/lib/auth'
 
 export const runtime = 'nodejs'
@@ -7,7 +7,7 @@ export const dynamic = 'force-dynamic'
 
 export async function POST(request: NextRequest) {
   try {
-    const supabase = createSupabaseServerClient()
+    const supabase = getSupabaseServerClient()
     const tenantId = await getTenantId()
     
     const { days = 60 } = await request.json().catch(() => ({ days: 60 }))
@@ -52,3 +52,4 @@ export async function POST(request: NextRequest) {
     )
   }
 }
+

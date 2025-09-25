@@ -4,11 +4,11 @@ export const fetchCache = 'force-no-store';
 export const runtime = 'nodejs';
 
 import { NextResponse } from 'next/server'
-import { createSupabaseServerClient } from '@/lib/supabaseServer'
+import { getSupabaseServerClient } from '@/lib/supabase/server'
 
 export async function GET() {
   try {
-    const sb = createSupabaseServerClient()
+    const sb = getSupabaseServerClient()
     const { data: { user }, error } = await sb.auth.getUser()
     
     return NextResponse.json({
@@ -41,4 +41,5 @@ export async function GET() {
     }, { status: 500 })
   }
 }
+
 

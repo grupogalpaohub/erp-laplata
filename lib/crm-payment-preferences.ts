@@ -1,4 +1,4 @@
-import { createSupabaseServerClient } from '@/lib/supabaseServer';
+import { getSupabaseServerClient } from '@/lib/supabase/server';
 
 /**
  * Atualiza as preferências de pagamento de um cliente baseado no histórico de pagamentos
@@ -7,7 +7,7 @@ import { createSupabaseServerClient } from '@/lib/supabaseServer';
  */
 export async function updateCustomerPaymentPreferences(tenantId: string, customerId: string) {
   try {
-    const supabase = createSupabaseServerClient();
+    const supabase = getSupabaseServerClient();
     
     console.log(`[CRM] Atualizando preferências de pagamento para cliente ${customerId}`);
     
@@ -129,7 +129,7 @@ export async function updateCustomerPaymentPreferences(tenantId: string, custome
  */
 export async function backfillAllCustomerPaymentPreferences(tenantId: string) {
   try {
-    const supabase = createSupabaseServerClient();
+    const supabase = getSupabaseServerClient();
     
     console.log(`[CRM] Iniciando backfill de preferências de pagamento para tenant ${tenantId}`);
     
@@ -162,3 +162,4 @@ export async function backfillAllCustomerPaymentPreferences(tenantId: string) {
     console.error('[CRM] Erro no backfill de preferências:', error);
   }
 }
+

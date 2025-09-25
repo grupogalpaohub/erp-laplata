@@ -31,3 +31,4 @@ export async function getVendors() {
   if (error) throw error;
   return data || [];
 }
+

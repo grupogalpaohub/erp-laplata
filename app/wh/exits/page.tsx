@@ -1,5 +1,5 @@
 import Link from 'next/link'
-import { createSupabaseServerClient } from '@/lib/supabaseServer'
+import { getSupabaseServerClient } from '@/lib/supabase/server'
 import { getTenantId } from '@/lib/auth'
 import { ArrowLeft, Search, Download, Filter, Package, Plus, Eye } from 'lucide-react'
 
@@ -27,7 +27,7 @@ export default async function ExitsPage() {
   let totalCount = 0
 
   try {
-    const supabase = createSupabaseServerClient()
+    const supabase = getSupabaseServerClient()
     const tenantId = await getTenantId()
 
     // Buscar saídas de estoque
@@ -257,3 +257,4 @@ export default async function ExitsPage() {
     </div>
   )
 }
+

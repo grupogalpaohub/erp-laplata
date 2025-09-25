@@ -37,3 +37,4 @@ export default function PaymentMethodSelect({ name, id, className, defaultValue,
     </select>
   )
 }
+

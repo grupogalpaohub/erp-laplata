@@ -4,7 +4,7 @@ import { createClient } from '@supabase/supabase-js';
 
 export const runtime = 'nodejs';
 
-export function createSupabaseServerClient() {
+export function getSupabaseServerClient() {
   const authDisabled = process.env.AUTH_DISABLED === 'true' || process.env.AUTH_DISABLED === '1'
   
   // Se auth está desabilitada, usar service role para bypass RLS
@@ -40,3 +40,4 @@ export function createSupabaseServerClient() {
     },
   });
 }
+

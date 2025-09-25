@@ -12,3 +12,4 @@ export async function GET(req: Request) {
   // Sempre redireciona para a página client
   return NextResponse.redirect(new URL(`/auth/callback?next=${encodeURIComponent(next)}`, url.origin));
 }
+

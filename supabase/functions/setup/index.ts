@@ -35,8 +35,11 @@ serve(async (req) => {
       throw new Error('Invalid token')
     }
 
-    // Get tenant_id from user metadata or default
-    const tenantId = user.user_metadata?.tenant_id || 'LaplataLunaria'
+    // Get tenant_id from user metadata
+    const tenantId = user.user_metadata?.tenant_id
+    if (!tenantId) {
+      throw new Error('tenant_id not found in user metadata')
+    }
 
     if (req.method === 'GET') {
       return await handleGet(supabaseClient, module, tenantId)

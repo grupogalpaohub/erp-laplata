@@ -37,7 +37,10 @@ serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     )
 
-    const { tenant_id = 'LaplataLunaria' } = await req.json()
+    const { tenant_id } = await req.json()
+    if (!tenant_id) {
+      throw new Error('tenant_id is required in request body')
+    }
 
     // Create import job
     const jobId = crypto.randomUUID()

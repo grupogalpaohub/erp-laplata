@@ -34,7 +34,10 @@ serve(async (req) => {
       throw new Error('Invalid token')
     }
 
-    const tenantId = user.user_metadata?.tenant_id || 'LaplataLunaria'
+    const tenantId = user.user_metadata?.tenant_id
+    if (!tenantId) {
+      throw new Error('tenant_id not found in user metadata')
+    }
     const now = new Date()
     const today = now.toISOString().split('T')[0]
     const thisMonth = now.toISOString().substring(0, 7) // YYYY-MM

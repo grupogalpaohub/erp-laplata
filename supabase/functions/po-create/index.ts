@@ -36,7 +36,10 @@ serve(async (req) => {
       throw new Error('Invalid token')
     }
 
-    const tenantId = user.user_metadata?.tenant_id || 'LaplataLunaria'
+    const tenantId = user.user_metadata?.tenant_id
+    if (!tenantId) {
+      throw new Error('tenant_id not found in user metadata')
+    }
 
     // Generate PO number
     const { data: poNumber, error: poError } = await supabaseClient

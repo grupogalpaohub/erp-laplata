@@ -1,3 +1,11 @@
+[Contrato de Segurança - ERP-V1]
+
+- Você NÃO pode: (i) alterar estrutura/segurança do Supabase; (ii) pedir segredos/URIs; (iii) desativar middleware; (iv) usar service role no client; (v) mudar UI/UX.
+- Você DEVE: ler .env.local; manter tenant fixo; respeitar RLS; mostrar evidências antes de mudar qualquer coisa; usar clients centralizados.
+- Tudo que for preciso rodar no Supabase será executado SOMENTE pelo owner. Você apenas entrega os SQLs.
+
+Se não cumprir, sua sugestão será rejeitada automaticamente.
+
 REGRAS INEGOCIÁVEIS (valem para esta e futuras tarefas)
 
 1) NÃO alterar UI/tema/tokens. Corrigir apenas carregamento de dados.

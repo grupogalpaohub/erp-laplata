@@ -558,6 +558,28 @@ Configure no dashboard do Vercel para **Production** e **Preview**:
 - **Environment Variables**: Confirmar configuração no Vercel Dashboard
 - **Logs**: Usar `vercel logs <deployment-url>` para debug
 
+## 🔒 Segurança & Regras do Projeto (ERP-V1)
+
+### Configuração de Ambiente
+- **`.env.local`** final (sem `NEXT_PUBLIC_AUTH_DISABLED`)
+- **NUNCA** mexer em Supabase (DDL/policies) via app
+- **NUNCA** pedir/ecoar URI/keys
+- **Middleware ativo** com tenant fixo `LaplataLunaria`
+- **RLS sempre ativo** em todas as tabelas
+
+### Regras de Desenvolvimento
+- **Tenant fixo**: `LaplataLunaria` (NEXT_PUBLIC_TENANT_ID)
+- **Service Role**: Apenas server-side (route handlers/actions/scripts)
+- **Client-side**: Apenas anon key com RLS
+- **Evidências obrigatórias**: Console/Network antes de mudar código
+- **Protocolo 3 Provas**: schema, dados, RLS
+
+### Arquivos de Configuração
+- **`.guardrails/guardrail.ts`** - Sistema de guardrails
+- **`cursorrules.txt`** - Regras para Cursor AI
+- **`.cursor-contract.txt`** - Contrato de segurança
+- **`lib/supabase/`** - Clientes padronizados
+
 ## 📄 Licença
 
 Proprietário - Grupo Galpão Hub

@@ -1,0 +1,23 @@
+[ERP-V1 / Regras duras para Cursor]
+
+0) NÃO MEXA NO SUPABASE (DDL/Policies/Roles/Triggers/Migrations). Se precisar SQL: peça ao owner, entregue o script pronto. 
+1) NÃO peça Supabase URL/Anon/Service keys/URI. Leia exclusivamente de .env.local.
+2) NÃO exponha Service Role no client. Só server-side (route handlers/actions/scripts).
+3) NÃO desabilite middleware. Se precisar ajustar, preserve auth e tenant.
+4) TENANT: sempre LaplataLunaria (NEXT_PUBLIC_TENANT_ID). Não invente multitenancy dinâmica.
+5) RLS: assuma SEMPRE ativo. Toda query deve funcionar com RLS.
+6) Traga evidências (Console/Network) antes de mudar código.
+7) Siga o Protocolo "3 Provas": schema, dados, RLS.
+8) NÃO crie grant all, superuser ou bypass.
+9) NÃO gere migrations a partir do app. 
+10) NÃO altere `.env.local` sem ordem explícita.
+11) UI/UX: Proibido alterar visual. Não mudar cores, tipografia, espaçamentos, layouts ou componentes.
+12) Supabase: Não pedir URL/keys/URI. Ler somente de .env.local. Não tocar em DDL/policies/roles.
+13) Cliente Supabase: usar apenas lib/supabase/client.ts no browser. Proibido criar createClient() inline.
+
+Implementação obrigatória:
+- Use `lib/supabase/server.ts` e `lib/supabase/client.ts` fornecidos abaixo.
+- Em SSR/Route Handlers, sempre propagar sessão (cookies) e tenant.
+- Em chamadas anônimas, setar cabeçalho/claim de tenant no backend (nunca confiar no client).
+
+Se a regra conflitar com qualquer sugestão do Cursor, a regra vence.

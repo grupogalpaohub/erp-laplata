@@ -1,34 +1,21 @@
 import { cookies } from "next/headers";
-import { createServerClient } from "@supabase/ssr";
+import { createServerClient, type CookieOptions } from "@supabase/ssr";
 
-export function getSupabaseServerClient() {
-  const cookieStore = cookies(); // Next 14 (App Router)
-  const supabase = createServerClient(
+export function getServerSupabase() {
+  const cookieStore = cookies();
+  return createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
     {
       cookies: {
-        get(name: string) {
-          return cookieStore.get(name)?.value;
-        },
-        set(name: string, value: string, options: any) {
-          // Só permite modificar cookies em Route Handlers, não em Server Components
-          try {
-            cookieStore.set({ name, value, ...options });
-          } catch (error) {
-            // Ignora erro se não for Route Handler
-          }
-        },
-        remove(name: string, options: any) {
-          // Só permite modificar cookies em Route Handlers, não em Server Components
-          try {
-            cookieStore.set({ name, value: "", ...options, maxAge: 0 });
-          } catch (error) {
-            // Ignora erro se não for Route Handler
-          }
-        },
+        get: (name: string) => cookieStore.get(name)?.value,
+        set: (_n: string, _v: string, _o: CookieOptions) => {},
+        remove: (_n: string, _o: CookieOptions) => {},
       },
+      global: { headers: { "x-tenant-id": process.env.NEXT_PUBLIC_TENANT_ID! } },
     }
   );
-  return supabase;
 }
+
+// Manter compatibilidade com código existente
+export const getSupabaseServerClient = getServerSupabase;

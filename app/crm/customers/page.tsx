@@ -15,7 +15,6 @@ export default async function CustomersPage() {
     const { data, error } = await supabase
       .from('crm_customer')
       .select('customer_id, name, email, phone, customer_type, created_at')
-      .eq('is_active', true)
       .order('name')
 
     if (error) {

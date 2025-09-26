@@ -5,6 +5,7 @@ import { formatBRL } from '@/lib/money'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { ArrowLeft, Plus, Trash2, Save, X } from 'lucide-react'
+import { getVendors, getMaterials } from '@/app/mm/_actions'
 
 interface Material {
   mm_material: string
@@ -62,19 +63,13 @@ export default function EditPurchaseOrderPage({ params }: { params: { po_id: str
         setItems(itemsData)
       }
 
-      // Carregar materiais
-      const materialsResponse = await fetch('/api/mm/materials')
-      if (materialsResponse.ok) {
-        const materialsData = await materialsResponse.json()
-        setMaterials(materialsData)
-      }
-
-      // Carregar fornecedores
-      const vendorsResponse = await fetch('/api/mm/vendors')
-      if (vendorsResponse.ok) {
-        const vendorsData = await vendorsResponse.json()
-        setVendors(vendorsData)
-      }
+      // Carregar materiais e fornecedores via Server Actions
+      const [materialsData, vendorsData] = await Promise.all([
+        getMaterials(),
+        getVendors()
+      ])
+      setMaterials(materialsData)
+      setVendors(vendorsData)
 
     } catch (error) {
       console.error('Erro ao carregar dados:', error)

@@ -1,6 +1,6 @@
 import Link from 'next/link'
 import { getSupabaseServerClient } from '@/lib/supabase/server'
-import { getTenantId } from '@/lib/auth'
+import { requireSession } from '@/lib/auth/requireSession'
 import { ArrowLeft, Search, Download, Filter, Package, Plus, Eye } from 'lucide-react'
 
 export const dynamic = 'force-dynamic'
@@ -29,7 +29,7 @@ export default async function EntriesPage() {
 
   try {
     const supabase = getSupabaseServerClient()
-    const tenantId = await getTenantId()
+    await requireSession()
 
     // Buscar movimentações de estoque
     const { data, count, error } = await supabase
@@ -45,7 +45,7 @@ export default async function EntriesPage() {
         moved_at,
         mm_material!inner(mm_material, mm_comercial, mm_desc)
       `, { count: 'exact' })
-      .eq('tenant_id', tenantId)
+      
       .order('moved_at', { ascending: false })
       .limit(50)
 

@@ -1,5 +1,5 @@
 import { getSupabaseServerClient } from '@/lib/supabase/server'
-import { getTenantId } from '@/lib/auth'
+import { requireSession } from '@/lib/auth/requireSession'
 import Link from 'next/link'
 import { TrendingUp, Package, AlertTriangle, ShoppingCart } from 'lucide-react'
 
@@ -27,7 +27,7 @@ interface MRPSuggestion {
 
 export default async function MRPPage() {
   const supabase = getSupabaseServerClient()
-  const tenantId = await getTenantId()
+  await requireSession()
 
   // Buscar sugestões MRP
   const { data: mrpData, error } = await supabase
@@ -40,7 +40,7 @@ export default async function MRPPage() {
         mm_price_cents
       )
     `)
-    .eq('tenant_id', tenantId)
+    
     .order('suggested_purchase_qty', { ascending: false })
 
   if (error) {

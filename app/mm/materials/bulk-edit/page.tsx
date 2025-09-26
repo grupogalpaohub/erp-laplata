@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react'
 import { formatBRL } from '@/lib/money'
 import Link from 'next/link'
 import { Save, X, CheckCircle, AlertCircle } from 'lucide-react'
-// Removido import hardcoded - usar dados do customizing
+import { getVendors, getCustomizingData, bulkUpdateMaterials } from '@/app/mm/_actions'
 
 interface Material {
   mm_material: string
@@ -130,10 +130,8 @@ export default function BulkEditPage() {
 
   const fetchMaterials = async () => {
     try {
-      const response = await fetch('/api/mm/materials')
-      const data = await response.json()
-      setMaterials(data)
-      setOriginalMaterials(JSON.parse(JSON.stringify(data))) // Deep clone
+      // Usar dados carregados via SSR - não precisa de fetch
+      // setMaterials será chamado no useEffect com dados do servidor
     } catch (error) {
       console.error('Erro ao carregar materiais:', error)
     }
@@ -141,11 +139,8 @@ export default function BulkEditPage() {
 
   const fetchCustomizingData = async () => {
     try {
-      const response = await fetch('/api/mm/materials/customizing')
-      const data = await response.json()
-      if (data.success) {
-        setCustomizingData(data.data)
-      }
+      const data = await getCustomizingData()
+      setCustomizingData(data)
     } catch (error) {
       console.error('Erro ao carregar dados de customizing:', error)
     }
@@ -203,16 +198,11 @@ export default function BulkEditPage() {
     setMessage(null)
 
     try {
-      const response = await fetch('/api/mm/materials/bulk-update', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ changes })
-      })
-
-      const result = await response.json()
-
-      if (result.success) {
-        setMessage({ type: 'success', text: `${result.updated} materiais atualizados com sucesso` })
+      const result = await bulkUpdateMaterials(changes)
+      
+      const successCount = result.filter(r => r.success).length
+      if (successCount > 0) {
+        setMessage({ type: 'success', text: `${successCount} materiais atualizados com sucesso` })
         setOriginalMaterials(JSON.parse(JSON.stringify(materials))) // Update original
         setChanges([])
         setShowModal(false)

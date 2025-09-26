@@ -1,6 +1,6 @@
 import Link from 'next/link'
 import { getSupabaseServerClient } from '@/lib/supabase/server'
-import { getTenantId } from '@/lib/auth'
+import { requireSession } from '@/lib/auth/requireSession'
 import { Package, AlertTriangle, TrendingUp, TrendingDown, BarChart3, PieChart } from 'lucide-react'
 
 export const dynamic = 'force-dynamic'
@@ -21,33 +21,33 @@ export default async function WHDashboardPage() {
 
   try {
     const supabase = getSupabaseServerClient()
-    const tenantId = await getTenantId()
+    await requireSession()
 
     // Buscar estatísticas de estoque
     const [totalItemsResult, lowStockResult, zeroStockResult, blockedResult, activeResult] = await Promise.allSettled([
       supabase
         .from('wh_inventory_position')
         .select('mm_material', { count: 'exact' })
-        .eq('tenant_id', tenantId),
+        ,
       supabase
         .from('wh_inventory_position')
         .select('mm_material', { count: 'exact' })
-        .eq('tenant_id', tenantId)
+        
         .eq('calculated_status', 'Em Reposição'),
       supabase
         .from('wh_inventory_position')
         .select('mm_material', { count: 'exact' })
-        .eq('tenant_id', tenantId)
+        
         .eq('calculated_status', 'Zerado'),
       supabase
         .from('wh_inventory_position')
         .select('mm_material', { count: 'exact' })
-        .eq('tenant_id', tenantId)
+        
         .eq('calculated_status', 'Bloqueado'),
       supabase
         .from('wh_inventory_position')
         .select('mm_material', { count: 'exact' })
-        .eq('tenant_id', tenantId)
+        
         .eq('calculated_status', 'Ativo')
     ])
 
@@ -67,7 +67,7 @@ export default async function WHDashboardPage() {
     const { data: collectionsData } = await supabase
       .from('wh_inventory_position')
       .select('collection, on_hand_qty')
-      .eq('tenant_id', tenantId)
+      
       .not('collection', 'is', null)
 
     if (collectionsData) {

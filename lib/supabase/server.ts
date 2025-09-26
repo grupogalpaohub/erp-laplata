@@ -12,11 +12,20 @@ export function getSupabaseServerClient() {
           return cookieStore.get(name)?.value;
         },
         set(name: string, value: string, options: any) {
-          // Next lida com set-cookie nos headers da resposta; nas Route Handlers devolvemos via `supabase` internamente
-          cookieStore.set({ name, value, ...options });
+          // Só permite modificar cookies em Route Handlers, não em Server Components
+          try {
+            cookieStore.set({ name, value, ...options });
+          } catch (error) {
+            // Ignora erro se não for Route Handler
+          }
         },
         remove(name: string, options: any) {
-          cookieStore.set({ name, value: "", ...options, maxAge: 0 });
+          // Só permite modificar cookies em Route Handlers, não em Server Components
+          try {
+            cookieStore.set({ name, value: "", ...options, maxAge: 0 });
+          } catch (error) {
+            // Ignora erro se não for Route Handler
+          }
         },
       },
     }

@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { Plus, Trash2, Calculator } from 'lucide-react'
 import { formatBRL, toCents } from '@/lib/money'
+import { createPurchaseOrder } from '@/app/mm/_actions'
 
 interface Material {
   mm_material: string
@@ -106,15 +107,13 @@ export default function NewPOClient({ vendors, materials }: NewPOClientProps) {
         }))
       }
 
-      const response = await fetch('/api/mm/purchases/create', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(orderData)
-      })
+      const formData = new FormData()
+      formData.append('vendor_id', selectedVendor)
+      formData.append('po_date', poDate)
+      formData.append('expected_delivery', expectedDelivery)
+      formData.append('notes', notes)
 
-      const result = await response.json()
+      const result = await createPurchaseOrder(formData)
 
       if (result.success) {
         // Redirecionar para o pedido criado

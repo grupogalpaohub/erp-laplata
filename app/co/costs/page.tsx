@@ -1,6 +1,6 @@
 import Link from 'next/link'
 import { getSupabaseServerClient } from '@/lib/supabase/server'
-import { getTenantId } from '@/lib/auth'
+import { requireSession } from '@/lib/auth/requireSession'
 import { ArrowLeft, Search, Download, Filter, Plus, Eye, Edit, Trash2 } from 'lucide-react'
 
 export const dynamic = 'force-dynamic'
@@ -23,7 +23,7 @@ export default async function CostsPage() {
 
   try {
     const supabase = getSupabaseServerClient()
-    const tenantId = await getTenantId()
+    await requireSession()
 
     // Buscar centros de custo
     const { data, count, error } = await supabase
@@ -37,7 +37,7 @@ export default async function CostsPage() {
         is_active,
         last_updated
       `, { count: 'exact' })
-      .eq('tenant_id', tenantId)
+      
       .order('cost_center_name')
       .limit(50)
 

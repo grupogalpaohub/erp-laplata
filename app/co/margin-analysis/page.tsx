@@ -1,5 +1,5 @@
 import { getSupabaseServerClient } from '@/lib/supabase/server'
-import { getTenantId } from '@/lib/auth'
+import { requireSession } from '@/lib/auth/requireSession'
 import Link from 'next/link'
 import { BarChart3, TrendingUp, Target, AlertCircle } from 'lucide-react'
 
@@ -20,7 +20,7 @@ interface MarginAnalysis {
 
 export default async function MarginAnalysisPage() {
   const supabase = getSupabaseServerClient()
-  const tenantId = await getTenantId()
+  await requireSession()
 
   // Buscar análise de margens
   const { data: marginData, error } = await supabase
@@ -32,7 +32,7 @@ export default async function MarginAnalysisPage() {
         mm_desc
       )
     `)
-    .eq('tenant_id', tenantId)
+    
     .order('gross_margin_cents', { ascending: false })
 
   if (error) {

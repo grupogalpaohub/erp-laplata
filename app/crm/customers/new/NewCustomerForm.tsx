@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { Save, X } from 'lucide-react'
+import { createCustomerAction } from '@/app/crm/customers/new/actions'
 
 export default function NewCustomerForm() {
   const router = useRouter()
@@ -39,26 +40,23 @@ export default function NewCustomerForm() {
     setError('')
 
     try {
-      const response = await fetch('/api/crm/customers', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(formData)
+      const formDataObj = new FormData()
+      Object.entries(formData).forEach(([key, value]) => {
+        formDataObj.append(key, value)
       })
 
-      const result = await response.json()
+      const result = await createCustomerAction(formDataObj)
 
-      if (response.ok) {
+      if (result.success) {
         // Mostrar popup de sucesso
         const shouldCreateOrder = confirm(
-          `Cliente ${result.customer.name} criado com sucesso!\n\n` +
+          `Cliente ${result.customer?.name || 'criado'} criado com sucesso!\n\n` +
           'Deseja criar um pedido de venda para este cliente?'
         )
         
         if (shouldCreateOrder) {
           // Redirecionar para novo pedido com cliente selecionado
-          router.push(`/sd/orders/new?customerId=${result.customer.customer_id}`)
+          router.push(`/sd/orders/new?customerId=${result.customer?.customer_id || ''}`)
         } else {
           // Redirecionar para lista de clientes
           router.push('/crm/customers')

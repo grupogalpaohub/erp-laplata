@@ -1,5 +1,5 @@
 import { getSupabaseServerClient } from '@/lib/supabase/server'
-import { getTenantId } from '@/lib/auth'
+import { requireSession } from '@/lib/auth/requireSession'
 import Link from 'next/link'
 import { DollarSign, AlertTriangle, CheckCircle, Clock } from 'lucide-react'
 
@@ -22,7 +22,7 @@ interface AccountsReceivable {
 
 export default async function AccountsReceivablePage() {
   const supabase = getSupabaseServerClient()
-  const tenantId = await getTenantId()
+  await requireSession()
 
   // Buscar contas a receber
   const { data: arData, error } = await supabase
@@ -32,7 +32,7 @@ export default async function AccountsReceivablePage() {
       customer:crm_customer(customer_name),
       so:sd_sales_order(so_id)
     `)
-    .eq('tenant_id', tenantId)
+    
     .order('due_date', { ascending: true })
 
   if (error) {

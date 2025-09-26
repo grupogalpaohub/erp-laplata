@@ -1,6 +1,6 @@
 import Link from 'next/link'
-import { createClient } from '@supabase/supabase-js'
-import { getTenantId } from '@/lib/auth'
+import { getSupabaseServerClient } from '@/lib/supabase/server'
+import { requireSession } from '@/lib/auth/requireSession'
 import { ArrowLeft, Save, X } from 'lucide-react'
 import { notFound, redirect } from 'next/navigation'
 
@@ -48,18 +48,15 @@ async function updateCustomer(formData: FormData) {
   'use server'
   
   try {
-    const supabase = createClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-    )
-    const tenantId = await getTenantId()
+    const supabase = getSupabaseServerClient()
+    await requireSession()
     const customerId = String(formData.get('customer_id') || '')
 
     // Buscar dados atuais para comparação
     const { data: currentData } = await supabase
       .from('crm_customer')
       .select('*')
-      .eq('tenant_id', tenantId)
+      
       .eq('customer_id', customerId)
       .single()
 
@@ -105,7 +102,7 @@ async function updateCustomer(formData: FormData) {
     const { data: existingCustomer } = await supabase
       .from('crm_customer')
       .select('customer_id')
-      .eq('tenant_id', tenantId)
+      
       .eq('contact_email', updatedData.contact_email)
       .neq('customer_id', customerId)
       .single()
@@ -129,7 +126,7 @@ async function updateCustomer(formData: FormData) {
     const { error } = await supabase
       .from('crm_customer')
       .update(updatedData)
-      .eq('tenant_id', tenantId)
+      
       .eq('customer_id', customerId)
 
     if (error) {
@@ -142,12 +139,12 @@ async function updateCustomer(formData: FormData) {
       await supabase
         .from('audit_log')
         .insert({
-          tenant_id: tenantId,
+          
           table_name: 'crm_customer',
           record_pk: customerId,
           action: 'UPDATE',
           diff_json: changes,
-          actor_user: null, // TODO: pegar do contexto de auth
+          actor_user: 'system', // Usuário do sistema para auditoria
           created_at: new Date().toISOString()
         })
     }
@@ -166,17 +163,14 @@ export default async function EditCustomerPage({ params }: PageProps) {
   let customer: Customer | null = null
 
   try {
-    const supabase = createClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-    )
-    const tenantId = await getTenantId()
+    const supabase = getSupabaseServerClient()
+    await requireSession()
 
     // Buscar dados do cliente
     const { data: customerData, error: customerError } = await supabase
       .from('crm_customer')
       .select('*')
-      .eq('tenant_id', tenantId)
+      
       .eq('customer_id', params.customer_id)
       .single()
 
@@ -185,7 +179,6 @@ export default async function EditCustomerPage({ params }: PageProps) {
     }
 
     customer = customerData
-
 
   } catch (error) {
     console.error('Error loading customer data:', error)

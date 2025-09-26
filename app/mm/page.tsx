@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import { ArrowLeft } from 'lucide-react'
 import { requireSession } from '@/lib/auth/requireSession'
+import { formatBRL } from '@/lib/money'
 
 export const dynamic = 'force-dynamic'
 export const revalidate = 0
@@ -46,8 +47,8 @@ export default async function MMIndex() {
     totalMaterials = materials.length
     totalVendors = vendors.filter(v => v.status === 'active').length
     totalOrders = purchaseOrders.length
-    totalValue = purchaseOrders.reduce((sum, order) => sum + (order.total_cents || 0), 0) / 100
-    monthlyValue = monthlyOrders.reduce((sum, order) => sum + (order.total_cents || 0), 0) / 100
+    totalValue = purchaseOrders.reduce((sum, order) => sum + (order.total_cents || 0), 0)
+    monthlyValue = monthlyOrders.reduce((sum, order) => sum + (order.total_cents || 0), 0)
 
   } catch (error) {
     console.error('Error loading MM data:', error)
@@ -205,7 +206,7 @@ export default async function MMIndex() {
               </svg>
             </div>
             <div className="kpi-fiori kpi-fiori-warning">
-              R$ {monthlyValue.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+              {formatBRL(monthlyValue)}
             </div>
             <p className="tile-fiori-metric-label">Valor do mês atual</p>
           </div>
@@ -219,7 +220,7 @@ export default async function MMIndex() {
               </svg>
             </div>
             <div className="kpi-fiori kpi-fiori-info">
-              R$ {totalValue.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+              {formatBRL(totalValue)}
             </div>
             <p className="tile-fiori-metric-label">Valor total histórico</p>
           </div>

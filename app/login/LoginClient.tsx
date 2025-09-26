@@ -29,7 +29,7 @@ export default function LoginClient({ next }: { next: string }) {
   return (
     <main style={{ padding: '2rem' }}>
       <h1>Entrar</h1>
-      <p>Tenant: {process.env.NEXT_PUBLIC_TENANT_ID || 'default'}</p>
+      <p>Faça login para acessar o sistema</p>
       <a href={googleUrl}>Continuar com Google</a>
       <p style={{ marginTop: 12 }}>
         <Link href="/">Voltar</Link>

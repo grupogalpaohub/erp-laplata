@@ -1,6 +1,6 @@
 import Link from 'next/link'
 import { getSupabaseServerClient } from '@/lib/supabase/server'
-import { getTenantId } from '@/lib/auth'
+import { requireSession } from '@/lib/auth/requireSession'
 import { ArrowLeft, Download, Search, Filter, Calendar } from 'lucide-react'
 
 export const dynamic = 'force-dynamic'
@@ -23,13 +23,13 @@ export default async function AuditPage() {
 
   try {
     const supabase = getSupabaseServerClient()
-    const tenantId = await getTenantId()
+    await requireSession()
 
     // Buscar logs de auditoria do CRM
     const { data, count, error } = await supabase
       .from('audit_log')
       .select('*', { count: 'exact' })
-      .eq('tenant_id', tenantId)
+      
       .eq('table_name', 'crm_customer')
       .order('created_at', { ascending: false })
       .limit(50)

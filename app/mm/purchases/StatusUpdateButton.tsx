@@ -1,8 +1,8 @@
 'use client'
 
 import { useState } from 'react'
-import { createSupabaseClient } from '@/lib/supabaseClient'
 import { ChevronRight, Loader2 } from 'lucide-react'
+import { updatePurchaseOrderStatus } from '../_actions'
 
 interface StatusUpdateButtonProps {
   poId: string
@@ -15,14 +15,6 @@ const statusFlow = {
   'received': null, // Status final
   'in_progress': 'received',
   'cancelled': null // Status final
-}
-
-const statusLabels = {
-  'draft': 'Rascunho',
-  'approved': 'Aprovado',
-  'received': 'Recebido',
-  'in_progress': 'Em Andamento',
-  'cancelled': 'Cancelado'
 }
 
 const nextStatusLabels = {
@@ -51,23 +43,10 @@ export default function StatusUpdateButton({ poId, currentStatus }: StatusUpdate
     setError(null)
 
     try {
-      const supabase = createSupabaseClient()
+      const formData = new FormData()
+      formData.append('status', nextStatus)
       
-      // Usar tenant fixo para desenvolvimento
-      const tenantId = process.env.NEXT_PUBLIC_TENANT_ID || 'default'
-
-      const { error: updateError } = await supabase
-        .from('mm_purchase_order')
-        .update({ 
-          status: nextStatus,
-          updated_at: new Date().toISOString()
-        })
-        .eq('mm_order', poId)
-        .eq('tenant_id', tenantId)
-
-      if (updateError) {
-        throw new Error(updateError.message)
-      }
+      await updatePurchaseOrderStatus(poId, formData)
 
       // Recarregar a página para mostrar a mudança
       window.location.reload()

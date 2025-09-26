@@ -61,11 +61,9 @@ export default function EditSalesOrderForm({ order, customers, materials }: Edit
   const loadOrderItems = async () => {
     try {
       setIsLoadingItems(true)
-      console.log('Loading items for order:', order.so_id)
       const response = await fetch(`/api/sd/orders/${order.so_id}/items`)
       const result = await response.json()
       
-      console.log('Items API response:', result)
       
       if (response.ok) {
         const orderItems = result.items.map((item: any, index: number) => ({
@@ -75,7 +73,6 @@ export default function EditSalesOrderForm({ order, customers, materials }: Edit
           unit_price_cents: item.unit_price_cents,
           line_total_cents: item.line_total_cents
         }))
-        console.log('Mapped order items:', orderItems)
         setItems(orderItems)
       } else {
         console.error('Error loading order items:', result.error)

@@ -1,5 +1,5 @@
 import { getSupabaseServerClient } from '@/lib/supabase/server'
-import { getTenantId } from '@/lib/auth'
+import { requireSession } from '@/lib/auth/requireSession'
 import Link from 'next/link'
 import { Calculator, TrendingUp, TrendingDown, AlertTriangle } from 'lucide-react'
 
@@ -22,7 +22,7 @@ interface ProductCost {
 
 export default async function ProductCostsPage() {
   const supabase = getSupabaseServerClient()
-  const tenantId = await getTenantId()
+  await requireSession()
 
   // Buscar custos de produtos
   const { data: costsData, error } = await supabase
@@ -35,7 +35,7 @@ export default async function ProductCostsPage() {
         mm_price_cents
       )
     `)
-    .eq('tenant_id', tenantId)
+    
     .order('mm_material')
 
   if (error) {

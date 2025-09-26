@@ -1,7 +1,7 @@
 'use server'
 
 import { getSupabaseServerClient } from '@/lib/supabase/server'
-import { getTenantId } from '@/lib/auth'
+import { requireSession } from '@/lib/auth/requireSession'
 import { toCents, formatBRL } from '@/lib/money'
 import { revalidatePath } from 'next/cache'
 
@@ -12,8 +12,8 @@ export async function createOrderAction(input: {
   notes?: string | null
 }) {
   try {
+    await requireSession()
     const supabase = getSupabaseServerClient()
-    const tenantId = await getTenantId()
     
     // Gerar ID único baseado em timestamp
     const timestamp = Date.now()
@@ -23,7 +23,6 @@ export async function createOrderAction(input: {
     const { data: salesOrder, error: orderError } = await supabase
       .from('sd_sales_order')
       .insert({
-        tenant_id: tenantId,
         so_id: newSoId,
         customer_id: input.customer_id,
         order_date: new Date().toISOString().split('T')[0],
@@ -56,8 +55,8 @@ export async function addOrderItemAction(input: {
   unit_price_brl?: string // opcional se houver negociação manual
 }) {
   try {
+    await requireSession()
     const supabase = getSupabaseServerClient()
-    const tenantId = await getTenantId()
     
     // Buscar preço do material se não fornecido
     let unit_price_cents = 0
@@ -68,7 +67,6 @@ export async function addOrderItemAction(input: {
         .from('mm_material')
         .select('mm_price_cents')
         .eq('mm_material', input.mm_material)
-        .eq('tenant_id', tenantId)
         .single()
       
       unit_price_cents = material?.mm_price_cents || 0
@@ -82,7 +80,6 @@ export async function addOrderItemAction(input: {
       .from('sd_sales_order_item')
       .select('row_no')
       .eq('so_id', input.so_id)
-      .eq('tenant_id', tenantId)
       .order('row_no', { ascending: false })
       .limit(1)
 
@@ -93,7 +90,6 @@ export async function addOrderItemAction(input: {
       .from('sd_sales_order_item')
       .insert({
         so_id: input.so_id,
-        tenant_id: tenantId,
         material_id: input.mm_material, // FK lógica para mm_material
         quantity: input.quantity,
         unit_price_cents_at_order: unit_price_cents,
@@ -120,15 +116,14 @@ export async function removeOrderItemAction(input: {
   row_no: number
 }) {
   try {
+    await requireSession()
     const supabase = getSupabaseServerClient()
-    const tenantId = await getTenantId()
     
     const { error } = await supabase
       .from('sd_sales_order_item')
       .delete()
       .eq('so_id', input.so_id)
       .eq('row_no', input.row_no)
-      .eq('tenant_id', tenantId)
 
     if (error) {
       console.error('Error removing order item:', error)
@@ -152,8 +147,8 @@ export async function updateOrderAction(input: {
   total_negotiated_cents?: number | null
 }) {
   try {
+    await requireSession()
     const supabase = getSupabaseServerClient()
-    const tenantId = await getTenantId()
     
     const updateData: any = {
       updated_at: new Date().toISOString()
@@ -168,7 +163,6 @@ export async function updateOrderAction(input: {
       .from('sd_sales_order')
       .update(updateData)
       .eq('so_id', input.so_id)
-      .eq('tenant_id', tenantId)
 
     if (error) {
       console.error('Error updating order:', error)
@@ -189,8 +183,8 @@ export async function updateOrderStatusAction(input: {
   status: string
 }) {
   try {
+    await requireSession()
     const supabase = getSupabaseServerClient()
-    const tenantId = await getTenantId()
     
     // Validar status permitidos (conforme enum order_status no Supabase)
     const allowedStatuses = ['draft', 'approved', 'invoiced', 'cancelled']
@@ -205,7 +199,6 @@ export async function updateOrderStatusAction(input: {
         updated_at: new Date().toISOString()
       })
       .eq('so_id', input.so_id)
-      .eq('tenant_id', tenantId)
 
     if (error) {
       console.error('Error updating order status:', error)

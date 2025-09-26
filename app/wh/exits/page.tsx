@@ -1,6 +1,6 @@
 import Link from 'next/link'
 import { getSupabaseServerClient } from '@/lib/supabase/server'
-import { getTenantId } from '@/lib/auth'
+import { requireSession } from '@/lib/auth/requireSession'
 import { ArrowLeft, Search, Download, Filter, Package, Plus, Eye } from 'lucide-react'
 
 export const dynamic = 'force-dynamic'
@@ -28,7 +28,7 @@ export default async function ExitsPage() {
 
   try {
     const supabase = getSupabaseServerClient()
-    const tenantId = await getTenantId()
+    await requireSession()
 
     // Buscar saídas de estoque
     const { data, count, error } = await supabase
@@ -43,7 +43,7 @@ export default async function ExitsPage() {
         warehouse_id,
         mm_material!inner(mm_material, mm_comercial, mm_desc)
       `, { count: 'exact' })
-      .eq('tenant_id', tenantId)
+      
       .order('exit_date', { ascending: false })
       .limit(50)
 

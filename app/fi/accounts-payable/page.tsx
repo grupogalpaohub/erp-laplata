@@ -1,5 +1,5 @@
 import { getSupabaseServerClient } from '@/lib/supabase/server'
-import { getTenantId } from '@/lib/auth'
+import { requireSession } from '@/lib/auth/requireSession'
 import Link from 'next/link'
 import { CreditCard, AlertTriangle, CheckCircle, Clock } from 'lucide-react'
 
@@ -22,7 +22,7 @@ interface AccountsPayable {
 
 export default async function AccountsPayablePage() {
   const supabase = getSupabaseServerClient()
-  const tenantId = await getTenantId()
+  await requireSession()
 
   // Buscar contas a pagar
   const { data: apData, error } = await supabase
@@ -32,7 +32,7 @@ export default async function AccountsPayablePage() {
       vendor:mm_vendor(vendor_name),
       po:mm_purchase_order(po_id)
     `)
-    .eq('tenant_id', tenantId)
+    
     .order('due_date', { ascending: true })
 
   if (error) {

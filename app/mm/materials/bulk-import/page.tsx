@@ -4,6 +4,7 @@ import { useState } from 'react'
 import Link from 'next/link'
 import { Upload, Download, CheckCircle, XCircle, AlertCircle } from 'lucide-react'
 import { formatBRL } from '@/lib/money'
+import { validateBulkMaterials, bulkImportMaterials } from '@/app/mm/_actions'
 
 interface Material {
   mm_material?: string // ID do material (opcional para criação)
@@ -122,21 +123,11 @@ export default function BulkImportPage() {
     setState(prev => ({ ...prev, isValidating: true }))
     
     try {
-      const response = await fetch('/api/mm/materials/bulk-validate', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ materials })
-      })
-      
-      const result = await response.json()
-      
-      if (!response.ok) {
-        throw new Error(result.error || 'Erro na validação')
-      }
+      const result = await validateBulkMaterials(materials)
 
       setState(prev => ({ 
         ...prev, 
-        validationResults: result.results,
+        validationResults: result,
         isValidating: false 
       }))
     } catch (error) {
@@ -153,17 +144,7 @@ export default function BulkImportPage() {
     setState(prev => ({ ...prev, isImporting: true }))
     
     try {
-      const response = await fetch('/api/mm/materials/bulk-import', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ materials: state.materials })
-      })
-      
-      const result = await response.json()
-      
-      if (!response.ok) {
-        throw new Error(result.error || 'Erro na importação')
-      }
+      const result = await bulkImportMaterials(state.materials)
 
       setState(prev => ({ 
         ...prev, 

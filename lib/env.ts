@@ -32,6 +32,5 @@ export const ENV = {
   SITE_URL: process.env.NEXT_PUBLIC_SITE_URL ?? '',
   VERCEL_ENV: process.env.VERCEL_ENV ?? 'local',
   AUTH_DISABLED: (process.env.NEXT_PUBLIC_AUTH_DISABLED === 'true' || process.env.NEXT_PUBLIC_AUTH_DISABLED === '1'),
-  SERVICE_ROLE_KEY: process.env.SUPABASE_SERVICE_ROLE_KEY ?? '',
 } as const;
 

@@ -1,6 +1,6 @@
 import Link from 'next/link'
-import { createClient } from '@supabase/supabase-js'
-import { getTenantId } from '@/lib/auth'
+import { getSupabaseServerClient } from '@/lib/supabase/server'
+import { requireSession } from '@/lib/auth/requireSession'
 import { ArrowLeft, Edit, Mail, Phone, MapPin, CreditCard, Calendar, User, Star, Target, ShoppingCart, Tag } from 'lucide-react'
 import { notFound } from 'next/navigation'
 
@@ -49,17 +49,14 @@ export default async function CustomerDetailPage({ params }: PageProps) {
   let totalSalesValue = 0
 
   try {
-    const supabase = createClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-    )
-    const tenantId = await getTenantId()
+    const supabase = getSupabaseServerClient()
+    await requireSession()
 
     // Buscar dados do cliente
     const { data: customerData, error: customerError } = await supabase
       .from('crm_customer')
       .select('*')
-      .eq('tenant_id', tenantId)
+      
       .eq('customer_id', params.customer_id)
       .single()
 

@@ -1,12 +1,12 @@
-'use client'
-
-import { useState, useEffect } from 'react'
-import { useRouter } from 'next/navigation'
 import Link from 'next/link'
+import { redirect } from 'next/navigation'
 import { ArrowLeft, Save, X } from 'lucide-react'
 import MaterialTypeSelect from '@/components/MaterialTypeSelect'
 import MaterialClassSelect from '@/components/MaterialClassSelect'
-import { formatBRL, toCents } from '@/lib/money'
+import { formatBRL } from '@/lib/money'
+import { getVendors, updateMaterial } from '@/app/mm/_actions'
+import { getSupabaseServerClient } from '@/lib/supabase/server'
+import { requireSession } from '@/lib/auth/requireSession'
 
 type Material = {
   mm_material: string
@@ -28,93 +28,42 @@ type Vendor = {
   vendor_name: string
 }
 
-export default function EditMaterialPage({ params }: { params: { material_id: string } }) {
-  const router = useRouter()
-  const [material, setMaterial] = useState<Material | null>(null)
-  const [vendors, setVendors] = useState<Vendor[]>([])
-  const [loading, setLoading] = useState(true)
-  const [submitting, setSubmitting] = useState(false)
-  const [error, setError] = useState<string | null>(null)
+export default async function EditMaterialPage({ params }: { params: { material_id: string } }) {
+  await requireSession()
+  
+  // Carregar dados iniciais via SSR
+  const [material, vendors] = await Promise.all([
+    getMaterial(params.material_id),
+    getVendors()
+  ])
 
-  useEffect(() => {
-    const loadData = async () => {
-      try {
-        const [materialRes, vendorsRes] = await Promise.all([
-          fetch(`/api/mm/materials/${params.material_id}`),
-          fetch('/api/mm/vendors')
-        ])
+  async function getMaterial(material_id: string): Promise<Material | null> {
+    const supabase = getSupabaseServerClient()
+    
+    const { data, error } = await supabase
+      .from("mm_material")
+      .select("*")
+      .eq("mm_material", material_id)
+      .single()
 
-        if (materialRes.ok) {
-          const materialData = await materialRes.json()
-          setMaterial(materialData)
-        } else {
-          setError('Material não encontrado')
-        }
-
-        if (vendorsRes.ok) {
-          const vendorsData = await vendorsRes.json()
-          setVendors(vendorsData)
-        }
-      } catch (err) {
-        console.error('Erro ao carregar dados:', err)
-        setError('Erro ao carregar dados')
-      } finally {
-        setLoading(false)
-      }
+    if (error) {
+      console.error("Erro ao buscar material:", error)
+      return null
     }
 
-    loadData()
-  }, [params.material_id])
-
-  const handleSubmit = async (formData: FormData) => {
-    setSubmitting(true)
-    setError(null)
-
-    try {
-      const response = await fetch(`/api/mm/materials/${params.material_id}/update`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          mm_comercial: formData.get('mm_comercial'),
-          mm_desc: formData.get('mm_desc'),
-          mm_mat_type: formData.get('mm_mat_type'),
-          mm_mat_class: formData.get('mm_mat_class'),
-          mm_price_cents: toReais(parseFloat(formData.get('mm_price_cents') as string)),
-          mm_purchase_price_cents: toReais(parseFloat(formData.get('mm_purchase_price_cents') as string)),
-          mm_vendor_id: formData.get('mm_vendor_id'),
-          lead_time_days: parseInt(formData.get('lead_time_days') as string),
-          mm_pur_link: formData.get('mm_pur_link'),
-          status: formData.get('status'),
-          commercial_name: formData.get('commercial_name'),
-        })
-      })
-
-      const result = await response.json()
-
-      if (result.success) {
-        router.push(`/mm/catalog?success=Material ${params.material_id} atualizado com sucesso`)
-      } else {
-        setError(result.error || 'Erro ao atualizar material')
-      }
-    } catch (err) {
-      console.error('Erro ao atualizar material:', err)
-      setError('Erro interno do servidor')
-    } finally {
-      setSubmitting(false)
-    }
+    return data
   }
 
-  if (loading) {
-    return (
-      <div className="space-y-8">
-        <div className="text-center mb-12">
-          <h1 className="text-4xl font-bold text-fiori-primary mb-4">Editar Material</h1>
-          <p className="text-xl text-fiori-secondary mb-2">Carregando...</p>
-        </div>
-      </div>
-    )
+  async function handleSubmit(formData: FormData) {
+    'use server'
+    
+    try {
+      await updateMaterial(params.material_id, formData)
+      redirect(`/mm/catalog?success=Material ${params.material_id} atualizado com sucesso`)
+    } catch (error) {
+      console.error('Erro ao atualizar material:', error)
+      redirect(`/mm/materials/${params.material_id}/edit?error=${encodeURIComponent(error instanceof Error ? error.message : 'Erro interno do servidor')}`)
+    }
   }
 
   if (!material) {
@@ -221,11 +170,11 @@ export default function EditMaterialPage({ params }: { params: { material_id: st
           <h2 className="text-xl font-semibold mb-4">Preços e Fornecedor</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
-              <label htmlFor="mm_price_cents" className="label-fiori">Preço de Venda (R$)</label>
+              <label htmlFor="mm_price" className="label-fiori">Preço de Venda (R$)</label>
               <input
                 type="number"
-                name="mm_price_cents"
-                id="mm_price_cents"
+                name="mm_price"
+                id="mm_price"
                 step="0.01"
                 min="0"
                 className="input-fiori"
@@ -236,11 +185,11 @@ export default function EditMaterialPage({ params }: { params: { material_id: st
             </div>
             
             <div>
-              <label htmlFor="mm_purchase_price_cents" className="label-fiori">Preço de Compra (R$)</label>
+              <label htmlFor="mm_purchase_price" className="label-fiori">Preço de Compra (R$)</label>
               <input
                 type="number"
-                name="mm_purchase_price_cents"
-                id="mm_purchase_price_cents"
+                name="mm_purchase_price"
+                id="mm_purchase_price"
                 step="0.01"
                 min="0"
                 className="input-fiori"
@@ -326,11 +275,10 @@ export default function EditMaterialPage({ params }: { params: { material_id: st
           </Link>
           <button 
             type="submit" 
-            disabled={submitting}
-            className="btn-fiori-primary flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="btn-fiori-primary flex items-center gap-2"
           >
             <Save className="w-4 h-4" />
-            {submitting ? 'Salvando...' : 'Salvar Alterações'}
+            Salvar Alterações
           </button>
         </div>
       </form>

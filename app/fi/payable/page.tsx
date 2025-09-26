@@ -1,6 +1,6 @@
 import Link from 'next/link'
 import { getSupabaseServerClient } from '@/lib/supabase/server'
-import { getTenantId } from '@/lib/auth'
+import { requireSession } from '@/lib/auth/requireSession'
 import { ArrowLeft, Search, Download, Filter, Plus, Eye, Edit, CheckCircle } from 'lucide-react'
 
 export const dynamic = 'force-dynamic'
@@ -27,7 +27,7 @@ export default async function PayablePage() {
 
   try {
     const supabase = getSupabaseServerClient()
-    const tenantId = await getTenantId()
+    await requireSession()
 
     // Buscar contas a pagar
     const { data, count, error } = await supabase
@@ -43,7 +43,7 @@ export default async function PayablePage() {
         created_at,
         mm_vendor!inner(vendor_name)
       `, { count: 'exact' })
-      .eq('tenant_id', tenantId)
+      
       .order('due_date', { ascending: true })
       .limit(50)
 

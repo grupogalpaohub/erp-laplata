@@ -1,8 +1,5 @@
-'use client'
-
-import { useState, useEffect } from 'react'
-import { createSupabaseClient } from '@/lib/supabaseClient'
 import StatusUpdateButton from '../StatusUpdateButton'
+import { formatBRL } from '@/lib/money'
 
 interface PurchaseOrder {
   mm_order: string
@@ -29,46 +26,10 @@ interface PurchaseOrderItem {
 interface PurchaseOrderClientProps {
   order: PurchaseOrder
   items: PurchaseOrderItem[]
+  vendor: any
 }
 
-export default function PurchaseOrderClient({ order, items }: PurchaseOrderClientProps) {
-  const [vendor, setVendor] = useState<any>(null)
-  const [loading, setLoading] = useState(true)
-
-  useEffect(() => {
-    async function loadVendor() {
-      try {
-        const supabase = createSupabaseClient()
-        const { data, error } = await supabase
-          .from('mm_vendor')
-          .select('*')
-          .eq('vendor_id', order.vendor_id)
-          .eq('tenant_id', process.env.NEXT_PUBLIC_TENANT_ID || 'default')
-          .single()
-
-        if (error) {
-          console.error('Error loading vendor:', error)
-        } else {
-          setVendor(data)
-        }
-      } catch (error) {
-        console.error('Error loading vendor:', error)
-      } finally {
-        setLoading(false)
-      }
-    }
-
-    loadVendor()
-  }, [order.vendor_id])
-
-  if (loading) {
-    return (
-      <div className="animate-pulse">
-        <div className="h-4 bg-gray-200 rounded w-1/4 mb-2"></div>
-        <div className="h-4 bg-gray-200 rounded w-1/2"></div>
-      </div>
-    )
-  }
+export default function PurchaseOrderClient({ order, items, vendor }: PurchaseOrderClientProps) {
 
   return (
     <div className="space-y-6">
@@ -167,10 +128,10 @@ export default function PurchaseOrderClient({ order, items }: PurchaseOrderClien
                     {item.mm_qtt}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                    R$ {(item.unit_cost_cents / 100).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                    {formatBRL(item.unit_cost_cents)}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                    R$ {(item.line_total_cents / 100).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                    {formatBRL(item.line_total_cents)}
                   </td>
                 </tr>
               ))}
@@ -181,7 +142,7 @@ export default function PurchaseOrderClient({ order, items }: PurchaseOrderClien
                   Total do Pedido:
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                  R$ {(order.total_cents / 100).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                  {formatBRL(order.total_cents)}
                 </td>
               </tr>
             </tfoot>

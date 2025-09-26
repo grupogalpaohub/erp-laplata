@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { Save, X, Plus, Trash2 } from 'lucide-react'
 import { formatBRL, toCents } from '@/lib/money'
+import { createSalesOrder } from '@/app/sd/_actions'
 
 interface OrderItem {
   temp_id: string
@@ -124,28 +125,29 @@ export default function NewSalesOrderForm({ customers, materials, selectedCustom
     const finalTotalNegotiatedCents = totalNegotiatedCents || totalFinalCents
 
     try {
-      const response = await fetch('/api/sd/orders', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          selectedCustomer,
-          orderDate,
-          paymentMethod,
-          paymentTerm,
-          notes,
-          status,
-          totalNegotiatedCents: finalTotalNegotiatedCents,
-          items,
-          totalFinalCents: totalFinalCents // Sempre o valor calculado dos itens
-        })
+      const formData = new FormData()
+      formData.append('customer_id', selectedCustomer)
+      formData.append('order_date', orderDate)
+      formData.append('payment_method', paymentMethod)
+      formData.append('payment_term', paymentTerm)
+      formData.append('notes', notes)
+      formData.append('status', status)
+      formData.append('total_negotiated', (finalTotalNegotiatedCents / 100).toString())
+      formData.append('total', (totalFinalCents / 100).toString())
+      
+      // Adicionar itens
+      items.forEach(item => {
+        formData.append('items[]', JSON.stringify({
+          material_id: item.material_id,
+          quantity: item.quantity,
+          unit_price: (item.unit_price_cents / 100).toString()
+        }))
       })
 
-      const result = await response.json()
+      const result = await createSalesOrder(formData)
 
-      if (response.ok) {
-        setSuccessMessage(`Pedido criado com sucesso! Número: ${result.order?.so_id || 'N/A'}`)
+      if (result.success) {
+        setSuccessMessage(`Pedido criado com sucesso! Número: ${result.so_id || 'N/A'}`)
         setError('')
         // Limpar formulário
         setSelectedCustomer('')

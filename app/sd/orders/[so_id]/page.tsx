@@ -1,6 +1,6 @@
 import Link from 'next/link'
-import { createClient } from '@supabase/supabase-js'
-import { getTenantId } from '@/lib/auth'
+import { getSupabaseServerClient } from '@/lib/supabase/server'
+import { requireSession } from '@/lib/auth/requireSession'
 import { formatBRL } from '@/lib/money'
 import { ArrowLeft, Edit, CheckCircle, XCircle, DollarSign, Percent } from 'lucide-react'
 
@@ -38,17 +38,14 @@ interface OrderItem {
 }
 
 export default async function SalesOrderDetailPage({ params }: { params: { so_id: string } }) {
+  await requireSession()
   const { so_id } = params
   let order: SalesOrder | null = null
   let items: OrderItem[] = []
   let error = ''
 
   try {
-    const supabase = createClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-    )
-    const tenantId = await getTenantId()
+    const supabase = getSupabaseServerClient()
 
     // Buscar pedido
     const { data: orderData, error: orderError } = await supabase
@@ -69,7 +66,6 @@ export default async function SalesOrderDetailPage({ params }: { params: { so_id
         created_at,
         crm_customer(name)
       `)
-      .eq('tenant_id', tenantId)
       .eq('so_id', so_id)
       .single()
 
@@ -90,7 +86,6 @@ export default async function SalesOrderDetailPage({ params }: { params: { so_id
           row_no,
           material_id
         `)
-        .eq('tenant_id', tenantId)
         .eq('so_id', so_id)
         .order('row_no')
 

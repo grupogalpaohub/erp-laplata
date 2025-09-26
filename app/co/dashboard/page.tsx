@@ -1,6 +1,6 @@
 import Link from 'next/link'
 import { getSupabaseServerClient } from '@/lib/supabase/server'
-import { getTenantId } from '@/lib/auth'
+import { requireSession } from '@/lib/auth/requireSession'
 import { ArrowLeft, TrendingUp, TrendingDown, DollarSign, BarChart3 } from 'lucide-react'
 
 export const dynamic = 'force-dynamic'
@@ -16,23 +16,23 @@ export default async function CODashboardPage() {
 
   try {
     const supabase = getSupabaseServerClient()
-    const tenantId = await getTenantId()
+    await requireSession()
 
     // Buscar dados para KPIs
     const [revenueResult, costsResult, recentCostsResult] = await Promise.allSettled([
       supabase
         .from('sd_sales_order')
         .select('total_final_cents')
-        .eq('tenant_id', tenantId)
+        
         .eq('status', 'CONFIRMED'),
       supabase
         .from('co_cost_center')
         .select('total_costs_cents')
-        .eq('tenant_id', tenantId),
+        ,
       supabase
         .from('co_cost_center')
         .select('cost_center_id, cost_center_name, total_costs_cents, last_updated')
-        .eq('tenant_id', tenantId)
+        
         .order('last_updated', { ascending: false })
         .limit(5)
     ])

@@ -1,13 +1,11 @@
-import { createClient } from '@supabase/supabase-js'
+import { getSupabaseServerClient } from '@/lib/supabase/server'
+import { requireSession } from '@/lib/auth/requireSession'
 import { formatBRL } from '@/lib/money'
 import { notFound } from 'next/navigation'
 
 async function getSalesOrder(soId: string) {
-    const supabase = createClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-    )
-  const tenantId = process.env.TENANT_ID || 'default'
+  await requireSession()
+  const supabase = getSupabaseServerClient()
 
   try {
     // Buscar dados do pedido
@@ -22,7 +20,7 @@ async function getSalesOrder(soId: string) {
         total_cents,
         created_at
       `)
-      .eq('tenant_id', tenantId)
+      
       .eq('so_id', soId)
       .single()
 
@@ -40,7 +38,7 @@ async function getSalesOrder(soId: string) {
         line_total_cents,
         row_no
       `)
-      .eq('tenant_id', tenantId)
+      
       .eq('so_id', soId)
       .order('row_no')
 
@@ -53,7 +51,7 @@ async function getSalesOrder(soId: string) {
     const { data: customer } = await supabase
       .from('crm_customer')
       .select('name, email, telefone')
-      .eq('tenant_id', tenantId)
+      
       .eq('customer_id', order.customer_id)
       .single()
 

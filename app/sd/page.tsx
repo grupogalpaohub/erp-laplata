@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import { requireSession } from '@/lib/auth/requireSession'
 import { ArrowLeft } from 'lucide-react'
+import { formatBRL } from '@/lib/money'
 
 export const dynamic = 'force-dynamic'
 export const revalidate = 0
@@ -152,7 +153,7 @@ export default async function SDPage() {
               </svg>
             </div>
             <div className="kpi-fiori kpi-fiori-success">
-              R$ {(totalValue / 100).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+              {formatBRL(totalValue)}
             </div>
             <p className="tile-fiori-metric-label">Valor total em vendas</p>
           </div>
@@ -180,7 +181,7 @@ export default async function SDPage() {
               </svg>
             </div>
             <div className="kpi-fiori kpi-fiori-neutral">
-              R$ {totalOrders > 0 ? ((totalValue / 100) / totalOrders).toLocaleString('pt-BR', { minimumFractionDigits: 2 }) : '0,00'}
+              {totalOrders > 0 ? formatBRL(Math.round(totalValue / totalOrders)) : formatBRL(0)}
             </div>
             <p className="tile-fiori-metric-label">Valor médio por pedido</p>
           </div>
@@ -215,7 +216,7 @@ export default async function SDPage() {
                         <p className="text-sm text-fiori-secondary">{order.crm_customer?.name}</p>
                         <p className="text-xs text-fiori-muted">
                           {new Date(order.order_date).toLocaleDateString('pt-BR')} • 
-                          R$ {((order.total_final_cents || 0) / 100).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                          {formatBRL(order.total_final_cents || 0)}
                         </p>
                       </div>
                     </div>

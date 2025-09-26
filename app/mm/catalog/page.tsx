@@ -1,9 +1,7 @@
-'use client'
-
-import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { CheckCircle, XCircle } from 'lucide-react'
 import { formatBRL } from '@/lib/money'
+import { getSupabaseServerClient } from '@/lib/supabase/server'
 import ExportCSVButton from './ExportCSVButton'
 
 type Material = {
@@ -22,43 +20,47 @@ type Material = {
   mm_vendor?: { vendor_name: string }
 }
 
-export default function CatalogoMateriais({ searchParams }: { searchParams: { success?: string; error?: string } }) {
-  const [materials, setMaterials] = useState<Material[]>([])
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
+export const dynamic = 'force-dynamic'
 
-  useEffect(() => {
-    const loadMaterials = async () => {
-      try {
-        const response = await fetch('/api/dev/mm/materials', {
-          headers: { 'x-local-dev': 'true' }
-        })
-        if (response.ok) {
-          const data = await response.json()
-          setMaterials(data)
-        } else {
-          setError('Erro ao carregar materiais')
-        }
-      } catch (err) {
-        console.error('Erro ao carregar materiais:', err)
-        setError('Erro interno do servidor')
-      } finally {
-        setLoading(false)
-      }
-    }
+async function fetchMaterials(): Promise<Material[]> {
+  const supabase = getSupabaseServerClient()
+  
+  const { data, error } = await supabase
+    .from('mm_material')
+    .select(`
+      mm_material,
+      mm_comercial,
+      mm_desc,
+      mm_mat_type,
+      mm_mat_class,
+      mm_price_cents,
+      mm_purchase_price_cents,
+      mm_pur_link,
+      commercial_name,
+      lead_time_days,
+      mm_vendor_id,
+      status
+    `)
+    .order('mm_material', { ascending: true })
+    .limit(100)
 
-    loadMaterials()
-  }, [])
+  if (error) {
+    console.error('Erro ao buscar materiais:', error)
+    throw new Error('Erro ao carregar materiais')
+  }
 
-  if (loading) {
-    return (
-      <div className="space-y-8">
-        <div className="text-center mb-12">
-          <h1 className="text-4xl font-bold text-fiori-primary mb-4">Catálogo de Materiais</h1>
-          <p className="text-xl text-fiori-secondary mb-2">Carregando catálogo...</p>
-        </div>
-      </div>
-    )
+  return data || []
+}
+
+export default async function CatalogoMateriais({ searchParams }: { searchParams: { success?: string; error?: string } }) {
+  let materials: Material[] = []
+  let error: string | null = null
+
+  try {
+    materials = await fetchMaterials()
+  } catch (err) {
+    console.error('Erro ao carregar materiais:', err)
+    error = 'Erro interno do servidor'
   }
 
   return (

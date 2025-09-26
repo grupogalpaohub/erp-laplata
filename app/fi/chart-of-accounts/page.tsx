@@ -1,5 +1,5 @@
 import { getSupabaseServerClient } from '@/lib/supabase/server'
-import { getTenantId } from '@/lib/auth'
+import { requireSession } from '@/lib/auth/requireSession'
 import Link from 'next/link'
 import { BookOpen, Plus, Edit, Eye } from 'lucide-react'
 
@@ -18,13 +18,13 @@ interface ChartOfAccounts {
 
 export default async function ChartOfAccountsPage() {
   const supabase = getSupabaseServerClient()
-  const tenantId = await getTenantId()
+  await requireSession()
 
   // Buscar plano de contas
   const { data: accountsData, error } = await supabase
     .from('fi_chart_of_accounts')
     .select('*')
-    .eq('tenant_id', tenantId)
+    
     .order('account_code')
 
   if (error) {

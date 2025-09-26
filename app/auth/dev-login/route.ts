@@ -19,6 +19,8 @@ export async function POST(req: Request) {
       console.error("DEV-LOGIN ERROR:", { msg: error.message, email });
       return NextResponse.json({ error: error.message }, { status: 400 });
     }
+
+
     console.log("DEV-LOGIN OK:", { email: data.user.email });
     return NextResponse.json({ user: data.user }, { status: 200 });
   } catch (e: any) {

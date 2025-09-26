@@ -1,5 +1,5 @@
 import { getSupabaseServerClient } from '@/lib/supabase/server'
-import { getTenantId } from '@/lib/auth'
+import { requireSession } from '@/lib/auth/requireSession'
 import Link from 'next/link'
 import { FileText, Plus, Eye, Calendar } from 'lucide-react'
 
@@ -28,7 +28,7 @@ interface AccountingEntry {
 
 export default async function EntriesPage() {
   const supabase = getSupabaseServerClient()
-  const tenantId = await getTenantId()
+  await requireSession()
 
   // Buscar lançamentos contábeis
   const { data: entriesData, error } = await supabase
@@ -44,7 +44,7 @@ export default async function EntriesPage() {
         account_name
       )
     `)
-    .eq('tenant_id', tenantId)
+    
     .order('entry_date', { ascending: false })
     .limit(50)
 

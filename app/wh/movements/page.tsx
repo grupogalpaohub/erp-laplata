@@ -1,5 +1,5 @@
 import { getSupabaseServerClient } from '@/lib/supabase/server'
-import { getTenantId } from '@/lib/auth'
+import { requireSession } from '@/lib/auth/requireSession'
 import Link from 'next/link'
 import { ArrowUpDown, ArrowUp, ArrowDown, Package, Calendar } from 'lucide-react'
 
@@ -27,7 +27,7 @@ interface Movement {
 
 export default async function MovementsPage({ searchParams }: { searchParams: { material?: string } }) {
   const supabase = getSupabaseServerClient()
-  const tenantId = await getTenantId()
+  await requireSession()
 
   // Buscar movimentações
   let query = supabase
@@ -39,7 +39,7 @@ export default async function MovementsPage({ searchParams }: { searchParams: { 
         mm_desc
       )
     `)
-    .eq('tenant_id', tenantId)
+    
     .order('created_at', { ascending: false })
     .limit(100)
 

@@ -1,6 +1,6 @@
 import Link from 'next/link'
 import { getSupabaseServerClient } from '@/lib/supabase/server'
-import { getTenantId } from '@/lib/auth'
+import { requireSession } from '@/lib/auth/requireSession'
 import { ArrowLeft, Save, X, Plus, Trash2 } from 'lucide-react'
 import NewSalesOrderForm from './NewSalesOrderForm'
 
@@ -20,26 +20,26 @@ export default async function NewSalesOrderPage({ searchParams }: NewSalesOrderP
 
   try {
     const supabase = getSupabaseServerClient()
-    const tenantId = await getTenantId()
+    await requireSession()
 
     // Buscar dados necessários
     const [customersResult, materialsResult, paymentTermsResult] = await Promise.allSettled([
       supabase
         .from('crm_customer')
         .select('customer_id, name, contact_email')
-        .eq('tenant_id', tenantId)
+        
         .eq('is_active', true)
         .order('name'),
       supabase
         .from('mm_material')
         .select('mm_material, mm_comercial, mm_desc, mm_price_cents')
-        .eq('tenant_id', tenantId)
+        
         .eq('status', 'active')
         .order('mm_comercial'),
       supabase
         .from('fi_payment_terms_def')
         .select('terms_code, description')
-        .eq('tenant_id', tenantId)
+        
         .eq('is_active', true)
         .order('description')
     ])

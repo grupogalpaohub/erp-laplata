@@ -10,7 +10,6 @@ export async function loginWithGoogle(next?: string) {
   
   const supabase = getSupabaseServerClient();
   const redirectTo = `${ENV.SITE_URL}/auth/callback${next ? `?next=${encodeURIComponent(next)}` : ''}`;
-  console.log('[auth] redirectTo =>', redirectTo);
   const { data, error } = await supabase.auth.signInWithOAuth({
     provider: 'google',
     options: { redirectTo },

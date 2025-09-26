@@ -1,6 +1,6 @@
 import Link from 'next/link'
 import { getSupabaseServerClient } from '@/lib/supabase/server'
-import { getTenantId } from '@/lib/auth'
+import { requireSession } from '@/lib/auth/requireSession'
 import { formatBRL } from '@/lib/money'
 import { ArrowLeft, TrendingUp, TrendingDown, DollarSign, BarChart3 } from 'lucide-react'
 
@@ -17,29 +17,29 @@ export default async function FIDashboardPage() {
 
   try {
     const supabase = getSupabaseServerClient()
-    const tenantId = await getTenantId()
+    await requireSession()
 
     // Buscar dados para KPIs
     const [revenueResult, payablesResult, receivablesResult, entriesResult] = await Promise.allSettled([
       supabase
         .from('sd_sales_order')
         .select('total_final_cents')
-        .eq('tenant_id', tenantId)
+        
         .eq('status', 'CONFIRMED'),
       supabase
         .from('fi_accounts_payable')
         .select('amount_cents')
-        .eq('tenant_id', tenantId)
+        
         .eq('status', 'PENDING'),
       supabase
         .from('fi_accounts_receivable')
         .select('amount_cents')
-        .eq('tenant_id', tenantId)
+        
         .eq('status', 'PENDING'),
       supabase
         .from('fi_financial_entry')
         .select('entry_id, description, amount_cents, entry_type, entry_date')
-        .eq('tenant_id', tenantId)
+        
         .order('entry_date', { ascending: false })
         .limit(5)
     ])

@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import { ArrowRightLeft, Package, AlertCircle } from 'lucide-react'
+import { createTransfer } from '@/app/wh/_actions'
 
 export default function TransfersPage() {
   const [formData, setFormData] = useState({
@@ -23,19 +24,19 @@ export default function TransfersPage() {
     setMessage(null)
 
     try {
-      const response = await fetch('/api/wh/transfer', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          ...formData,
-          quantity: parseInt(formData.quantity)
-        })
-      })
+      const formDataObj = new FormData()
+      formDataObj.append('material_id', formData.material_id)
+      formDataObj.append('quantity', formData.quantity)
+      formDataObj.append('from_plant', formData.from_plant)
+      formDataObj.append('to_plant', formData.to_plant)
+      formDataObj.append('reference_type', formData.reference_type)
+      formDataObj.append('reference_id', formData.reference_id)
+      formDataObj.append('reason', formData.reason)
 
-      const result = await response.json()
+      const result = await createTransfer(formDataObj)
 
       if (result.success) {
-        setMessage({ type: 'success', text: result.message })
+        setMessage({ type: 'success', text: result.message || 'Transferência criada com sucesso' })
         setFormData({
           material_id: '',
           quantity: '',

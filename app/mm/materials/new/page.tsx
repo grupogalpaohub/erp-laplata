@@ -1,11 +1,8 @@
-'use client'
-
-import { useState, useEffect } from 'react'
-import { useRouter } from 'next/navigation'
 import Link from 'next/link'
+import { redirect } from 'next/navigation'
 import MaterialTypeSelect from '@/components/MaterialTypeSelect'
 import MaterialClassSelect from '@/components/MaterialClassSelect'
-import { toCents } from '@/lib/money'
+import { getVendors, getCustomizingData, createMaterial } from '@/app/mm/_actions'
 
 type Vendor = {
   vendor_id: string
@@ -17,83 +14,23 @@ type CustomizingData = {
   classifications: string[]
 }
 
-export default function NewMaterialPage() {
-  const router = useRouter()
-  const [vendors, setVendors] = useState<Vendor[]>([])
-  const [customizingData, setCustomizingData] = useState<CustomizingData>({ types: [], classifications: [] })
-  const [loading, setLoading] = useState(true)
-  const [submitting, setSubmitting] = useState(false)
-  const [error, setError] = useState<string | null>(null)
+export default async function NewMaterialPage() {
+  // Carregar dados iniciais via SSR
+  const [vendors, customizingData] = await Promise.all([
+    getVendors(),
+    getCustomizingData()
+  ])
 
-  // Carregar dados iniciais
-  useEffect(() => {
-    const loadData = async () => {
-      try {
-        const [vendorsRes, customizingRes] = await Promise.all([
-          fetch('/api/mm/vendors'),
-          fetch('/api/mm/materials/customizing')
-        ])
-
-        if (vendorsRes.ok) {
-          const vendorsData = await vendorsRes.json()
-          setVendors(vendorsData)
-        }
-
-        if (customizingRes.ok) {
-          const customizing = await customizingRes.json()
-          setCustomizingData(customizing)
-        } else {
-          // Fallback para dados hardcoded
-          setCustomizingData({
-            types: ['Brinco', 'Cordão', 'Choker', 'Gargantilha', 'Anel', 'Pulseira'],
-            classifications: ['Elementar', 'Amuleto', 'Protetor', 'Decoração']
-          })
-        }
-      } catch (err) {
-        console.error('Erro ao carregar dados:', err)
-        setError('Erro ao carregar dados iniciais')
-      } finally {
-        setLoading(false)
-      }
-    }
-
-    loadData()
-  }, [])
-
-  const handleSubmit = async (formData: FormData) => {
-    setSubmitting(true)
-    setError(null)
-
+  async function handleSubmit(formData: FormData) {
+    'use server'
+    
     try {
-      const response = await fetch('/api/mm/materials/create', {
-        method: 'POST',
-        body: formData
-      })
-
-      const result = await response.json()
-
-      if (result.success) {
-        router.push(`/mm/catalog?success=Material ${result.material_id} criado com sucesso`)
-      } else {
-        setError(result.error || 'Erro ao criar material')
-      }
-    } catch (err) {
-      console.error('Erro ao criar material:', err)
-      setError('Erro interno do servidor')
-    } finally {
-      setSubmitting(false)
+      const result = await createMaterial(formData)
+      redirect(`/mm/catalog?success=Material ${result.mm_material} criado com sucesso`)
+    } catch (error) {
+      console.error('Erro ao criar material:', error)
+      redirect(`/mm/materials/new?error=${encodeURIComponent(error instanceof Error ? error.message : 'Erro interno do servidor')}`)
     }
-  }
-
-  if (loading) {
-    return (
-      <div className="space-y-8">
-        <div className="text-center mb-12">
-          <h1 className="text-4xl font-bold text-fiori-primary mb-4">Novo Material</h1>
-          <p className="text-xl text-fiori-secondary mb-2">Carregando...</p>
-        </div>
-      </div>
-    )
   }
 
   return (
@@ -104,13 +41,6 @@ export default function NewMaterialPage() {
         <p className="text-xl text-fiori-secondary mb-2">Criar novo material no sistema</p>
         <p className="text-lg text-fiori-muted">Preencha os dados para cadastrar um novo material</p>
       </div>
-
-      {/* Error Message */}
-      {error && (
-        <div className="bg-red-50 border border-red-200 rounded-lg p-4">
-          <p className="text-red-800 font-medium">{error}</p>
-        </div>
-      )}
 
       {/* Back Button */}
       <div className="flex justify-center">
@@ -199,13 +129,13 @@ export default function NewMaterialPage() {
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
-                <label htmlFor="mm_price_cents" className="label-fiori">
+                <label htmlFor="mm_price" className="label-fiori">
                   Preço de Venda (R$) *
                 </label>
                 <input
                   type="number"
-                  name="mm_price_cents"
-                  id="mm_price_cents"
+                  name="mm_price"
+                  id="mm_price"
                   step="0.01"
                   min="0"
                   required
@@ -215,13 +145,13 @@ export default function NewMaterialPage() {
               </div>
               
               <div>
-                <label htmlFor="mm_purchase_price_cents" className="label-fiori">
+                <label htmlFor="mm_purchase_price" className="label-fiori">
                   Preço de Compra (R$) *
                 </label>
                 <input
                   type="number"
-                  name="mm_purchase_price_cents"
-                  id="mm_purchase_price_cents"
+                  name="mm_purchase_price"
+                  id="mm_purchase_price"
                   step="0.01"
                   min="0"
                   required
@@ -271,10 +201,9 @@ export default function NewMaterialPage() {
           </Link>
           <button
             type="submit"
-            disabled={submitting}
-            className="btn-fiori-primary disabled:opacity-50 disabled:cursor-not-allowed"
+            className="btn-fiori-primary"
           >
-            {submitting ? 'Salvando...' : 'Salvar Material'}
+            Salvar Material
           </button>
         </div>
       </form>

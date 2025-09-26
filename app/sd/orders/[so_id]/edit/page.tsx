@@ -1,6 +1,6 @@
 import Link from 'next/link'
-import { createClient } from '@supabase/supabase-js'
-import { getTenantId } from '@/lib/auth'
+import { getSupabaseServerClient } from '@/lib/supabase/server'
+import { requireSession } from '@/lib/auth/requireSession'
 import { formatCurrency } from '@/lib/currency'
 import { ArrowLeft, Save, X, Plus, Trash2 } from 'lucide-react'
 import EditSalesOrderForm from './EditSalesOrderForm'
@@ -36,11 +36,8 @@ export default async function EditSalesOrderPage({ params }: { params: { so_id: 
   let error = ''
 
   try {
-    const supabase = createClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-    )
-    const tenantId = await getTenantId()
+    const supabase = getSupabaseServerClient()
+    await requireSession()
 
     // Buscar pedido
     const { data: orderData, error: orderError } = await supabase
@@ -61,7 +58,7 @@ export default async function EditSalesOrderPage({ params }: { params: { so_id: 
         created_at,
         crm_customer(name)
       `)
-      .eq('tenant_id', tenantId)
+      
       .eq('so_id', so_id)
       .single()
 
@@ -75,13 +72,13 @@ export default async function EditSalesOrderPage({ params }: { params: { so_id: 
         supabase
           .from('crm_customer')
           .select('customer_id, name, contact_email')
-          .eq('tenant_id', tenantId)
+          
           .eq('is_active', true)
           .order('name'),
         supabase
           .from('mm_material')
           .select('mm_material, mm_comercial, mm_desc, mm_price_cents')
-          .eq('tenant_id', tenantId)
+          
           .eq('status', 'active')
           .order('mm_comercial')
       ])

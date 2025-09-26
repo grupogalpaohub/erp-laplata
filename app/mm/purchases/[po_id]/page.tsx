@@ -1,4 +1,5 @@
-import { createClient } from '@supabase/supabase-js'
+import { getSupabaseServerClient } from '@/lib/supabase/server'
+import { requireSession } from '@/lib/auth/requireSession'
 import Link from 'next/link'
 import { ArrowLeft, Printer, Edit } from 'lucide-react'
 import PurchaseOrderClient from './PurchaseOrderClient'
@@ -26,14 +27,12 @@ interface PurchaseOrderItem {
 }
 
 async function getPurchaseOrder(po_id: string): Promise<PurchaseOrder | null> {
-  const supabase = createSupabaseServerClient()
-  const tenantId = process.env.TENANT_ID || 'default'
+  const supabase = getSupabaseServerClient()
   
   const { data, error } = await supabase
     .from('mm_purchase_order')
     .select('*')
     .eq('mm_order', po_id)
-    .eq('tenant_id', tenantId)
     .single()
 
   if (error) {
@@ -45,8 +44,7 @@ async function getPurchaseOrder(po_id: string): Promise<PurchaseOrder | null> {
 }
 
 async function getPurchaseOrderItems(po_id: string): Promise<PurchaseOrderItem[]> {
-  const supabase = createSupabaseServerClient()
-  const tenantId = process.env.TENANT_ID || 'default'
+  const supabase = getSupabaseServerClient()
   
   const { data, error } = await supabase
     .from('mm_purchase_order_item')
@@ -61,7 +59,6 @@ async function getPurchaseOrderItems(po_id: string): Promise<PurchaseOrderItem[]
       mm_desc
     `)
     .eq('mm_order', po_id)
-    .eq('tenant_id', tenantId)
     .order('po_item_id')
 
   if (error) {

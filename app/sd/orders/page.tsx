@@ -1,6 +1,5 @@
 import Link from 'next/link'
 import { getSupabaseServerClient } from '@/lib/supabase/server'
-import { getTenantId } from '@/lib/auth'
 import { formatBRL } from '@/lib/money'
 import { Search, Download, Plus, Eye, Edit, CheckCircle, XCircle } from 'lucide-react'
 import StatusActionButtons from './StatusActionButtons'
@@ -34,9 +33,8 @@ export default async function SalesOrdersPage() {
 
   try {
     const supabase = getSupabaseServerClient()
-    const tenantId = await getTenantId()
 
-    // Buscar pedidos com paginação (incluir doc_no)
+    // Buscar pedidos com paginação (RLS decide tenant)
     const { data, count, error } = await supabase
       .from('sd_sales_order')
       .select(`
@@ -55,7 +53,6 @@ export default async function SalesOrdersPage() {
         created_at,
         crm_customer(name)
       `, { count: 'exact' })
-      .eq('tenant_id', tenantId)
       .order('order_date', { ascending: false })
       .limit(25)
 
@@ -65,6 +62,8 @@ export default async function SalesOrdersPage() {
       orders = data || []
       totalCount = count || 0
     }
+
+    // RLS decide acesso aos dados
 
   } catch (error) {
     console.error('Error loading sales orders:', error)

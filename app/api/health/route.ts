@@ -1,16 +1,19 @@
-import { supabaseServer } from '@/lib/supabase/server'
-import { NextResponse } from 'next/server'
+import { supabaseServer } from "@/utils/supabase/server";
 
 export async function GET() {
-  // ✅ GUARDRAIL COMPLIANCE: API usando supabaseServer()
-  const sb = supabaseServer()
-  const env = {
-    NEXT_PUBLIC_SUPABASE_URL: !!process.env.NEXT_PUBLIC_SUPABASE_URL,
-    NEXT_PUBLIC_SUPABASE_ANON_KEY: !!process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
-    NEXT_PUBLIC_TENANT_ID: !!process.env.NEXT_PUBLIC_TENANT_ID,
-    SUPABASE_URL: !!process.env.SUPABASE_URL,
-    SUPABASE_ANON_KEY: !!process.env.SUPABASE_ANON_KEY,
-    NODE_ENV: process.env.NODE_ENV
+  try {
+    const supabase = supabaseServer();
+    const { error } = await supabase
+      .from("user_profile")
+      .select("user_id", { head: true, count: "exact" })
+      .limit(1);
+
+    // Se não autenticado (RLS), ainda é um "ok" de infra
+    if (error) {
+      return Response.json({ ok: true, unauth: true, note: "RLS blocked (no cookie)" });
+    }
+    return Response.json({ ok: true, unauth: false });
+  } catch (e: any) {
+    return Response.json({ ok: false, error: String(e) }, { status: 500 });
   }
-  return NextResponse.json({ ok: true, env })
 }

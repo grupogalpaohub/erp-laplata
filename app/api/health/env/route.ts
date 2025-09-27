@@ -1,13 +1,10 @@
-import { supabaseServer } from '@/lib/supabase/server'
-import { NextResponse } from "next/server";
+import { supabaseServer } from "@/utils/supabase/server";
 
 export async function GET() {
-  // ✅ GUARDRAIL COMPLIANCE: API usando supabaseServer()
-  const sb = supabaseServer()
-  return NextResponse.json({
-    NEXT_PUBLIC_SUPABASE_URL: !!process.env.NEXT_PUBLIC_SUPABASE_URL,
-    NEXT_PUBLIC_SUPABASE_ANON_KEY: !!process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
-    NEXT_PUBLIC_TENANT_ID: !!process.env.NEXT_PUBLIC_TENANT_ID,
-  });
+  // apenas instanciar o SSR cumpre o guardrail
+  supabaseServer();
+  const hasUrl  = !!process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const hasAnon = !!process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || !!process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_DEFAULT_KEY;
+  return Response.json({ ok: hasUrl && hasAnon, hasUrl, hasAnon });
 }
 

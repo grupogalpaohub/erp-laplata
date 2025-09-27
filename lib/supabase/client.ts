@@ -1,4 +1,4 @@
-import { createClient } from '@supabase/supabase-js'
+import { createClient, SupabaseClient } from '@supabase/supabase-js'
 
 // Browser: APENAS variáveis NEXT_PUBLIC_*
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL as string | undefined
@@ -8,5 +8,12 @@ if (!supabaseUrl || !supabaseAnonKey) {
   throw new Error('Missing Supabase environment variables (browser)')
 }
 
-// ✅ exporta FUNÇÃO para manter chamadas existentes: supabaseBrowser()
-export const supabaseBrowser = () => createClient(supabaseUrl, supabaseAnonKey)
+// singleton para evitar "Multiple GoTrueClient instances"
+let browserClient: SupabaseClient | null = null
+
+export const supabaseBrowser = () => {
+  if (!browserClient) {
+    browserClient = createClient(supabaseUrl!, supabaseAnonKey!)
+  }
+  return browserClient
+}

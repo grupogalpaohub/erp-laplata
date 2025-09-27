@@ -10,15 +10,25 @@ export default function NavBar() {
   const router = useRouter();
 
   useEffect(() => {
-    supabaseBrowser.auth.getUser().then(({ data }: any) => setUser(data.user ?? null));
-    const { data: sub } = supabaseBrowser.auth.onAuthStateChange((_e: any, session: any) => {
-      setUser(session?.user ?? null);
-    });
-    return () => { sub.subscription.unsubscribe(); };
+    const supabase = supabaseBrowser() // <- pega a instância
+
+    supabase.auth.getUser().then(({ data }) => {
+      setUser(data?.user ?? null)
+    })
+
+    const { data: sub } = supabase.auth.onAuthStateChange((_e, session) => {
+      setUser(session?.user ?? null)
+    })
+
+    return () => {
+      // evita leak de listener no HMR
+      sub?.subscription?.unsubscribe?.()
+    }
   }, []);
 
   async function logout() {
-    await supabaseBrowser.auth.signOut();
+    const supabase = supabaseBrowser()
+    await supabase.auth.signOut();
     router.replace("/login");
   }
 

@@ -16,10 +16,12 @@ serve(async (req) => {
   }
 
   try {
-    const supabaseClient = getSupabaseServerClient(
-      Deno.env.get('SUPABASE_URL') ?? '',
-      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
-    )
+    // MIGRADO PARA: app/api/edge/so-create/route.ts
+    // const supabaseClient = getSupabaseServerClient(
+    //   Deno.env.get('SUPABASE_URL') ?? '',
+    //   Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
+    // )
+    throw new Error('This edge function has been migrated to app/api/edge/so-create/route.ts')
 
     const { customer_id, items, notes, channel = 'site' } = await req.json()
 

@@ -32,10 +32,12 @@ serve(async (req) => {
   }
 
   try {
-    const supabaseClient = getSupabaseServerClient(
-      Deno.env.get('SUPABASE_URL') ?? '',
-      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
-    )
+    // MIGRADO PARA: app/api/edge/bootstrap-initial-load/route.ts
+    // const supabaseClient = getSupabaseServerClient(
+    //   Deno.env.get('SUPABASE_URL') ?? '',
+    //   Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
+    // )
+    throw new Error('This edge function has been migrated to app/api/edge/bootstrap-initial-load/route.ts')
 
     const { tenant_id } = await req.json()
     if (!tenant_id) {

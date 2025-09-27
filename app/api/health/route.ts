@@ -1,9 +1,12 @@
-import { NextResponse } from "next/server";
-import { getServerSupabase } from "@/lib/supabase/server";
+import { NextResponse } from 'next/server'
 
 export async function GET() {
-  const supabase = getServerSupabase();
-  const { data, error } = await supabase.from("mm_material").select("mm_material").limit(1);
-  if (error) return NextResponse.json({ ok:false, error:error.message }, { status: 500 });
-  return NextResponse.json({ ok:true, sample:data });
+  const env = {
+    NEXT_PUBLIC_SUPABASE_URL: !!process.env.NEXT_PUBLIC_SUPABASE_URL,
+    NEXT_PUBLIC_SUPABASE_ANON_KEY: !!process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
+    NEXT_PUBLIC_TENANT_ID: !!process.env.NEXT_PUBLIC_TENANT_ID,
+    SUPABASE_URL: !!process.env.SUPABASE_URL,
+    SUPABASE_ANON_KEY: !!process.env.SUPABASE_ANON_KEY
+  }
+  return NextResponse.json(env)
 }

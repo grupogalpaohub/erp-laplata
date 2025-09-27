@@ -1,6 +1,6 @@
 import Link from 'next/link'
 import { requireSession } from '@/lib/auth/requireSession'
-import { getServerSupabase } from '@/lib/supabase/server'
+import { supabaseServer } from '@/lib/supabase/server'
 import { formatBRL } from '@/lib/money'
 
 export const runtime = 'nodejs';
@@ -22,7 +22,7 @@ export default async function HomePage() {
 
   try {
     await requireSession() // Verificar se est� autenticado
-    const supabase = getServerSupabase()
+    const supabase = supabaseServer()
 
           // Buscar dados para KPIs com tratamento de erro (RLS filtra automaticamente por tenant)
           const [materialsResult, vendorsResult, ordersResult, salesResult, inventoryResult] = await Promise.allSettled([

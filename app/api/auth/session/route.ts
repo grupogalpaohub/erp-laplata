@@ -1,20 +1,12 @@
-import { cookies } from "next/headers";
-import { NextResponse } from "next/server";
+import { NextResponse } from 'next/server'
 
-export async function POST(req: Request) {
-  const { name, value, options } = await req.json();
-  const cookieStore = cookies();
-
-  cookieStore.set(name, value, options);
-
-  return NextResponse.json({ ok: true });
-}
-
-export async function DELETE(req: Request) {
-  const { name, options } = await req.json();
-  const cookieStore = cookies();
-
-  cookieStore.set(name, "", { ...options, maxAge: 0 });
-
-  return NextResponse.json({ ok: true });
+// Endpoint exclusivamente para manipular cookies de sessão se necessário.
+// Mantém compatibilidade com o App Router: cookies só podem ser setados aqui
+// (Server Route) ou em Server Actions.
+export async function POST(request: Request) {
+  // se precisar setar/limpar algo, faça aqui via NextResponse.cookies
+  const res = NextResponse.json({ ok: true })
+  // exemplo (desabilitado por padrão):
+  // res.cookies.set('sb-tenant', 'LaplataLunaria', { httpOnly: true, sameSite: 'lax' })
+  return res
 }

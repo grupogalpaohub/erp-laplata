@@ -34,6 +34,7 @@ export default function LoginPage() {
             access_token: s.access_token,
             refresh_token: s.refresh_token,
           }),
+          credentials: "include", // garante set/carry de cookies
         });
       } catch (syncError) {
         console.warn("Erro ao sincronizar sessão:", syncError);

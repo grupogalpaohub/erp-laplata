@@ -60,12 +60,9 @@ const isMatch = (file: string, patterns: string[]) => {
         /supabaseServer\s*\(/.test(src) &&
         /from\s+['"][.@\/\w-]*supabase\/server['"]/.test(src); // ex: "@/utils/supabase/server"
 
-      // caminho C: usa NextRequest/NextResponse com createServerClient (padrão middleware)
-      const usesNextRequest = /NextRequest/.test(src) && /NextResponse/.test(src) && /createServerClient\s*\(/.test(src);
-
-      if (usesBrowser || !( (hasSSR && hasCookies) || usesHelper || usesNextRequest )) {
+      if (usesBrowser || !( (hasSSR && hasCookies) || usesHelper )) {
         hit(v, file, "API sem requisito (SSR + cookies())",
-          "Use createServerClient de '@supabase/ssr' com cookies() OU o helper supabaseServer() OU NextRequest/NextResponse.");
+          "Use createServerClient de '@supabase/ssr' com cookies() OU o helper supabaseServer().");
       }
     }
     // 5) tenant hardcoded

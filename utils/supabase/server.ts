@@ -1,6 +1,8 @@
 import { cookies } from "next/headers";
 import { createServerClient } from "@supabase/ssr";
 
+const isProd = process.env.NODE_ENV === "production";
+
 export function supabaseServer() {
   const jar = cookies();
   return createServerClient(
@@ -9,12 +11,24 @@ export function supabaseServer() {
     {
       cookies: {
         get: (name: string) => jar.get(name)?.value,
-        // IMPORTANTES: permitem que o client do SSR atualize/expire os cookies
         set: (name: string, value: string, options: any) => {
-          jar.set({ name, value, ...options });
+          // ⚠️ Em localhost NÃO pode ser secure, senão o browser ignora
+          const base = {
+            path: "/",
+            httpOnly: true,
+            sameSite: "lax" as const,
+            secure: isProd,                 // false no dev
+          };
+          jar.set({ name, value, ...base, ...options, secure: isProd });
         },
         remove: (name: string, options: any) => {
-          jar.set({ name, value: "", ...options });
+          const base = {
+            path: "/",
+            httpOnly: true,
+            sameSite: "lax" as const,
+            secure: isProd,
+          };
+          jar.set({ name, value: "", ...base, ...options, secure: isProd, maxAge: 0 });
         },
       },
     }

@@ -242,12 +242,12 @@ export default function NewPOClient({ vendors, materials }: NewPOClientProps) {
                       min="0" 
                       step="0.01" 
                       className="input-fiori"
-                      value={formatBRL(item.unit_cost_cents / 100)}
+                      value={formatBRL(item.unit_cost_cents)}
                       onChange={(e) => updateItem(index, 'unit_cost_cents', parseBRLToCents(e.target.value))}
                     />
                   </td>
                   <td className="text-right font-medium">
-                    {formatBRL(item.line_total_cents / 100)}
+                    {formatBRL(item.line_total_cents)}
                   </td>
                   <td>
                     {items.length > 1 && (
@@ -270,7 +270,7 @@ export default function NewPOClient({ vendors, materials }: NewPOClientProps) {
           <div className="bg-fiori-secondary p-4 rounded-lg">
             <div className="flex items-center gap-2 text-xl font-bold">
               <Calculator className="w-5 h-5" />
-              Total: {formatBRL(calculateTotal() / 100)}
+              Total: {formatBRL(calculateTotal())}
             </div>
           </div>
         </div>

@@ -250,10 +250,10 @@ export default async function SalesOrderDetailPage({ params }: { params: { so_id
                         </td>
                         <td className="text-right">{item.mm_qtt}</td>
                         <td className="text-right">
-                          {formatBRL(item.unit_price_cents / 100)}
+                          {formatBRL(item.unit_price_cents)}
                         </td>
                         <td className="text-right font-medium">
-                          {formatBRL(item.line_total_cents / 100)}
+                          {formatBRL(item.line_total_cents)}
                         </td>
                       </tr>
                     ))}
@@ -275,20 +275,20 @@ export default async function SalesOrderDetailPage({ params }: { params: { so_id
               <div className="flex justify-between">
                 <span>Total dos Itens:</span>
                 <span className="font-medium">
-                  {formatBRL(totalItems / 100)}
+                  {formatBRL(totalItems)}
                 </span>
               </div>
               <div className="flex justify-between">
                 <span>Total Final:</span>
                 <span className="font-medium">
-                  {formatBRL(totalFinal / 100)}
+                  {formatBRL(totalFinal)}
                 </span>
               </div>
               {totalNegotiated !== totalFinal && (
                 <div className="flex justify-between text-fiori-primary">
                   <span>Total Negociado:</span>
                   <span className="font-bold">
-                    {formatBRL(totalNegotiated / 100)}
+                    {formatBRL(totalNegotiated)}
                   </span>
                 </div>
               )}
@@ -307,7 +307,7 @@ export default async function SalesOrderDetailPage({ params }: { params: { so_id
                   Margem (R$):
                 </span>
                 <span className={`font-medium ${margin >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                  {margin >= 0 ? '+' : ''}{formatBRL(margin / 100)}
+                  {margin >= 0 ? '+' : ''}{formatBRL(margin)}
                 </span>
               </div>
               <div className="flex justify-between">

@@ -47,7 +47,7 @@ export default function EditSalesOrderForm({ order, customers, materials }: Edit
   const [notes, setNotes] = useState(order.notes || '')
   const [status, setStatus] = useState(order.status || 'draft')
   const [totalNegotiatedReais, setTotalNegotiatedReais] = useState(
-    order.total_negotiated_cents ? formatBRL(order.total_negotiated_cents / 100) : ''
+    order.total_negotiated_cents ? formatBRL(order.total_negotiated_cents) : ''
   )
   const [items, setItems] = useState<OrderItem[]>([])
   const [isLoading, setIsLoading] = useState(false)
@@ -506,7 +506,7 @@ export default function EditSalesOrderForm({ order, customers, materials }: Edit
               <div className="bg-yellow-50 p-4 rounded-lg">
                 <div className="text-sm text-yellow-600 font-medium">Gap Final vs Negociado</div>
                 <div className="text-2xl font-bold text-yellow-800">
-                  R$ {(valueGapCents / 100).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                  {formatBRL(valueGapCents)}
                 </div>
                 <div className="text-xs text-yellow-600">
                   {valueGapCents > 0 ? `Desconto (${valueGapPercent.toFixed(1)}%)` : valueGapCents < 0 ? `Acréscimo (${Math.abs(valueGapPercent).toFixed(1)}%)` : 'Iguais (0%)'}
@@ -516,7 +516,7 @@ export default function EditSalesOrderForm({ order, customers, materials }: Edit
               <div className="bg-blue-50 p-4 rounded-lg">
                 <div className="text-sm text-blue-600 font-medium">Lucro (Valor Final) R$</div>
                 <div className="text-2xl font-bold text-blue-800">
-                  R$ {(profitFinalCents / 100).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                  {formatBRL(profitFinalCents)}
                 </div>
                 <div className="text-xs text-blue-600">
                   Sobre valor final
@@ -536,7 +536,7 @@ export default function EditSalesOrderForm({ order, customers, materials }: Edit
               <div className="bg-green-50 p-4 rounded-lg">
                 <div className="text-sm text-green-600 font-medium">Lucro (Negociado) R$</div>
                 <div className="text-2xl font-bold text-green-800">
-                  R$ {(profitNegotiatedCents / 100).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                  {formatBRL(profitNegotiatedCents)}
                 </div>
                 <div className="text-xs text-green-600">
                   Sobre valor negociado

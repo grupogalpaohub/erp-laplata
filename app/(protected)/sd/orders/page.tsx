@@ -215,13 +215,13 @@ export default async function SalesOrdersPage() {
                       </td>
                       <td>
                         <div className="text-sm font-semibold">
-                          {formatBRL((order.total_cents || 0) / 100)}
+                          {formatBRL((order.total_cents || 0))}
                         </div>
                       </td>
                       <td>
                         <div className="text-sm">
                           {order.total_negotiated_cents 
-                            ? formatBRL(order.total_negotiated_cents / 100)
+                            ? formatBRL(order.total_negotiated_cents)
                             : '-'
                           }
                         </div>

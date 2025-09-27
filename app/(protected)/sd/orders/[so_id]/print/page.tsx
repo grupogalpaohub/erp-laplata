@@ -147,10 +147,10 @@ export default async function PrintSalesOrderPage({ params }: { params: { so_id:
                       {item.mm_qtt}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 text-right">
-                      {formatBRL(item.unit_price_cents / 100)}
+                      {formatBRL(item.unit_price_cents)}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 text-right">
-                      {formatBRL(item.line_total_cents / 100)}
+                      {formatBRL(item.line_total_cents)}
                     </td>
                   </tr>
                 ))}
@@ -166,7 +166,7 @@ export default async function PrintSalesOrderPage({ params }: { params: { so_id:
               <div className="flex justify-between items-center">
                 <span className="text-lg font-semibold text-gray-900">Total:</span>
                 <span className="text-xl font-bold text-gray-900">
-                  {formatBRL(order.total_cents / 100)}
+                  {formatBRL(order.total_cents)}
                 </span>
               </div>
             </div>

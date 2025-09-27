@@ -135,7 +135,7 @@ export default async function WHPage() {
               </svg>
             </div>
             <div className="space-y-2">
-              <p className="kpi-fiori kpi-fiori-success">{formatBRL(totalValue / 100)}</p>
+              <p className="kpi-fiori kpi-fiori-success">{formatBRL(totalValue)}</p>
               <p className="text-sm text-fiori-muted">Valor do inventário</p>
             </div>
           </div>

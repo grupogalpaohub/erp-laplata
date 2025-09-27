@@ -322,7 +322,7 @@ export default function BulkEditPage() {
                   <td className="px-4 py-3">
                     <input
                       type="number"
-                      value={material.mm_price_cents ? formatBRL(material.mm_price_cents / 100) : ''}
+                      value={material.mm_price_cents ? formatBRL(material.mm_price_cents) : ''}
                       onChange={(e) => handleFieldChange(material.mm_material, 'mm_price_cents', 
                         e.target.value ? Math.round(parseFloat(e.target.value) * 100) : null
                       )}
@@ -333,7 +333,7 @@ export default function BulkEditPage() {
                   <td className="px-4 py-3">
                     <input
                       type="number"
-                      value={material.mm_purchase_price_cents ? formatBRL(material.mm_purchase_price_cents / 100) : ''}
+                      value={material.mm_purchase_price_cents ? formatBRL(material.mm_purchase_price_cents) : ''}
                       onChange={(e) => handleFieldChange(material.mm_material, 'mm_purchase_price_cents', 
                         e.target.value ? Math.round(parseFloat(e.target.value) * 100) : null
                       )}

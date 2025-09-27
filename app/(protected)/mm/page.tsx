@@ -208,7 +208,7 @@ export default async function MMIndex() {
               </svg>
             </div>
             <div className="kpi-fiori kpi-fiori-warning">
-              {formatBRL(monthlyValue / 100)}
+              {formatBRL(monthlyValue)}
             </div>
             <p className="tile-fiori-metric-label">Valor do mês atual</p>
           </div>
@@ -222,7 +222,7 @@ export default async function MMIndex() {
               </svg>
             </div>
             <div className="kpi-fiori kpi-fiori-info">
-              {formatBRL(totalValue / 100)}
+              {formatBRL(totalValue)}
             </div>
             <p className="tile-fiori-metric-label">Valor total histórico</p>
           </div>

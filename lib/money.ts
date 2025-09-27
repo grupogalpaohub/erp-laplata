@@ -41,7 +41,8 @@ export const toCents = (n: number) => Math.round(n * 100);
 /**
  * Formata valor em centavos para moeda brasileira
  */
-export const formatBRL = (value: number): string => {
+export const formatBRL = (cents: number): string => {
+  const value = (cents ?? 0) / 100;
   return new Intl.NumberFormat('pt-BR', {
     style: 'currency',
     currency: 'BRL'

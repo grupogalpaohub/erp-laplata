@@ -42,7 +42,7 @@ export default function ExportCSVButton({ materiais }: ExportCSVButtonProps) {
         `"${material.mm_desc.replace(/"/g, '""')}"`,
         material.mm_mat_type || '',
         material.mm_mat_class || '',
-        material.mm_price_cents ? formatBRL(material.mm_price_cents / 100) : '',
+        material.mm_price_cents ? formatBRL(material.mm_price_cents) : '',
         `"${(material.mm_vendor?.vendor_name ?? material.mm_vendor_id ?? '').replace(/"/g, '""')}"`,
         material.status || 'active',
         material.lead_time_days || ''

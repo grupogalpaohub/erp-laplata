@@ -173,7 +173,7 @@ export default async function EditMaterialPage({ params }: { params: { material_
                 min="0"
                 className="input-fiori"
                 placeholder="0.00"
-                defaultValue={material.mm_price_cents ? formatBRL(material.mm_price_cents / 100) : ''}
+                defaultValue={material.mm_price_cents ? formatBRL(material.mm_price_cents) : ''}
               />
               <p className="text-sm text-fiori-muted mt-1">Valor em reais (ex: 25.50)</p>
             </div>
@@ -188,7 +188,7 @@ export default async function EditMaterialPage({ params }: { params: { material_
                 min="0"
                 className="input-fiori"
                 placeholder="0.00"
-                defaultValue={material.mm_purchase_price_cents ? formatBRL(material.mm_purchase_price_cents / 100) : ''}
+                defaultValue={material.mm_purchase_price_cents ? formatBRL(material.mm_purchase_price_cents) : ''}
               />
               <p className="text-sm text-fiori-muted mt-1">Valor em reais (ex: 15.00)</p>
             </div>

@@ -120,7 +120,7 @@ export default async function FIPage() {
               </svg>
             </div>
             <div className="space-y-2">
-              <p className="kpi-fiori kpi-fiori-success">{formatBRL(netWorth / 100)}</p>
+              <p className="kpi-fiori kpi-fiori-success">{formatBRL(netWorth)}</p>
               <p className="text-sm text-fiori-muted">Valor líquido</p>
             </div>
           </div>
@@ -165,7 +165,7 @@ export default async function FIPage() {
               </svg>
             </div>
             <div className="space-y-2">
-              <p className="kpi-fiori kpi-fiori-success">{formatBRL(monthlyRevenue / 100)}</p>
+              <p className="kpi-fiori kpi-fiori-success">{formatBRL(monthlyRevenue)}</p>
               <p className="text-sm text-fiori-muted">Receita do período</p>
             </div>
           </div>
@@ -195,7 +195,7 @@ export default async function FIPage() {
                   <div key={payable.ap_id} className="flex items-center justify-between p-3 bg-fiori-secondary rounded">
                     <div>
                       <p className="text-fiori-primary font-medium">Conta #{payable.ap_id}</p>
-                      <p className="text-fiori-secondary text-sm">{formatBRL(payable.amount_cents / 100)}</p>
+                      <p className="text-fiori-secondary text-sm">{formatBRL(payable.amount_cents)}</p>
                     </div>
                     <span className={`text-sm font-medium ${
                       payable.status === 'paid' ? 'text-fiori-success' : 'text-fiori-danger'
@@ -244,7 +244,7 @@ export default async function FIPage() {
                   <div key={receivable.ar_id} className="flex items-center justify-between p-3 bg-fiori-secondary rounded">
                     <div>
                       <p className="text-fiori-primary font-medium">Conta #{receivable.ar_id}</p>
-                      <p className="text-fiori-secondary text-sm">{formatBRL(receivable.amount_cents / 100)}</p>
+                      <p className="text-fiori-secondary text-sm">{formatBRL(receivable.amount_cents)}</p>
                     </div>
                     <span className={`text-sm font-medium ${
                       receivable.status === 'paid' ? 'text-fiori-success' : 'text-fiori-primary'

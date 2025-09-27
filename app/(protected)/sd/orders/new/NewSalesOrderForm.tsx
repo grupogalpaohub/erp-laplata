@@ -366,7 +366,7 @@ export default function NewSalesOrderForm({ customers, materials, selectedCustom
                     <td>
                       <input
                         type="text"
-                        value={formatBRL(item.unit_price_cents / 100)}
+                        value={formatBRL(item.unit_price_cents)}
                         readOnly
                         className="input-fiori bg-fiori-bg-secondary w-24 text-right"
                       />
@@ -374,7 +374,7 @@ export default function NewSalesOrderForm({ customers, materials, selectedCustom
                     <td>
                       <input
                         type="text"
-                        value={formatBRL(item.line_total_cents / 100)}
+                        value={formatBRL(item.line_total_cents)}
                         readOnly
                         className="input-fiori bg-fiori-bg-secondary w-24 text-right"
                       />
@@ -411,7 +411,7 @@ export default function NewSalesOrderForm({ customers, materials, selectedCustom
                 type="text"
                 id="total_final_cents"
                 name="total_final_cents"
-                value={formatBRL(totalFinalCents / 100)}
+                value={formatBRL(totalFinalCents)}
                 readOnly
                 className="input-fiori bg-fiori-bg-secondary"
               />
@@ -446,7 +446,7 @@ export default function NewSalesOrderForm({ customers, materials, selectedCustom
               <div className="bg-yellow-50 p-4 rounded-lg">
                 <div className="text-sm text-yellow-600 font-medium">Gap Final vs Negociado</div>
                 <div className="text-2xl font-bold text-yellow-800">
-                  {formatBRL(valueGapCents / 100)}
+                  {formatBRL(valueGapCents)}
                 </div>
                 <div className="text-xs text-yellow-600">
                   {valueGapCents > 0 ? `Desconto (${valueGapPercent.toFixed(1)}%)` : valueGapCents < 0 ? `Acréscimo (${Math.abs(valueGapPercent).toFixed(1)}%)` : 'Iguais (0%)'}
@@ -456,7 +456,7 @@ export default function NewSalesOrderForm({ customers, materials, selectedCustom
               <div className="bg-blue-50 p-4 rounded-lg">
                 <div className="text-sm text-blue-600 font-medium">Lucro (Valor Final) R$</div>
                 <div className="text-2xl font-bold text-blue-800">
-                  {formatBRL(profitFinalCents / 100)}
+                  {formatBRL(profitFinalCents)}
                 </div>
                 <div className="text-xs text-blue-600">
                   Sobre valor final
@@ -476,7 +476,7 @@ export default function NewSalesOrderForm({ customers, materials, selectedCustom
               <div className="bg-green-50 p-4 rounded-lg">
                 <div className="text-sm text-green-600 font-medium">Lucro (Negociado) R$</div>
                 <div className="text-2xl font-bold text-green-800">
-                  {formatBRL(profitNegotiatedCents / 100)}
+                  {formatBRL(profitNegotiatedCents)}
                 </div>
                 <div className="text-xs text-green-600">
                   Sobre valor negociado

@@ -117,7 +117,7 @@ export default async function AccountsPayablePage() {
               <div>
                 <p className="tile-fiori-subtitle">Total a Pagar</p>
                 <p className="tile-fiori-metric">
-                  R$ {(totalAmount / 100).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                  {formatBRL(totalAmount)}
                 </p>
               </div>
               <CreditCard className="tile-fiori-icon" />
@@ -129,7 +129,7 @@ export default async function AccountsPayablePage() {
               <div>
                 <p className="tile-fiori-subtitle">Pendentes</p>
                 <p className="tile-fiori-metric text-fiori-warning">
-                  R$ {(pendingAmount / 100).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                  {formatBRL(pendingAmount)}
                 </p>
               </div>
               <Clock className="tile-fiori-icon text-fiori-warning" />
@@ -141,7 +141,7 @@ export default async function AccountsPayablePage() {
               <div>
                 <p className="tile-fiori-subtitle">Vencidas</p>
                 <p className="tile-fiori-metric text-fiori-danger">
-                  R$ {(overdueAmount / 100).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                  {formatBRL(overdueAmount)}
                 </p>
               </div>
               <AlertTriangle className="tile-fiori-icon text-fiori-danger" />
@@ -153,7 +153,7 @@ export default async function AccountsPayablePage() {
               <div>
                 <p className="tile-fiori-subtitle">Pagas</p>
                 <p className="tile-fiori-metric text-fiori-success">
-                  R$ {(paidAmount / 100).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                  {formatBRL(paidAmount)}
                 </p>
               </div>
               <CheckCircle className="tile-fiori-icon text-fiori-success" />
@@ -208,7 +208,7 @@ export default async function AccountsPayablePage() {
                       </td>
                       <td className="text-right">
                         <span className="font-medium text-fiori-danger">
-                          R$ {(ap.amount_cents / 100).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                          {formatBRL(ap.amount_cents)}
                         </span>
                       </td>
                       <td>

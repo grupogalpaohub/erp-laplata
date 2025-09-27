@@ -221,7 +221,7 @@ export default async function HomePage() {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
               </svg>
             </div>
-            <div className="kpi-fiori kpi-fiori-success">{formatBRL(totalInventoryValue / 100)}</div>
+            <div className="kpi-fiori kpi-fiori-success">{formatBRL(totalInventoryValue)}</div>
             <p className="tile-fiori-metric-label">Valor do inventário</p>
           </div>
 
@@ -233,7 +233,7 @@ export default async function HomePage() {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
               </svg>
             </div>
-            <div className="kpi-fiori kpi-fiori-success">{formatBRL(totalSalesValue / 100)}</div>
+            <div className="kpi-fiori kpi-fiori-success">{formatBRL(totalSalesValue)}</div>
             <p className="tile-fiori-metric-label">Receita do período</p>
           </div>
 
@@ -245,7 +245,7 @@ export default async function HomePage() {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
               </svg>
             </div>
-            <div className="kpi-fiori kpi-fiori-success">{formatBRL(totalProfit / 100)}</div>
+            <div className="kpi-fiori kpi-fiori-success">{formatBRL(totalProfit)}</div>
             <p className="tile-fiori-metric-label">Margem de lucro</p>
           </div>
 

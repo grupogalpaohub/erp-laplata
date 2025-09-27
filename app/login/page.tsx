@@ -16,15 +16,32 @@ export default function LoginPage() {
     setLoading(true)
 
     const supabase = supabaseBrowser()
-    const { error } = await supabase.auth.signInWithPassword({ email, password })
+    const { data, error } = await supabase.auth.signInWithPassword({ email, password })
     if (error) {
       setErr(error.message)
       setLoading(false)
       return
     }
 
+    // Sincronizar sessão com o servidor
+    if (data.session) {
+      try {
+        await fetch("/api/auth/sync", {
+          method: "POST",
+          headers: { "content-type": "application/json" },
+          body: JSON.stringify({
+            access_token: data.session.access_token,
+            refresh_token: data.session.refresh_token,
+          }),
+        });
+      } catch (syncError) {
+        console.warn("Erro ao sincronizar sessão:", syncError);
+        // Continua mesmo com erro de sincronização
+      }
+    }
+
     setLoading(false)
-    router.replace('/dashboard') // providers.tsx já cuida da sincronização
+    router.replace('/dashboard')
   }
 
   return (

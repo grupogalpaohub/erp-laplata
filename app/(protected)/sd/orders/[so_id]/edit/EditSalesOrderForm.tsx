@@ -4,11 +4,11 @@ import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { Save, X, Plus, Trash2 } from 'lucide-react'
 import { formatBRL, toCents } from '@/lib/money'
-import { updateOrderAction, addOrderItemAction, removeOrderItemAction } from '../_actions'
+import { updateOrderAction, addOrderItemAction, removeOrderItemAction } from '../../_actions'
 
 interface OrderItem {
   temp_id: string
-  material_id: string
+  mm_material: string
   quantity: number
   unit_price_cents: number
   line_total_cents: number
@@ -24,6 +24,8 @@ interface SalesOrder {
   total_final_cents?: number
   total_negotiated_cents?: number
   notes?: string
+  payment_method?: string
+  payment_term?: string
   crm_customer: {
     name: string
   }[]
@@ -45,7 +47,7 @@ export default function EditSalesOrderForm({ order, customers, materials }: Edit
   const [notes, setNotes] = useState(order.notes || '')
   const [status, setStatus] = useState(order.status || 'draft')
   const [totalNegotiatedReais, setTotalNegotiatedReais] = useState(
-    order.total_negotiated_cents ? formatCurrency(order.total_negotiated_cents) : ''
+    order.total_negotiated_cents ? formatBRL(order.total_negotiated_cents / 100) : ''
   )
   const [items, setItems] = useState<OrderItem[]>([])
   const [isLoading, setIsLoading] = useState(false)
@@ -68,7 +70,7 @@ export default function EditSalesOrderForm({ order, customers, materials }: Edit
       if (response.ok) {
         const orderItems = result.items.map((item: any, index: number) => ({
           temp_id: `item_${Date.now()}_${index}`,
-          material_id: item.material_id || item.sku,
+          mm_material: item.mm_material || item.sku,
           quantity: item.quantity,
           unit_price_cents: item.unit_price_cents,
           line_total_cents: item.line_total_cents
@@ -89,7 +91,7 @@ export default function EditSalesOrderForm({ order, customers, materials }: Edit
   const addItem = () => {
     const newItem: OrderItem = {
       temp_id: `item_${Date.now()}`,
-      material_id: '',
+      mm_material: '',
       quantity: 1,
       unit_price_cents: 0,
       line_total_cents: 0
@@ -107,7 +109,7 @@ export default function EditSalesOrderForm({ order, customers, materials }: Edit
         const updatedItem = { ...item, [field]: value }
         
         // Se mudou o material, carregar preço do database
-        if (field === 'material_id' && value) {
+        if (field === 'mm_material' && value) {
           const selectedMaterial = materials.find(m => m.mm_material === value)
           if (selectedMaterial) {
             updatedItem.unit_price_cents = selectedMaterial.mm_price_cents || 0
@@ -115,7 +117,7 @@ export default function EditSalesOrderForm({ order, customers, materials }: Edit
         }
         
         // Recalcular total da linha se quantidade ou preço mudaram
-        if (field === 'quantity' || field === 'unit_price_cents' || field === 'material_id') {
+        if (field === 'quantity' || field === 'unit_price_cents' || field === 'mm_material') {
           updatedItem.line_total_cents = updatedItem.quantity * updatedItem.unit_price_cents
         }
         
@@ -126,7 +128,7 @@ export default function EditSalesOrderForm({ order, customers, materials }: Edit
   }
 
   const isValid = () => {
-    return selectedCustomer && items.length > 0 && items.every(item => item.material_id && item.quantity > 0)
+    return selectedCustomer && items.length > 0 && items.every(item => item.mm_material && item.quantity > 0)
   }
 
   const validateAndShowErrors = () => {
@@ -138,7 +140,7 @@ export default function EditSalesOrderForm({ order, customers, materials }: Edit
       alert('Adicione pelo menos um item')
       return false
     }
-    return items.every(item => item.material_id && item.quantity > 0)
+    return items.every(item => item.mm_material && item.quantity > 0)
   }
 
   // Cálculo de totais
@@ -398,8 +400,8 @@ export default function EditSalesOrderForm({ order, customers, materials }: Edit
                   <tr key={item.temp_id}>
                     <td>
                       <select
-                        value={item.material_id}
-                        onChange={(e) => updateItem(item.temp_id, 'material_id', e.target.value)}
+                        value={item.mm_material}
+                        onChange={(e) => updateItem(item.temp_id, 'mm_material', e.target.value)}
                         className="select-fiori"
                       >
                         <option value="">Selecione um material</option>

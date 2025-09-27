@@ -13,7 +13,7 @@ interface Material {
   lead_time_days: number | null
   mm_vendor_id: string | null
   status: string | null
-  mm_vendor?: { vendor_name: string }[]
+  mm_vendor?: { vendor_name: string }
 }
 
 interface ExportCSVButtonProps {
@@ -42,8 +42,8 @@ export default function ExportCSVButton({ materiais }: ExportCSVButtonProps) {
         `"${material.mm_desc.replace(/"/g, '""')}"`,
         material.mm_mat_type || '',
         material.mm_mat_class || '',
-        material.mm_price_cents ? formatBRL(material.mm_price_cents ) : '',
-        `"${(material.mm_vendor?.[0]?.vendor_name ?? material.mm_vendor_id ?? '').replace(/"/g, '""')}"`,
+        material.mm_price_cents ? formatBRL(material.mm_price_cents / 100) : '',
+        `"${(material.mm_vendor?.vendor_name ?? material.mm_vendor_id ?? '').replace(/"/g, '""')}"`,
         material.status || 'active',
         material.lead_time_days || ''
       ].join(','))

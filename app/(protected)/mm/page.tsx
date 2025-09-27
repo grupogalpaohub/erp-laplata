@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import { ArrowLeft } from 'lucide-react'
 import { requireSession } from '@/lib/auth/requireSession'
+import { getServerSupabase } from '@/lib/supabase/server'
 import { formatBRL } from '@/lib/money'
 
 export const dynamic = 'force-dynamic'
@@ -18,7 +19,8 @@ export default async function MMIndex() {
   let monthlyValue = 0
 
   try {
-    const { supabase } = await requireSession()
+    await requireSession() // Verificar se está autenticado
+    const supabase = getServerSupabase()
 
     // Buscar dados para KPIs (RLS filtra automaticamente por tenant)
     const [materialsResult, vendorsResult, ordersResult, monthlyOrdersResult] = await Promise.allSettled([
@@ -206,7 +208,7 @@ export default async function MMIndex() {
               </svg>
             </div>
             <div className="kpi-fiori kpi-fiori-warning">
-              {formatBRL(monthlyValue)}
+              {formatBRL(monthlyValue / 100)}
             </div>
             <p className="tile-fiori-metric-label">Valor do mês atual</p>
           </div>
@@ -220,7 +222,7 @@ export default async function MMIndex() {
               </svg>
             </div>
             <div className="kpi-fiori kpi-fiori-info">
-              {formatBRL(totalValue)}
+              {formatBRL(totalValue / 100)}
             </div>
             <p className="tile-fiori-metric-label">Valor total histórico</p>
           </div>

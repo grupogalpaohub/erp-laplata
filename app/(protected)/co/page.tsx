@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import { ArrowLeft } from 'lucide-react'
 import { requireSession } from '@/lib/auth/requireSession'
+import { getServerSupabase } from '@/lib/supabase/server'
 import { formatBRL } from '@/lib/money'
 
 export const dynamic = 'force-dynamic'
@@ -17,7 +18,8 @@ export default async function COPage() {
   let grossMarginPercent = 0
 
   try {
-    const { supabase } = await requireSession()
+    await requireSession() // Verificar se está autenticado
+    const supabase = getServerSupabase()
 
     // Buscar dados para KPIs (RLS filtra automaticamente por tenant)
     const [productsResult, marginsResult, budgetsResult] = await Promise.allSettled([
@@ -113,7 +115,7 @@ export default async function COPage() {
               </svg>
             </div>
             <div className="space-y-2">
-              <p className="kpi-fiori kpi-fiori-success">{formatBRL(totalRevenue)}</p>
+              <p className="kpi-fiori kpi-fiori-success">{formatBRL(totalRevenue / 100)}</p>
               <p className="text-sm text-fiori-muted">Receita bruta</p>
             </div>
           </div>
@@ -128,7 +130,7 @@ export default async function COPage() {
               </svg>
             </div>
             <div className="space-y-2">
-              <p className="kpi-fiori kpi-fiori-danger">{formatBRL(totalCosts)}</p>
+              <p className="kpi-fiori kpi-fiori-danger">{formatBRL(totalCosts / 100)}</p>
               <p className="text-sm text-fiori-muted">Custos operacionais</p>
             </div>
           </div>
@@ -143,7 +145,7 @@ export default async function COPage() {
               </svg>
             </div>
             <div className="space-y-2">
-              <p className="kpi-fiori kpi-fiori-success">{formatBRL(grossMargin)}</p>
+              <p className="kpi-fiori kpi-fiori-success">{formatBRL(grossMargin / 100)}</p>
               <p className="text-sm text-fiori-muted">Lucro bruto</p>
             </div>
           </div>
@@ -191,7 +193,7 @@ export default async function COPage() {
                     <div key={margin.product_id} className="flex items-center justify-between p-3 bg-fiori-secondary rounded">
                       <div>
                         <p className="text-fiori-primary font-medium">{margin.product_id}</p>
-                        <p className="text-fiori-secondary text-sm">{formatBRL(margin.revenue_cents)}</p>
+                        <p className="text-fiori-secondary text-sm">{formatBRL(margin.revenue_cents / 100)}</p>
                       </div>
                       <span className="text-fiori-success text-sm font-medium">
                         {margin.margin_percent.toFixed(1)}%
@@ -240,11 +242,11 @@ export default async function COPage() {
                     <div>
                       <p className="text-fiori-primary font-medium">Orçamento #{budget.budget_id}</p>
                       <p className="text-fiori-secondary text-sm">
-                        Planejado: {formatBRL(budget.planned_amount_cents)}
+                        Planejado: {formatBRL(budget.planned_amount_cents / 100)}
                       </p>
                     </div>
                     <span className="text-fiori-primary text-sm">
-                      {formatBRL(budget.actual_amount_cents)}
+                      {formatBRL(budget.actual_amount_cents / 100)}
                     </span>
                   </div>
                 ))}

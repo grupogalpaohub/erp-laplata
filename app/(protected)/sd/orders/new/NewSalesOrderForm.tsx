@@ -5,12 +5,12 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { Save, X, Plus, Trash2 } from 'lucide-react'
 import { formatBRL, toCents } from '@/lib/money'
-import { createSalesOrder } from '@/app/sd/_actions'
+import { createSalesOrder } from '@/app/(protected)/sd/_actions'
 
 interface OrderItem {
   temp_id: string
-  material_id: string
-  quantity: number
+  mm_material: string
+  mm_qtt: number
   unit_price_cents: number
   line_total_cents: number
 }
@@ -39,8 +39,8 @@ export default function NewSalesOrderForm({ customers, materials, selectedCustom
   const addItem = () => {
     const newItem: OrderItem = {
       temp_id: `item_${Date.now()}`,
-      material_id: '',
-      quantity: 1,
+      mm_material: '',
+      mm_qtt: 1,
       unit_price_cents: 0,
       line_total_cents: 0
     }
@@ -57,7 +57,7 @@ export default function NewSalesOrderForm({ customers, materials, selectedCustom
         const updatedItem = { ...item, [field]: value }
         
         // Se mudou o material, carregar preço do database
-        if (field === 'material_id' && value) {
+        if (field === 'mm_material' && value) {
           const selectedMaterial = materials.find(m => m.mm_material === value)
           if (selectedMaterial) {
             updatedItem.unit_price_cents = selectedMaterial.mm_price_cents || 0
@@ -65,8 +65,8 @@ export default function NewSalesOrderForm({ customers, materials, selectedCustom
         }
         
         // Recalcular total da linha se quantidade ou preço mudaram
-        if (field === 'quantity' || field === 'unit_price_cents' || field === 'material_id') {
-          updatedItem.line_total_cents = updatedItem.quantity * updatedItem.unit_price_cents
+        if (field === 'mm_qtt' || field === 'unit_price_cents' || field === 'mm_material') {
+          updatedItem.line_total_cents = updatedItem.mm_qtt * updatedItem.unit_price_cents
         }
         
         return updatedItem
@@ -76,7 +76,7 @@ export default function NewSalesOrderForm({ customers, materials, selectedCustom
   }
 
   const isValid = () => {
-    return selectedCustomer && items.length > 0 && items.every(item => item.material_id && item.quantity > 0)
+    return selectedCustomer && items.length > 0 && items.every(item => item.mm_material && item.mm_qtt > 0)
   }
 
   const validateAndShowErrors = () => {
@@ -88,7 +88,7 @@ export default function NewSalesOrderForm({ customers, materials, selectedCustom
       alert('Adicione pelo menos um item')
       return false
     }
-    return items.every(item => item.material_id && item.quantity > 0)
+    return items.every(item => item.mm_material && item.mm_qtt > 0)
   }
 
   // Cálculo de totais
@@ -96,8 +96,8 @@ export default function NewSalesOrderForm({ customers, materials, selectedCustom
   const totalFinalCents = totalItemsCents
   
   // Cálculo de KPIs
-  const totalNegotiatedCents = totalNegotiatedReais ? 
-    toCents(totalNegotiatedReais) : 
+  const totalNegotiatedCents = totalNegotiatedReais ?
+    toCents(Number(totalNegotiatedReais)) :
     totalFinalCents
   
   // Gap entre valor final e valor negociado
@@ -138,8 +138,8 @@ export default function NewSalesOrderForm({ customers, materials, selectedCustom
       // Adicionar itens
       items.forEach(item => {
         formData.append('items[]', JSON.stringify({
-          material_id: item.material_id,
-          quantity: item.quantity,
+          mm_material: item.mm_material,
+          mm_qtt: item.mm_qtt,
           unit_price: (item.unit_price_cents / 100).toString()
         }))
       })
@@ -159,7 +159,7 @@ export default function NewSalesOrderForm({ customers, materials, selectedCustom
           router.push('/sd/orders')
         }, 2000)
       } else {
-        setError(result.error || 'Erro ao criar pedido')
+        setError('Erro ao criar pedido')
         setSuccessMessage('')
       }
     } catch (error) {
@@ -341,8 +341,8 @@ export default function NewSalesOrderForm({ customers, materials, selectedCustom
                   <tr key={item.temp_id}>
                     <td>
                       <select
-                        value={item.material_id}
-                        onChange={(e) => updateItem(item.temp_id, 'material_id', e.target.value)}
+                        value={item.mm_material}
+                        onChange={(e) => updateItem(item.temp_id, 'mm_material', e.target.value)}
                         className="select-fiori"
                       >
                         <option value="">Selecione um material</option>
@@ -358,15 +358,15 @@ export default function NewSalesOrderForm({ customers, materials, selectedCustom
                         type="number"
                         min="0.01"
                         step="0.01"
-                        value={item.quantity}
-                        onChange={(e) => updateItem(item.temp_id, 'quantity', parseFloat(e.target.value) || 0)}
+                        value={item.mm_qtt}
+                        onChange={(e) => updateItem(item.temp_id, 'mm_qtt', parseFloat(e.target.value) || 0)}
                         className="input-fiori w-24 text-right"
                       />
                     </td>
                     <td>
                       <input
                         type="text"
-                        value={formatBRL(item.unit_price_cents)}
+                        value={formatBRL(item.unit_price_cents / 100)}
                         readOnly
                         className="input-fiori bg-fiori-bg-secondary w-24 text-right"
                       />
@@ -374,7 +374,7 @@ export default function NewSalesOrderForm({ customers, materials, selectedCustom
                     <td>
                       <input
                         type="text"
-                        value={formatBRL(item.line_total_cents)}
+                        value={formatBRL(item.line_total_cents / 100)}
                         readOnly
                         className="input-fiori bg-fiori-bg-secondary w-24 text-right"
                       />
@@ -411,7 +411,7 @@ export default function NewSalesOrderForm({ customers, materials, selectedCustom
                 type="text"
                 id="total_final_cents"
                 name="total_final_cents"
-                value={formatBRL(totalFinalCents)}
+                value={formatBRL(totalFinalCents / 100)}
                 readOnly
                 className="input-fiori bg-fiori-bg-secondary"
               />
@@ -446,7 +446,7 @@ export default function NewSalesOrderForm({ customers, materials, selectedCustom
               <div className="bg-yellow-50 p-4 rounded-lg">
                 <div className="text-sm text-yellow-600 font-medium">Gap Final vs Negociado</div>
                 <div className="text-2xl font-bold text-yellow-800">
-                  {formatBRL(valueGapCents)}
+                  {formatBRL(valueGapCents / 100)}
                 </div>
                 <div className="text-xs text-yellow-600">
                   {valueGapCents > 0 ? `Desconto (${valueGapPercent.toFixed(1)}%)` : valueGapCents < 0 ? `Acréscimo (${Math.abs(valueGapPercent).toFixed(1)}%)` : 'Iguais (0%)'}
@@ -456,7 +456,7 @@ export default function NewSalesOrderForm({ customers, materials, selectedCustom
               <div className="bg-blue-50 p-4 rounded-lg">
                 <div className="text-sm text-blue-600 font-medium">Lucro (Valor Final) R$</div>
                 <div className="text-2xl font-bold text-blue-800">
-                  {formatBRL(profitFinalCents)}
+                  {formatBRL(profitFinalCents / 100)}
                 </div>
                 <div className="text-xs text-blue-600">
                   Sobre valor final
@@ -476,7 +476,7 @@ export default function NewSalesOrderForm({ customers, materials, selectedCustom
               <div className="bg-green-50 p-4 rounded-lg">
                 <div className="text-sm text-green-600 font-medium">Lucro (Negociado) R$</div>
                 <div className="text-2xl font-bold text-green-800">
-                  {formatBRL(profitNegotiatedCents)}
+                  {formatBRL(profitNegotiatedCents / 100)}
                 </div>
                 <div className="text-xs text-green-600">
                   Sobre valor negociado

@@ -130,10 +130,10 @@ export default async function CatalogoMateriais({ searchParams }: { searchParams
                     <td>{material.mm_mat_type || "-"}</td>
                     <td>{material.mm_mat_class || "-"}</td>
                     <td className="text-right font-medium">
-                      {material.mm_purchase_price_cents != null ? formatBRL(material.mm_purchase_price_cents) : "-"}
+                      {material.mm_purchase_price_cents != null ? formatBRL(material.mm_purchase_price_cents / 100) : "-"}
                     </td>
                     <td className="text-right font-medium">
-                      {material.mm_price_cents != null ? formatBRL(material.mm_price_cents) : "-"}
+                      {material.mm_price_cents != null ? formatBRL(material.mm_price_cents / 100) : "-"}
                     </td>
                     <td>
                       {(material.mm_vendor?.vendor_name ?? material.mm_vendor_id ?? "-")}

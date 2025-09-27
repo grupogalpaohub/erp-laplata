@@ -4,7 +4,7 @@ import { ArrowLeft, Save, X } from 'lucide-react'
 import MaterialTypeSelect from '@/components/MaterialTypeSelect'
 import MaterialClassSelect from '@/components/MaterialClassSelect'
 import { formatBRL } from '@/lib/money'
-import { getVendors, updateMaterial } from '@/app/mm/_actions'
+import { getVendors, updateMaterial } from '@/app/(protected)/mm/_actions'
 import { getSupabaseServerClient } from '@/lib/supabase/server'
 import { requireSession } from '@/lib/auth/requireSession'
 
@@ -89,12 +89,6 @@ export default async function EditMaterialPage({ params }: { params: { material_
         <p className="text-lg text-fiori-muted">SKU: {material.mm_material}</p>
       </div>
 
-      {/* Error Message */}
-      {error && (
-        <div className="bg-red-50 border border-red-200 rounded-lg p-4">
-          <p className="text-red-800 font-medium">{error}</p>
-        </div>
-      )}
 
       {/* Back Button */}
       <div className="flex justify-center">
@@ -179,7 +173,7 @@ export default async function EditMaterialPage({ params }: { params: { material_
                 min="0"
                 className="input-fiori"
                 placeholder="0.00"
-                defaultValue={material.mm_price_cents ? formatBRL(material.mm_price_cents) : ''}
+                defaultValue={material.mm_price_cents ? formatBRL(material.mm_price_cents / 100) : ''}
               />
               <p className="text-sm text-fiori-muted mt-1">Valor em reais (ex: 25.50)</p>
             </div>
@@ -194,7 +188,7 @@ export default async function EditMaterialPage({ params }: { params: { material_
                 min="0"
                 className="input-fiori"
                 placeholder="0.00"
-                defaultValue={material.mm_purchase_price_cents ? formatBRL(material.mm_purchase_price_cents) : ''}
+                defaultValue={material.mm_purchase_price_cents ? formatBRL(material.mm_purchase_price_cents / 100) : ''}
               />
               <p className="text-sm text-fiori-muted mt-1">Valor em reais (ex: 15.00)</p>
             </div>

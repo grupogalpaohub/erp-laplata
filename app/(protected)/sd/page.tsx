@@ -1,5 +1,6 @@
 import Link from 'next/link'
 import { requireSession } from '@/lib/auth/requireSession'
+import { getServerSupabase } from '@/lib/supabase/server'
 import { ArrowLeft } from 'lucide-react'
 import { formatBRL } from '@/lib/money'
 
@@ -14,7 +15,8 @@ export default async function SDPage() {
   let totalValue = 0
 
   try {
-    const { supabase } = await requireSession()
+    await requireSession() // Verificar se está autenticado
+    const supabase = getServerSupabase()
 
     // Buscar dados para KPIs (RLS filtra automaticamente por tenant)
     const [ordersResult, customersResult, totalOrdersResult, totalValueResult] = await Promise.allSettled([
@@ -153,7 +155,7 @@ export default async function SDPage() {
               </svg>
             </div>
             <div className="kpi-fiori kpi-fiori-success">
-              {formatBRL(totalValue)}
+              {formatBRL(totalValue / 100)}
             </div>
             <p className="tile-fiori-metric-label">Valor total em vendas</p>
           </div>
@@ -181,7 +183,7 @@ export default async function SDPage() {
               </svg>
             </div>
             <div className="kpi-fiori kpi-fiori-neutral">
-              {totalOrders > 0 ? formatBRL(Math.round(totalValue / totalOrders)) : formatBRL(0)}
+              {totalOrders > 0 ? formatBRL(Math.round(totalValue / totalOrders) / 100) : formatBRL(0)}
             </div>
             <p className="tile-fiori-metric-label">Valor médio por pedido</p>
           </div>
@@ -213,10 +215,10 @@ export default async function SDPage() {
                         <h4 className="font-semibold text-fiori-primary">
                           {order.doc_no || order.so_id}
                         </h4>
-                        <p className="text-sm text-fiori-secondary">{order.crm_customer?.name}</p>
+                        <p className="text-sm text-fiori-secondary">{order.crm_customer?.[0]?.name}</p>
                         <p className="text-xs text-fiori-muted">
                           {new Date(order.order_date).toLocaleDateString('pt-BR')} • 
-                          {formatBRL(order.total_final_cents || 0)}
+                          {formatBRL((order.total_final_cents || 0) / 100)}
                         </p>
                       </div>
                     </div>

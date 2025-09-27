@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import { ArrowLeft } from 'lucide-react'
 import { requireSession } from '@/lib/auth/requireSession'
+import { getServerSupabase } from '@/lib/supabase/server'
 import { formatBRL } from '@/lib/money'
 
 export const dynamic = 'force-dynamic'
@@ -17,7 +18,8 @@ export default async function WHPage() {
   let movementsToday = 0
 
   try {
-    const { supabase } = await requireSession()
+    await requireSession() // Verificar se está autenticado
+    const supabase = getServerSupabase()
 
     // Buscar dados para KPIs (RLS filtra automaticamente por tenant)
     const [inventoryResult, movementsResult, transfersResult, lowStockResult] = await Promise.allSettled([
@@ -133,7 +135,7 @@ export default async function WHPage() {
               </svg>
             </div>
             <div className="space-y-2">
-              <p className="kpi-fiori kpi-fiori-success">{formatBRL(totalValue)}</p>
+              <p className="kpi-fiori kpi-fiori-success">{formatBRL(totalValue / 100)}</p>
               <p className="text-sm text-fiori-muted">Valor do inventário</p>
             </div>
           </div>

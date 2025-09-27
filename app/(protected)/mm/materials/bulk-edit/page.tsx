@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react'
 import { formatBRL } from '@/lib/money'
 import Link from 'next/link'
 import { Save, X, CheckCircle, AlertCircle } from 'lucide-react'
-import { getVendors, getCustomizingData, bulkUpdateMaterials } from '@/app/mm/_actions'
+import { getVendors, getCustomizingData, bulkUpdateMaterials } from '@/app/(protected)/mm/_actions'
 
 interface Material {
   mm_material: string
@@ -139,8 +139,15 @@ export default function BulkEditPage() {
 
   const fetchCustomizingData = async () => {
     try {
-      const data = await getCustomizingData()
-      setCustomizingData(data)
+      const [customizingData, vendorsData] = await Promise.all([
+        getCustomizingData(),
+        getVendors()
+      ])
+      setCustomizingData({
+        types: customizingData.types || [],
+        classifications: customizingData.classifications || [],
+        vendors: vendorsData || []
+      })
     } catch (error) {
       console.error('Erro ao carregar dados de customizing:', error)
     }
@@ -207,7 +214,8 @@ export default function BulkEditPage() {
         setChanges([])
         setShowModal(false)
       } else {
-        setMessage({ type: 'error', text: `Erro: ${result.error || 'Falha na atualização'}` })
+        const firstError = result.find(r => !r.success)
+        setMessage({ type: 'error', text: `Erro: ${firstError?.error || 'Falha na atualização'}` })
       }
     } catch (error) {
       setMessage({ type: 'error', text: 'Erro ao salvar alterações' })
@@ -314,7 +322,7 @@ export default function BulkEditPage() {
                   <td className="px-4 py-3">
                     <input
                       type="number"
-                      value={material.mm_price_cents ? formatBRL(material.mm_price_cents ) : ''}
+                      value={material.mm_price_cents ? formatBRL(material.mm_price_cents / 100) : ''}
                       onChange={(e) => handleFieldChange(material.mm_material, 'mm_price_cents', 
                         e.target.value ? Math.round(parseFloat(e.target.value) * 100) : null
                       )}
@@ -325,8 +333,8 @@ export default function BulkEditPage() {
                   <td className="px-4 py-3">
                     <input
                       type="number"
-                      value={material.purchase_price_cents ? formatBRL(material.purchase_price_cents ) : ''}
-                      onChange={(e) => handleFieldChange(material.mm_material, 'purchase_price_cents', 
+                      value={material.mm_purchase_price_cents ? formatBRL(material.mm_purchase_price_cents / 100) : ''}
+                      onChange={(e) => handleFieldChange(material.mm_material, 'mm_purchase_price_cents', 
                         e.target.value ? Math.round(parseFloat(e.target.value) * 100) : null
                       )}
                       className="input-fiori text-sm"
@@ -336,8 +344,8 @@ export default function BulkEditPage() {
                   <td className="px-4 py-3">
                     <input
                       type="url"
-                      value={material.catalog_url || ''}
-                      onChange={(e) => handleFieldChange(material.mm_material, 'catalog_url', e.target.value)}
+                      value={material.mm_pur_link || ''}
+                      onChange={(e) => handleFieldChange(material.mm_material, 'mm_pur_link', e.target.value)}
                       className="input-fiori text-sm"
                       placeholder="https://fornecedor.com/produto"
                     />

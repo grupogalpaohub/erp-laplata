@@ -24,14 +24,15 @@ export default function LoginPage() {
     }
 
     // Sincronizar sessão com o servidor
-    if (data.session) {
+    const s = data.session;
+    if (s) {
       try {
         await fetch("/api/auth/sync", {
           method: "POST",
           headers: { "content-type": "application/json" },
           body: JSON.stringify({
-            access_token: data.session.access_token,
-            refresh_token: data.session.refresh_token,
+            access_token: s.access_token,
+            refresh_token: s.refresh_token,
           }),
         });
       } catch (syncError) {

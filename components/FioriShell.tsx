@@ -50,14 +50,17 @@ export default async function FioriShell({ children }: { children: React.ReactNo
                 Modo Desenvolvimento
               </div>
             ) : isAuthenticated ? (
-              <form action="/api/logout" method="POST">
-                <button className="btn-fiori-outline">
-                  <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
-                  </svg>
-                  Sair
-                </button>
-              </form>
+              <div className="flex items-center gap-3">
+                <span className="text-sm text-gray-300">{user?.email}</span>
+                <form action="/api/logout" method="POST">
+                  <button className="btn-fiori-outline">
+                    <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                    </svg>
+                    Sair
+                  </button>
+                </form>
+              </div>
             ) : (
               <Link href="/login" className="btn-fiori-primary">
                 <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">

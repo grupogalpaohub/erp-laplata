@@ -33,7 +33,7 @@ async function getSalesOrder(soId: string) {
       .from('sd_sales_order_item')
       .select(`
         sku,
-        quantity,
+        mm_qtt,
         unit_price_cents,
         line_total_cents,
         row_no
@@ -60,7 +60,7 @@ async function getSalesOrder(soId: string) {
       items: items || [],
       customer: customer || { name: order.customer_id, email: '', telefone: '' }
     } as typeof order & { 
-      items: Array<{ sku: string; quantity: number; unit_price_cents: number; line_total_cents: number; row_no: number }>
+      items: Array<{ sku: string; mm_qtt: number; unit_price_cents: number; line_total_cents: number; row_no: number }>
       customer: { name: string; email: string; telefone: string }
     }
   } catch (error) {
@@ -135,7 +135,7 @@ export default async function PrintSalesOrderPage({ params }: { params: { so_id:
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
-                {order.items.map((item: any, index: number) => formatBRL(
+                {order.items.map((item: any, index: number) => (
                   <tr key={index}>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                       {item.row_no}
@@ -144,13 +144,13 @@ export default async function PrintSalesOrderPage({ params }: { params: { so_id:
                       {item.sku}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 text-right">
-                      {item.quantity}
+                      {item.mm_qtt}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 text-right">
-                      R$ {(item.unit_price_cents )}
+                      {formatBRL(item.unit_price_cents / 100)}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 text-right">
-                      R$ {formatBRL(item.line_total_cents )}
+                      {formatBRL(item.line_total_cents / 100)}
                     </td>
                   </tr>
                 ))}
@@ -166,7 +166,7 @@ export default async function PrintSalesOrderPage({ params }: { params: { so_id:
               <div className="flex justify-between items-center">
                 <span className="text-lg font-semibold text-gray-900">Total:</span>
                 <span className="text-xl font-bold text-gray-900">
-                  R$ {formatBRL(order.total_cents )}
+                  {formatBRL(order.total_cents / 100)}
                 </span>
               </div>
             </div>

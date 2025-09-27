@@ -10,8 +10,8 @@ export default function NavBar() {
   const router = useRouter();
 
   useEffect(() => {
-    supabaseBrowser.auth.getUser().then(({ data }) => setUser(data.user ?? null));
-    const { data: sub } = supabaseBrowser.auth.onAuthStateChange((_e, session) => {
+    supabaseBrowser.auth.getUser().then(({ data }: any) => setUser(data.user ?? null));
+    const { data: sub } = supabaseBrowser.auth.onAuthStateChange((_e: any, session: any) => {
       setUser(session?.user ?? null);
     });
     return () => { sub.subscription.unsubscribe(); };

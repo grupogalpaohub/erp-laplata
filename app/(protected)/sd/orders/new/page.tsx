@@ -88,7 +88,6 @@ export default async function NewSalesOrderPage({ searchParams }: NewSalesOrderP
       <NewSalesOrderForm 
         customers={customers}
         materials={materials}
-        paymentTerms={paymentTerms}
         selectedCustomerId={selectedCustomerId}
       />
     </div>

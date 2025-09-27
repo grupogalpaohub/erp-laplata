@@ -69,11 +69,29 @@ async function getPurchaseOrderItems(po_id: string): Promise<PurchaseOrderItem[]
   return data || []
 }
 
+async function getVendor(vendorId: string) {
+  const supabase = getSupabaseServerClient()
+  const { data, error } = await supabase
+    .from('mm_vendor')
+    .select('vendor_id, vendor_name, contact_email, contact_phone')
+    .eq('vendor_id', vendorId)
+    .single()
+
+  if (error) {
+    console.error('Error fetching vendor:', error)
+    return null
+  }
+
+  return data
+}
+
 export default async function PurchaseOrderDetailPage({ params }: { params: { po_id: string } }) {
   const [purchaseOrder, items] = await Promise.all([
     getPurchaseOrder(params.po_id),
     getPurchaseOrderItems(params.po_id)
   ])
+
+  const vendor = purchaseOrder ? await getVendor(purchaseOrder.vendor_id) : null
 
   if (!purchaseOrder) {
     return (
@@ -117,7 +135,7 @@ export default async function PurchaseOrderDetailPage({ params }: { params: { po
         </div>
       </div>
 
-      <PurchaseOrderClient order={purchaseOrder} items={items} />
+      <PurchaseOrderClient order={purchaseOrder} items={items} vendor={vendor} />
     </main>
   )
 }

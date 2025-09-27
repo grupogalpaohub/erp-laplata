@@ -17,7 +17,6 @@ if (typeof process !== 'undefined' && process.env.NEXT_RUNTIME !== 'edge' && typ
 const REQUIRED = [
   'NEXT_PUBLIC_SUPABASE_URL',
   'NEXT_PUBLIC_SUPABASE_ANON_KEY',
-  'NEXT_PUBLIC_SITE_URL',
 ] as const;
 
 const missing = REQUIRED.filter((k) => !process.env[k]);

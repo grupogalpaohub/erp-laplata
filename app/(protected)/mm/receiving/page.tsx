@@ -39,7 +39,9 @@ export default async function ReceivingPage() {
   return (
     <main style={{ padding: '1.25rem' }}>
       <h2>Recebimentos</h2>
-      <DataTable columns={cols as any} rows={(data || []) as any} />
+      <div className="text-center py-8">
+        <p className="text-gray-500">Funcionalidade de recebimentos em desenvolvimento</p>
+      </div>
     </main>
   )
 }

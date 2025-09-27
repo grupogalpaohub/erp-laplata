@@ -2,8 +2,8 @@
 
 import { useState } from 'react'
 import { Plus, Trash2, Calculator } from 'lucide-react'
-import { formatBRL, toCents } from '@/lib/money'
-import { createPurchaseOrder } from '@/app/mm/_actions'
+import { formatBRL, parseBRLToCents } from '@/lib/money'
+import { createPurchaseOrder } from '@/app/(protected)/mm/_actions'
 
 interface Material {
   mm_material: string
@@ -18,10 +18,10 @@ interface Vendor {
 }
 
 interface OrderItem {
-  material: string
-  quantity: number
-  unitPrice: number
-  total: number
+  mm_material: string
+  mm_qtt: number
+  unit_cost_cents: number
+  line_total_cents: number
 }
 
 interface NewPOClientProps {
@@ -30,7 +30,7 @@ interface NewPOClientProps {
 }
 
 export default function NewPOClient({ vendors, materials }: NewPOClientProps) {
-  const [items, setItems] = useState<OrderItem[]>([{ material: '', quantity: 0, unitPrice: 0, total: 0 }])
+  const [items, setItems] = useState<OrderItem[]>([{ mm_material: '', mm_qtt: 0, unit_cost_cents: 0, line_total_cents: 0 }])
   const [selectedVendor, setSelectedVendor] = useState('')
   const [poDate, setPoDate] = useState(new Date().toISOString().slice(0, 10))
   const [expectedDelivery, setExpectedDelivery] = useState('')
@@ -39,7 +39,7 @@ export default function NewPOClient({ vendors, materials }: NewPOClientProps) {
   const [error, setError] = useState('')
 
   const addItem = () => {
-    setItems([...items, { material: '', quantity: 0, unitPrice: 0, total: 0 }])
+    setItems([...items, { mm_material: '', mm_qtt: 0, unit_cost_cents: 0, line_total_cents: 0 }])
   }
 
   const removeItem = (index: number) => {
@@ -53,28 +53,28 @@ export default function NewPOClient({ vendors, materials }: NewPOClientProps) {
     newItems[index] = { ...newItems[index], [field]: value }
     
     // Se mudou o material, carregar preço padrão
-    if (field === 'material') {
+    if (field === 'mm_material') {
       const selectedMaterial = materials.find(m => m.mm_material === value)
       if (selectedMaterial?.mm_purchase_price_cents) {
-        newItems[index].unitPrice = toReais(selectedMaterial.mm_purchase_price_cents)
+        newItems[index].unit_cost_cents = selectedMaterial.mm_purchase_price_cents
       }
     }
     
     // Recalcular total do item
-    if (field === 'quantity' || field === 'unitPrice') {
-      newItems[index].total = newItems[index].quantity * newItems[index].unitPrice
+    if (field === 'mm_qtt' || field === 'unit_cost_cents') {
+      newItems[index].line_total_cents = Math.round(newItems[index].mm_qtt * newItems[index].unit_cost_cents)
     }
     
     setItems(newItems)
   }
 
   const calculateTotal = () => {
-    return items.reduce((sum, item) => sum + item.total, 0)
+    return items.reduce((sum, item) => sum + item.line_total_cents, 0)
   }
 
   const canSubmit = () => {
     return selectedVendor && 
-           items.some(item => item.material && item.quantity > 0 && item.unitPrice > 0) &&
+           items.some(item => item.mm_material && item.mm_qtt > 0 && item.unit_cost_cents > 0) &&
            !isLoading
   }
 
@@ -86,7 +86,7 @@ export default function NewPOClient({ vendors, materials }: NewPOClientProps) {
     try {
       // Filtrar apenas itens válidos
       const validItems = items.filter(item => 
-        item.material && item.quantity > 0 && item.unitPrice > 0
+        item.mm_material && item.mm_qtt > 0 && item.unit_cost_cents > 0
       )
 
       if (validItems.length === 0) {
@@ -100,10 +100,10 @@ export default function NewPOClient({ vendors, materials }: NewPOClientProps) {
         expected_delivery: expectedDelivery || null,
         notes: notes || null,
         items: validItems.map(item => ({
-          material_id: item.material,
-          quantity: item.quantity,
-          unit_price: item.unitPrice,
-          total: item.total
+          mm_material: item.mm_material,
+          mm_qtt: item.mm_qtt,
+          unit_cost_cents: item.unit_cost_cents,
+          line_total_cents: item.line_total_cents
         }))
       }
 
@@ -215,8 +215,8 @@ export default function NewPOClient({ vendors, materials }: NewPOClientProps) {
                   <td>
                     <select 
                       className="input-fiori"
-                      value={item.material}
-                      onChange={(e) => updateItem(index, 'material', e.target.value)}
+                      value={item.mm_material}
+                      onChange={(e) => updateItem(index, 'mm_material', e.target.value)}
                     >
                       <option value="">Selecione o material...</option>
                       {materials.map((material) => (
@@ -230,10 +230,10 @@ export default function NewPOClient({ vendors, materials }: NewPOClientProps) {
                     <input 
                       type="number" 
                       min="0" 
-                      step="1" 
+                      step="0.01" 
                       className="input-fiori"
-                      value={item.quantity}
-                      onChange={(e) => updateItem(index, 'quantity', parseInt(e.target.value) || 0)}
+                      value={item.mm_qtt}
+                      onChange={(e) => updateItem(index, 'mm_qtt', parseFloat(e.target.value) || 0)}
                     />
                   </td>
                   <td>
@@ -242,12 +242,12 @@ export default function NewPOClient({ vendors, materials }: NewPOClientProps) {
                       min="0" 
                       step="0.01" 
                       className="input-fiori"
-                      value={item.unitPrice}
-                      onChange={(e) => updateItem(index, 'unitPrice', parseFloat(e.target.value) || 0)}
+                      value={formatBRL(item.unit_cost_cents / 100)}
+                      onChange={(e) => updateItem(index, 'unit_cost_cents', parseBRLToCents(e.target.value))}
                     />
                   </td>
                   <td className="text-right font-medium">
-                    {formatBRL(toCents(item.total))}
+                    {formatBRL(item.line_total_cents / 100)}
                   </td>
                   <td>
                     {items.length > 1 && (
@@ -270,7 +270,7 @@ export default function NewPOClient({ vendors, materials }: NewPOClientProps) {
           <div className="bg-fiori-secondary p-4 rounded-lg">
             <div className="flex items-center gap-2 text-xl font-bold">
               <Calculator className="w-5 h-5" />
-              Total: {formatBRL(toCents(calculateTotal()))}
+              Total: {formatBRL(calculateTotal() / 100)}
             </div>
           </div>
         </div>

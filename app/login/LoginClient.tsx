@@ -2,7 +2,7 @@
 import Link from 'next/link'
 import { useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import { createSupabaseBrowserClient } from '@/lib/supabaseBrowser'
+import { supabaseBrowser } from '@/lib/supabase/client'
 
 export default function LoginClient({ next }: { next: string }) {
   const router = useRouter()
@@ -14,7 +14,7 @@ export default function LoginClient({ next }: { next: string }) {
       const access_token = params.get('access_token') || ''
       const refresh_token = params.get('refresh_token') || ''
       if (access_token && refresh_token) {
-        const sb = createSupabaseBrowserClient()
+        const sb = supabaseBrowser
         sb.auth.setSession({ access_token, refresh_token }).finally(() => router.replace(next))
         return
       }

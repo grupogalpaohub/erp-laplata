@@ -51,7 +51,7 @@ export async function createOrderAction(input: {
 export async function addOrderItemAction(input: {
   so_id: string
   mm_material: string
-  quantity: number
+  mm_qtt: number
   unit_price_brl?: string // opcional se houver negociação manual
 }) {
   try {
@@ -61,7 +61,7 @@ export async function addOrderItemAction(input: {
     // Buscar preço do material se não fornecido
     let unit_price_cents = 0
     if (input.unit_price_brl) {
-      unit_price_cents = toCents(input.unit_price_brl)
+      unit_price_cents = toCents(Number(input.unit_price_brl))
     } else {
       const { data: material } = await supabase
         .from('mm_material')
@@ -73,7 +73,7 @@ export async function addOrderItemAction(input: {
     }
 
     // Calcular total da linha
-    const line_total_cents = input.quantity * unit_price_cents
+    const line_total_cents = input.mm_qtt * unit_price_cents
 
     // Buscar próximo número da linha
     const { data: lastItem } = await supabase
@@ -90,8 +90,8 @@ export async function addOrderItemAction(input: {
       .from('sd_sales_order_item')
       .insert({
         so_id: input.so_id,
-        material_id: input.mm_material, // FK lógica para mm_material
-        quantity: input.quantity,
+        mm_material: input.mm_material, // FK lógica para mm_material
+        mm_qtt: input.mm_qtt,
         unit_price_cents_at_order: unit_price_cents,
         line_total_cents: line_total_cents,
         row_no: nextRowNo

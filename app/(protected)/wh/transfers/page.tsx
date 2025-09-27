@@ -3,12 +3,12 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import { ArrowRightLeft, Package, AlertCircle } from 'lucide-react'
-import { createTransfer } from '@/app/wh/_actions'
+import { createTransfer } from '@/app/(protected)/wh/_actions'
 
 export default function TransfersPage() {
   const [formData, setFormData] = useState({
-    material_id: '',
-    quantity: '',
+    mm_material: '',
+    mm_qtt: '',
     from_plant: 'PLANT_001',
     to_plant: 'PLANT_002',
     reference_type: 'MANUAL',
@@ -25,8 +25,8 @@ export default function TransfersPage() {
 
     try {
       const formDataObj = new FormData()
-      formDataObj.append('material_id', formData.material_id)
-      formDataObj.append('quantity', formData.quantity)
+      formDataObj.append('mm_material', formData.mm_material)
+      formDataObj.append('mm_qtt', formData.mm_qtt)
       formDataObj.append('from_plant', formData.from_plant)
       formDataObj.append('to_plant', formData.to_plant)
       formDataObj.append('reference_type', formData.reference_type)
@@ -38,8 +38,8 @@ export default function TransfersPage() {
       if (result.success) {
         setMessage({ type: 'success', text: result.message || 'Transferência criada com sucesso' })
         setFormData({
-          material_id: '',
-          quantity: '',
+          mm_material: '',
+          mm_qtt: '',
           from_plant: 'PLANT_001',
           to_plant: 'PLANT_002',
           reference_type: 'MANUAL',
@@ -47,7 +47,7 @@ export default function TransfersPage() {
           reason: 'TRANSFER'
         })
       } else {
-        setMessage({ type: 'error', text: result.error })
+        setMessage({ type: 'error', text: result.error || 'Erro desconhecido' })
       }
     } catch (error) {
       setMessage({ type: 'error', text: 'Erro ao processar transferência' })
@@ -97,14 +97,14 @@ export default function TransfersPage() {
 
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label htmlFor="material_id" className="label-fiori">
+                    <label htmlFor="mm_material" className="label-fiori">
                       Material *
                     </label>
                     <input
                       type="text"
-                      id="material_id"
-                      value={formData.material_id}
-                      onChange={(e) => setFormData({ ...formData, material_id: e.target.value })}
+                      id="mm_material"
+                      value={formData.mm_material}
+                      onChange={(e) => setFormData({ ...formData, mm_material: e.target.value })}
                       className="input-fiori"
                       placeholder="Ex: G_193"
                       required
@@ -112,14 +112,14 @@ export default function TransfersPage() {
                   </div>
 
                   <div>
-                    <label htmlFor="quantity" className="label-fiori">
+                    <label htmlFor="mm_qtt" className="label-fiori">
                       Quantidade *
                     </label>
                     <input
                       type="number"
-                      id="quantity"
-                      value={formData.quantity}
-                      onChange={(e) => setFormData({ ...formData, quantity: e.target.value })}
+                      id="mm_qtt"
+                      value={formData.mm_qtt}
+                      onChange={(e) => setFormData({ ...formData, mm_qtt: e.target.value })}
                       className="input-fiori"
                       placeholder="Ex: 10"
                       min="1"

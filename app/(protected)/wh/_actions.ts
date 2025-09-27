@@ -10,8 +10,8 @@ export async function createTransfer(formData: FormData) {
   const supabase = getSupabaseServerClient()
   
   const transferData = {
-    material_id: String(formData.get("material_id") ?? ""),
-    quantity: Number(formData.get("quantity")),
+    mm_material: String(formData.get("mm_material") ?? ""),
+    mm_qtt: Number(formData.get("mm_qtt")),
     from_plant: String(formData.get("from_plant") ?? ""),
     to_plant: String(formData.get("to_plant") ?? ""),
     reference_type: String(formData.get("reference_type") ?? "MANUAL"),
@@ -20,7 +20,7 @@ export async function createTransfer(formData: FormData) {
   }
 
   // Validar dados
-  if (!transferData.material_id || !transferData.quantity || transferData.quantity <= 0) {
+  if (!transferData.mm_material || !transferData.mm_qtt || transferData.mm_qtt <= 0) {
     return { success: false, error: "Dados inválidos" }
   }
 
@@ -29,8 +29,8 @@ export async function createTransfer(formData: FormData) {
     const { data, error } = await supabase
       .from('wh_transfer')
       .insert({
-        material_id: transferData.material_id,
-        quantity: transferData.quantity,
+        mm_material: transferData.mm_material,
+        mm_qtt: transferData.mm_qtt,
         from_plant: transferData.from_plant,
         to_plant: transferData.to_plant,
         reference_type: transferData.reference_type,

@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import { ArrowLeft, Save } from 'lucide-react'
 import { requireSession } from '@/lib/auth/requireSession'
+import { getSupabaseServerClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 
 export const dynamic = 'force-dynamic'
@@ -8,7 +9,8 @@ export const revalidate = 0
 
 async function getVendor(vendorId: string) {
   try {
-  const { supabase } = await requireSession()
+  await requireSession() // Verificar se está autenticado
+  const supabase = getSupabaseServerClient()
 
     const { data, error } = await supabase
       .from('mm_vendor')
@@ -32,7 +34,8 @@ async function getVendor(vendorId: string) {
 async function updateVendor(vendorId: string, formData: FormData) {
   'use server'
   
-  const { supabase } = await requireSession()
+  await requireSession() // Verificar se está autenticado
+  const supabase = getSupabaseServerClient()
 
   const vendorData = {
     vendor_name: formData.get('vendor_name') as string,

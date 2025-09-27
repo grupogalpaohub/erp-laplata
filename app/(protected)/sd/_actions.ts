@@ -16,8 +16,8 @@ export async function createSalesOrder(formData: FormData) {
     status: String(formData.get("status") ?? "draft").trim(),
     order_date: String(formData.get("order_date") ?? new Date().toISOString().split('T')[0]),
     expected_ship: String(formData.get("expected_ship") ?? "").trim() || null,
-    total_cents: toCents(formData.get("total")),
-    total_negotiated_cents: toCents(formData.get("total_negotiated")),
+    total_cents: toCents(Number(formData.get("total") || 0)),
+    total_negotiated_cents: toCents(Number(formData.get("total_negotiated") || 0)),
     payment_method: String(formData.get("payment_method") ?? "").trim() || null,
     payment_term: String(formData.get("payment_term") ?? "").trim() || null,
     notes: String(formData.get("notes") ?? "").trim() || null,
@@ -41,10 +41,10 @@ export async function createSalesOrder(formData: FormData) {
       const parsed = JSON.parse(item)
       return {
         so_id: order.so_id,
-        material_id: parsed.material_id,
-        quantity: Number(parsed.quantity || 0),
+        mm_material: parsed.mm_material,
+        mm_qtt: Number(parsed.mm_qtt || 0),
         unit_price_cents_at_order: toCents(parsed.unit_price),
-        total_cents: toCents(parsed.unit_price) * Number(parsed.quantity || 0),
+        total_cents: toCents(parsed.unit_price) * Number(parsed.mm_qtt || 0),
       }
     })
 
@@ -95,8 +95,8 @@ export async function updateSalesOrder(so_id: string, formData: FormData) {
     status: String(formData.get("status") ?? "draft").trim(),
     order_date: String(formData.get("order_date") ?? "").trim(),
     expected_ship: String(formData.get("expected_ship") ?? "").trim() || null,
-    total_cents: toCents(formData.get("total")),
-    total_negotiated_cents: toCents(formData.get("total_negotiated")),
+    total_cents: toCents(Number(formData.get("total") || 0)),
+    total_negotiated_cents: toCents(Number(formData.get("total_negotiated") || 0)),
     payment_method: String(formData.get("payment_method") ?? "").trim() || null,
     payment_term: String(formData.get("payment_term") ?? "").trim() || null,
     notes: String(formData.get("notes") ?? "").trim() || null,

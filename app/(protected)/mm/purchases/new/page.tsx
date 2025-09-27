@@ -1,6 +1,6 @@
 import Link from 'next/link'
 import NewPOClient from './NewPOClient'
-import { getVendors } from '@/app/mm/_actions'
+import { getVendors } from '@/app/(protected)/mm/_actions'
 import { getSupabaseServerClient } from '@/lib/supabase/server'
 import { requireSession } from '@/lib/auth/requireSession'
 

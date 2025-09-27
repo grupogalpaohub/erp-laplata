@@ -16,8 +16,8 @@ export async function createMaterial(formData: FormData) {
     mm_desc: String(formData.get("mm_desc") ?? "").trim(),
     mm_mat_type: String(formData.get("mm_mat_type") ?? "").trim() || null,
     mm_mat_class: String(formData.get("mm_mat_class") ?? "").trim() || null,
-    mm_price_cents: toCents(formData.get("mm_price")),
-    mm_purchase_price_cents: toCents(formData.get("mm_purchase_price")),
+    mm_price_cents: toCents(Number(formData.get("mm_price") || 0)),
+    mm_purchase_price_cents: toCents(Number(formData.get("mm_purchase_price") || 0)),
     mm_pur_link: String(formData.get("mm_pur_link") ?? "").trim() || null,
     commercial_name: String(formData.get("commercial_name") ?? "").trim() || null,
     lead_time_days: formData.get("lead_time_days") ? Number(formData.get("lead_time_days")) : null,
@@ -52,8 +52,8 @@ export async function updateMaterial(mm_material: string, formData: FormData) {
     mm_desc: String(formData.get("mm_desc") ?? "").trim(),
     mm_mat_type: String(formData.get("mm_mat_type") ?? "").trim() || null,
     mm_mat_class: String(formData.get("mm_mat_class") ?? "").trim() || null,
-    mm_price_cents: toCents(formData.get("mm_price")),
-    mm_purchase_price_cents: toCents(formData.get("mm_purchase_price")),
+    mm_price_cents: toCents(Number(formData.get("mm_price") || 0)),
+    mm_purchase_price_cents: toCents(Number(formData.get("mm_purchase_price") || 0)),
     mm_pur_link: String(formData.get("mm_pur_link") ?? "").trim() || null,
     commercial_name: String(formData.get("commercial_name") ?? "").trim() || null,
     lead_time_days: formData.get("lead_time_days") ? Number(formData.get("lead_time_days")) : null,
@@ -244,8 +244,8 @@ export async function validateBulkMaterials(materials: any[]) {
     const result = {
       row_index: i,
       is_valid: true,
-      error_message: null,
-      generated_id: null
+      error_message: null as string | null,
+      generated_id: null as string | null
     }
     
     // Validações básicas

@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import { ArrowLeft } from 'lucide-react'
 import { requireSession } from '@/lib/auth/requireSession'
+import { getServerSupabase } from '@/lib/supabase/server'
 
 export const dynamic = 'force-dynamic'
 export const revalidate = 0
@@ -16,7 +17,8 @@ export default async function CRMPage() {
   let conversionRate = 0
 
   try {
-    const { supabase } = await requireSession()
+    await requireSession() // Verificar se está autenticado
+    const supabase = getServerSupabase()
 
     // Buscar dados para KPIs (RLS filtra automaticamente por tenant)
     const [customersResult, opportunitiesResult, activitiesResult] = await Promise.allSettled([

@@ -5,7 +5,7 @@ import { formatBRL } from '@/lib/money'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { ArrowLeft, Plus, Trash2, Save, X } from 'lucide-react'
-import { getVendors, getMaterials } from '@/app/mm/_actions'
+import { getVendors, getMaterials } from '@/app/(protected)/mm/_actions'
 
 interface Material {
   mm_material: string

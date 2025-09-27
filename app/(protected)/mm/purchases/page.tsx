@@ -2,6 +2,7 @@ export const dynamic = 'force-dynamic'
 export const revalidate = 0
 export const runtime = 'nodejs'
 import { requireSession } from '@/lib/auth/requireSession'
+import { getSupabaseServerClient } from '@/lib/supabase/server'
 import Link from 'next/link'
 import ExportCSVButton from './ExportCSVButton'
 import StatusUpdateButton from './StatusUpdateButton'
@@ -12,13 +13,15 @@ type PO = {
   po_date: string
   status: string
   total_cents: number
+  total_amount: number
   mm_vendor?: {
     vendor_name: string
-  }
+  }[]
 }
 
 export default async function PurchaseOrdersPage({ searchParams }: { searchParams: any }) {
-  const { supabase } = await requireSession()
+  await requireSession() // Verificar se está autenticado
+  const supabase = getSupabaseServerClient()
   
   let q = supabase
     .from('mm_purchase_order')
@@ -41,7 +44,10 @@ export default async function PurchaseOrdersPage({ searchParams }: { searchParam
   const { data, error } = await q
   if (error) return <div className="p-6 text-red-600">Erro: {error.message}</div>
 
-  const rows = (data ?? []) as PO[]
+  const rows = (data ?? []).map((po: any) => ({
+    ...po,
+    total_amount: po.total_cents / 100
+  })) as PO[]
 
   return (
     <div className="space-y-8">
@@ -94,7 +100,7 @@ export default async function PurchaseOrdersPage({ searchParams }: { searchParam
                   <td>
                     <Link href={`/mm/purchases/${r.mm_order}`} className="text-blue-600 hover:text-blue-800 font-medium font-mono text-sm">{r.mm_order}</Link>
                   </td>
-                  <td>{r.mm_vendor?.vendor_name || r.vendor_id}</td>
+                  <td>{r.mm_vendor?.[0]?.vendor_name || r.vendor_id}</td>
                   <td>{new Date(r.po_date).toLocaleDateString()}</td>
                   <td>
                     <span className={`badge-fiori ${

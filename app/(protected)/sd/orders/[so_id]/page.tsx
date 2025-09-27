@@ -24,17 +24,17 @@ interface SalesOrder {
   created_at: string
   crm_customer: {
     name: string
-  }
+  }[]
 }
 
 interface OrderItem {
   so_id: string
   sku: string
-  quantity: number
+  mm_qtt: number
   unit_price_cents: number
   line_total_cents: number
   row_no: number
-  material_id: string
+  mm_material: string
 }
 
 export default async function SalesOrderDetailPage({ params }: { params: { so_id: string } }) {
@@ -80,11 +80,11 @@ export default async function SalesOrderDetailPage({ params }: { params: { so_id
         .select(`
           so_id,
           sku,
-          quantity,
+          mm_qtt,
           unit_price_cents,
           line_total_cents,
           row_no,
-          material_id
+          mm_material
         `)
         .eq('so_id', so_id)
         .order('row_no')
@@ -158,7 +158,7 @@ export default async function SalesOrderDetailPage({ params }: { params: { so_id
               Pedido {order.doc_no || order.so_id}
             </h1>
             <p className="text-fiori-muted">
-              Cliente: {order.crm_customer?.name || 'Não encontrado'}
+              Cliente: {order.crm_customer?.[0]?.name || 'Não encontrado'}
             </p>
           </div>
         </div>
@@ -194,7 +194,7 @@ export default async function SalesOrderDetailPage({ params }: { params: { so_id
                 </div>
                 <div>
                   <label className="label-fiori">Cliente</label>
-                  <p>{order.crm_customer?.name || 'Não encontrado'}</p>
+                  <p>{order.crm_customer?.[0]?.name || 'Não encontrado'}</p>
                 </div>
                 <div>
                   <label className="label-fiori">Status</label>
@@ -244,16 +244,16 @@ export default async function SalesOrderDetailPage({ params }: { params: { so_id
                               {item.sku}
                             </div>
                             <div className="text-sm text-fiori-muted">
-                              {item.material_id}
+                              {item.mm_material}
                             </div>
                           </div>
                         </td>
-                        <td className="text-right">{item.quantity}</td>
+                        <td className="text-right">{item.mm_qtt}</td>
                         <td className="text-right">
-                          {formatCurrency(item.unit_price_cents)}
+                          {formatBRL(item.unit_price_cents / 100)}
                         </td>
                         <td className="text-right font-medium">
-                          {formatCurrency(item.line_total_cents)}
+                          {formatBRL(item.line_total_cents / 100)}
                         </td>
                       </tr>
                     ))}
@@ -275,20 +275,20 @@ export default async function SalesOrderDetailPage({ params }: { params: { so_id
               <div className="flex justify-between">
                 <span>Total dos Itens:</span>
                 <span className="font-medium">
-                  {formatCurrency(totalItems)}
+                  {formatBRL(totalItems / 100)}
                 </span>
               </div>
               <div className="flex justify-between">
                 <span>Total Final:</span>
                 <span className="font-medium">
-                  {formatCurrency(totalFinal)}
+                  {formatBRL(totalFinal / 100)}
                 </span>
               </div>
               {totalNegotiated !== totalFinal && (
                 <div className="flex justify-between text-fiori-primary">
                   <span>Total Negociado:</span>
                   <span className="font-bold">
-                    {formatCurrency(totalNegotiated)}
+                    {formatBRL(totalNegotiated / 100)}
                   </span>
                 </div>
               )}
@@ -307,7 +307,7 @@ export default async function SalesOrderDetailPage({ params }: { params: { so_id
                   Margem (R$):
                 </span>
                 <span className={`font-medium ${margin >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                  {margin >= 0 ? '+' : ''}{formatCurrency(margin)}
+                  {margin >= 0 ? '+' : ''}{formatBRL(margin / 100)}
                 </span>
               </div>
               <div className="flex justify-between">

@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import { ArrowLeft } from 'lucide-react'
 import { requireSession } from '@/lib/auth/requireSession'
+import { getSupabaseServerClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 
 export const dynamic = 'force-dynamic'
@@ -9,7 +10,8 @@ export const revalidate = 0
 async function createVendor(formData: FormData) {
   'use server'
   
-  const { supabase } = await requireSession()
+  await requireSession() // Verificar se está autenticado
+  const supabase = getSupabaseServerClient()
 
   const vendorData = {
     // tenant_id será preenchido automaticamente pelo RLS

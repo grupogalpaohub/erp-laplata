@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import { ArrowLeft, Edit, Eye, Phone, Mail, MapPin, Building, Calendar } from 'lucide-react'
 import { requireSession } from '@/lib/auth/requireSession'
+import { getSupabaseServerClient } from '@/lib/supabase/server'
 
 export const dynamic = 'force-dynamic'
 export const revalidate = 0
@@ -27,7 +28,8 @@ interface Vendor {
 
 async function getVendor(vendorId: string): Promise<Vendor | null> {
   try {
-  const { supabase } = await requireSession()
+  await requireSession() // Verificar se está autenticado
+  const supabase = getSupabaseServerClient()
 
     const { data, error } = await supabase
       .from('mm_vendor')

@@ -2,7 +2,7 @@ import Link from 'next/link'
 import { redirect } from 'next/navigation'
 import MaterialTypeSelect from '@/components/MaterialTypeSelect'
 import MaterialClassSelect from '@/components/MaterialClassSelect'
-import { getVendors, getCustomizingData, createMaterial } from '@/app/mm/_actions'
+import { getVendors, getCustomizingData, createMaterial } from '@/app/(protected)/mm/_actions'
 
 type Vendor = {
   vendor_id: string
@@ -60,7 +60,6 @@ export default async function NewMaterialPage() {
                 name="mm_mat_type"
                 id="mm_mat_type"
                 className="input-fiori"
-                required
               />
               <p className="mt-1 text-sm text-gray-500">
                 O ID do material será gerado automaticamente baseado no tipo selecionado
@@ -103,7 +102,6 @@ export default async function NewMaterialPage() {
                   name="mm_mat_class"
                   id="mm_mat_class"
                   className="input-fiori"
-                  required
                 />
               </div>
             </div>

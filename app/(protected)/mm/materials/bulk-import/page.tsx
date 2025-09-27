@@ -4,7 +4,7 @@ import { useState } from 'react'
 import Link from 'next/link'
 import { Upload, Download, CheckCircle, XCircle, AlertCircle } from 'lucide-react'
 import { formatBRL } from '@/lib/money'
-import { validateBulkMaterials, bulkImportMaterials } from '@/app/mm/_actions'
+import { validateBulkMaterials, bulkImportMaterials } from '@/app/(protected)/mm/_actions'
 
 interface Material {
   mm_material?: string // ID do material (opcional para criação)

@@ -1,9 +1,24 @@
 // app/api/mm/purchases/[po_id]/route.ts
 import { NextResponse } from "next/server";
-import { supabaseServer } from "@/lib/supabase/server";
+import { createServerClient } from '@supabase/ssr'
+import { cookies } from 'next/headers'
 
 export async function GET(_: Request, { params }: { params: { po_id: string } }) {
-  const sb = supabaseServer();
+  // ✅ GUARDRAIL COMPLIANCE: API usando @supabase/ssr e cookies()
+  const cookieStore = cookies()
+  const sb = createServerClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    {
+      cookies: {
+        get(name: string) {
+          return cookieStore.get(name)?.value
+        },
+        set() {},
+        remove() {}
+      }
+    }
+  )
   const { data, error } = await sb.from("mm_purchase_order").select("*").eq("mm_order", params.po_id).single();
   if (error) return NextResponse.json({ ok:false, error: error.message }, { status: 404 });
   return NextResponse.json({ ok:true, po: data });
@@ -11,7 +26,21 @@ export async function GET(_: Request, { params }: { params: { po_id: string } })
 
 export async function PATCH(req: Request, { params }: { params: { po_id: string } }) {
   const patch = await req.json().catch(() => ({}));
-  const sb = supabaseServer();
+  // ✅ GUARDRAIL COMPLIANCE: API usando @supabase/ssr e cookies()
+  const cookieStore = cookies()
+  const sb = createServerClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    {
+      cookies: {
+        get(name: string) {
+          return cookieStore.get(name)?.value
+        },
+        set() {},
+        remove() {}
+      }
+    }
+  )
 
   // Mapear campos para nomes corretos do banco
   const dbPatch: any = {}

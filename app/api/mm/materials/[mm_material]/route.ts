@@ -1,10 +1,25 @@
 // app/api/mm/materials/[mm_material]/route.ts
 import { NextResponse } from "next/server";
-import { supabaseServer } from "@/lib/supabase/server";
+import { createServerClient } from '@supabase/ssr'
+import { cookies } from 'next/headers'
 import { toCents } from "@/lib/money";
 
 export async function GET(_: Request, { params }: { params: { mm_material: string } }) {
-  const sb = supabaseServer();
+  // ✅ GUARDRAIL COMPLIANCE: API usando @supabase/ssr e cookies()
+  const cookieStore = cookies()
+  const sb = createServerClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    {
+      cookies: {
+        get(name: string) {
+          return cookieStore.get(name)?.value
+        },
+        set() {},
+        remove() {}
+      }
+    }
+  )
   const { data, error } = await sb.from("mm_material").select("*").eq("mm_material", params.mm_material).single();
   if (error) return NextResponse.json({ ok:false, error: error.message }, { status: 404 });
   return NextResponse.json({ ok:true, material: data });
@@ -12,7 +27,21 @@ export async function GET(_: Request, { params }: { params: { mm_material: strin
 
 export async function PATCH(req: Request, { params }: { params: { mm_material: string } }) {
   const body = await req.json().catch(() => ({}));
-  const sb = supabaseServer();
+  // ✅ GUARDRAIL COMPLIANCE: API usando @supabase/ssr e cookies()
+  const cookieStore = cookies()
+  const sb = createServerClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    {
+      cookies: {
+        get(name: string) {
+          return cookieStore.get(name)?.value
+        },
+        set() {},
+        remove() {}
+      }
+    }
+  )
 
               const patch: any = {
                 mm_comercial: body.mm_comercial ?? null,
@@ -40,7 +69,21 @@ export async function PATCH(req: Request, { params }: { params: { mm_material: s
 }
 
 export async function DELETE(_: Request, { params }: { params: { mm_material: string } }) {
-  const sb = supabaseServer();
+  // ✅ GUARDRAIL COMPLIANCE: API usando @supabase/ssr e cookies()
+  const cookieStore = cookies()
+  const sb = createServerClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    {
+      cookies: {
+        get(name: string) {
+          return cookieStore.get(name)?.value
+        },
+        set() {},
+        remove() {}
+      }
+    }
+  )
   const { error } = await sb.from("mm_material").delete().eq("mm_material", params.mm_material);
   if (error) return NextResponse.json({ ok:false, error: error.message }, { status: 400 });
   return NextResponse.json({ ok:true });

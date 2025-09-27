@@ -1,0 +1,17 @@
+{
+  "forbidden": [
+    { "why": "SERVICE ROLE nunca em app/", "pattern": "SUPABASE_SERVICE_ROLE_KEY", "paths": ["app/**", "components/**", "lib/**", "!scripts/**", "!.git/**", "!node_modules/**"] },
+    { "why": "Browser client NÃO em API route", "pattern": "from\\s+['\"]@supabase/supabase-js['\"];?\\s*[\\s\\S]*createClient\\(", "paths": ["app/api/**"] },
+    { "why": "Trocar server client por browser client em API", "pattern": "supabaseBrowser\\s*\\(", "paths": ["app/api/**"] },
+    { "why": "Bypass RLS sugerido", "pattern": "bypass\\s*RLS|disable\\s*RLS|set\\s*role", "paths": ["app/**", "components/**", "lib/**", "!scripts/**", "!.git/**", "!node_modules/**"] },
+    { "why": "Hardcode de tenant", "pattern": "tenant_id\\s*[:=]\\s*['\"][A-Za-z0-9_\\-]+['\"]", "paths": ["app/**", "components/**", "lib/**", "!scripts/**", "!.git/**", "!node_modules/**"] }
+  ],
+  "enforceSsrInApi": [
+    { "why": "API deve usar @supabase/ssr", "require": "createServerClient\\(", "paths": ["app/api/**"] },
+    { "why": "API deve ler cookies()", "require": "cookies\\s*\\(", "paths": ["app/api/**"] }
+  ],
+  "schemaTruth": {
+    "explanation": "Nomes válidos DEVEM existir na SoT. Se o nome não estiver listado, falhar.",
+    "tablesFile": "db_contract.json"
+  }
+}

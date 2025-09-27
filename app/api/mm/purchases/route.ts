@@ -1,10 +1,25 @@
 // app/api/mm/purchases/route.ts
 import { NextResponse } from "next/server";
-import { supabaseServer } from "@/lib/supabase/server";
+import { createServerClient } from '@supabase/ssr'
+import { cookies } from 'next/headers'
 
 export async function POST(req: Request) {
+  // ✅ GUARDRAIL COMPLIANCE: API usando @supabase/ssr e cookies()
+  const cookieStore = cookies()
+  const sb = createServerClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    {
+      cookies: {
+        get(name: string) {
+          return cookieStore.get(name)?.value
+        },
+        set() {},
+        remove() {}
+      }
+    }
+  )
   const body = await req.json().catch(() => ({}));
-  const sb = supabaseServer();
 
   const po = {
     mm_order: body.po_id, // ou gere no DB

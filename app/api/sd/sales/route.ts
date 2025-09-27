@@ -1,8 +1,24 @@
 // app/api/sd/sales/route.ts
 import { NextResponse } from "next/server";
-import { supabaseServer } from "@/lib/supabase/server";
+import { createServerClient } from '@supabase/ssr'
+import { cookies } from 'next/headers'
 
 export async function GET(req: Request) {
+  // ✅ GUARDRAIL COMPLIANCE: API usando @supabase/ssr e cookies()
+  const cookieStore = cookies()
+  const sb = createServerClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    {
+      cookies: {
+        get(name: string) {
+          return cookieStore.get(name)?.value
+        },
+        set() {},
+        remove() {}
+      }
+    }
+  )
   const url = new URL(req.url);
   const q = url.searchParams.get("q")?.trim() ?? "";
   const page = Number(url.searchParams.get("page") ?? 1);
@@ -23,7 +39,21 @@ export async function GET(req: Request) {
 
 export async function POST(req: Request) {
   const body = await req.json().catch(() => ({}));
-  const sb = supabaseServer();
+  // ✅ GUARDRAIL COMPLIANCE: API usando @supabase/ssr e cookies()
+  const cookieStore = cookies()
+  const sb = createServerClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    {
+      cookies: {
+        get(name: string) {
+          return cookieStore.get(name)?.value
+        },
+        set() {},
+        remove() {}
+      }
+    }
+  )
 
   const so = {
     so_id: body.so_id, // ou gere no DB

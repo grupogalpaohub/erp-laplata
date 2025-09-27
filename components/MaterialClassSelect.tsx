@@ -7,19 +7,13 @@ interface MaterialClassSelectProps {
   id?: string
   className?: string
   defaultValue?: string
+  options?: string[]
 }
 
-export default function MaterialClassSelect({ name, id, className, defaultValue }: MaterialClassSelectProps) {
+export default function MaterialClassSelect({ name, id, className, defaultValue, options = [] }: MaterialClassSelectProps) {
   const materialClasses = [
     { value: '', label: 'Selecione a classe...' },
-    { value: 'Elementar', label: 'Elementar' },
-    { value: 'Ciclos', label: 'Ciclos' },
-    { value: 'Amuletos', label: 'Amuletos' },
-    { value: 'Ancestral', label: 'Ancestral' },
-    { value: 'Místico', label: 'Místico' },
-    { value: 'Naturaleza', label: 'Naturaleza' },
-    { value: 'Protetor', label: 'Protetor' },
-    { value: 'Outros', label: 'Outros' }
+    ...options.map(option => ({ value: option, label: option }))
   ]
 
   return (

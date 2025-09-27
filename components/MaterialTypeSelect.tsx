@@ -7,19 +7,13 @@ interface MaterialTypeSelectProps {
   id?: string
   className?: string
   defaultValue?: string
+  options?: string[]
 }
 
-export default function MaterialTypeSelect({ name, id, className, defaultValue }: MaterialTypeSelectProps) {
+export default function MaterialTypeSelect({ name, id, className, defaultValue, options = [] }: MaterialTypeSelectProps) {
   const materialTypes = [
     { value: '', label: 'Selecione o tipo...' },
-    { value: 'Gargantilha', label: 'Gargantilha' },
-    { value: 'Pulseira', label: 'Pulseira' },
-    { value: 'Anel', label: 'Anel' },
-    { value: 'Brinco', label: 'Brinco' },
-    { value: 'Colar', label: 'Colar' },
-    { value: 'Kit', label: 'Kit' },
-    { value: 'Acessório', label: 'Acessório' },
-    { value: 'Outros', label: 'Outros' }
+    ...options.map(option => ({ value: option, label: option }))
   ]
 
   return (

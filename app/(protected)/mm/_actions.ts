@@ -163,36 +163,36 @@ export async function getCustomizingData() {
   
   const supabase = getSupabaseServerClient()
   
-  // Buscar tipos de material
+  // Buscar tipos de material da tabela de definição
   const { data: types, error: typesError } = await supabase
-    .from("mm_material")
-    .select("mm_mat_type")
-    .not("mm_mat_type", "is", null)
-    .order("mm_mat_type")
+    .from("mm_category_def")
+    .select("category")
+    .eq("is_active", true)
+    .order("category")
 
-  // Buscar classificações
+  // Buscar classificações da tabela de definição
   const { data: classifications, error: classificationsError } = await supabase
-    .from("mm_material")
-    .select("mm_mat_class")
-    .not("mm_mat_class", "is", null)
-    .order("mm_mat_class")
+    .from("mm_classification_def")
+    .select("classification")
+    .eq("is_active", true)
+    .order("classification")
 
   if (typesError || classificationsError) {
     console.error("Erro ao buscar dados de customização:", typesError || classificationsError)
     // Fallback para dados padrão
     return {
-      types: ['Brinco', 'Cordão', 'Choker', 'Gargantilha', 'Anel', 'Pulseira'],
-      classifications: ['Elementar', 'Amuleto', 'Protetor', 'Decoração']
+      types: ['Brinco', 'Choker', 'Kit', 'Gargantilha', 'Pulseira'],
+      classifications: ['Amuletos', 'Elementar', 'Ciclos', 'Ancestral']
     }
   }
 
   // Extrair valores únicos
-  const uniqueTypes = [...new Set(types?.map(t => t.mm_mat_type).filter(Boolean) || [])]
-  const uniqueClassifications = [...new Set(classifications?.map(c => c.mm_mat_class).filter(Boolean) || [])]
+  const uniqueTypes = types?.map(t => t.category).filter(Boolean) || []
+  const uniqueClassifications = classifications?.map(c => c.classification).filter(Boolean) || []
 
   return {
-    types: uniqueTypes.length > 0 ? uniqueTypes : ['Brinco', 'Cordão', 'Choker', 'Gargantilha', 'Anel', 'Pulseira'],
-    classifications: uniqueClassifications.length > 0 ? uniqueClassifications : ['Elementar', 'Amuleto', 'Protetor', 'Decoração']
+    types: uniqueTypes.length > 0 ? uniqueTypes : ['Brinco', 'Choker', 'Kit', 'Gargantilha', 'Pulseira'],
+    classifications: uniqueClassifications.length > 0 ? uniqueClassifications : ['Amuletos', 'Elementar', 'Ciclos', 'Ancestral']
   }
 }
 

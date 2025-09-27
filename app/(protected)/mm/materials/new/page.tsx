@@ -60,6 +60,7 @@ export default async function NewMaterialPage() {
                 name="mm_mat_type"
                 id="mm_mat_type"
                 className="input-fiori"
+                options={customizingData.types}
               />
               <p className="mt-1 text-sm text-gray-500">
                 O ID do material será gerado automaticamente baseado no tipo selecionado
@@ -102,6 +103,7 @@ export default async function NewMaterialPage() {
                   name="mm_mat_class"
                   id="mm_mat_class"
                   className="input-fiori"
+                  options={customizingData.classifications}
                 />
               </div>
             </div>

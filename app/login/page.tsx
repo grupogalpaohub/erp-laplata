@@ -13,7 +13,7 @@ export default function LoginPage() {
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
     setLoading(true); setErr(null);
-    const { error } = await supabaseBrowser.auth.signInWithPassword({ email, password });
+    const { error } = await supabaseBrowser().auth.signInWithPassword({ email, password });
     setLoading(false);
     if (error) { setErr(error.message); return; }
     router.replace("/dashboard");

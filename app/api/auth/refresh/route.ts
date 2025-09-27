@@ -1,32 +1,26 @@
-import { NextResponse } from "next/server";
-import { cookies } from "next/headers";
-import { createServerClient, type CookieOptions } from "@supabase/ssr";
+import { NextResponse } from 'next/server'
 
-export async function POST() {
-  const cookieStore = cookies();
+export async function POST(req: Request) {
+  const { event, session } = await req.json().catch(() => ({}))
+  const res = NextResponse.json({ ok: true })
 
-  const supabase = createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    {
-      cookies: {
-        get(name: string) {
-          return cookieStore.get(name)?.value;
-        },
-        // AQUI pode setar/remover (Route Handler)
-        set(name: string, value: string, options: CookieOptions) {
-          cookieStore.set(name, value, options);
-        },
-        remove(name: string, options: CookieOptions) {
-          cookieStore.set(name, "", { ...options, maxAge: 0 });
-        },
-      },
-      global: { headers: { "x-tenant-id": process.env.NEXT_PUBLIC_TENANT_ID! } },
-    }
-  );
+  const isProd = process.env.NODE_ENV === 'production'
+  const common = { httpOnly: true, secure: isProd, sameSite: 'lax' as const, path: '/' }
 
-  // força o supabase a sincronizar a sessão atual (refresca tokens se necessário)
-  await supabase.auth.getSession();
+  // se saiu ou sessão ausente -> limpa cookies
+  if (event === 'SIGNED_OUT' || !session?.access_token) {
+    res.cookies.set('sb-access-token', '', { ...common, maxAge: 0 })
+    res.cookies.set('sb-refresh-token', '', { ...common, maxAge: 0 })
+    return res
+  }
 
-  return NextResponse.json({ ok: true });
+  // seta/atualiza cookies httpOnly
+  res.cookies.set('sb-access-token', session.access_token, { ...common, maxAge: 60 * 60 }) // 1h
+  if (session.refresh_token) {
+    res.cookies.set('sb-refresh-token', session.refresh_token, {
+      ...common,
+      maxAge: 60 * 60 * 24 * 14, // 14d
+    })
+  }
+  return res
 }

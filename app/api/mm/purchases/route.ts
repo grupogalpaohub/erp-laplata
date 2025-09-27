@@ -10,7 +10,10 @@ export async function POST(req: Request) {
     mm_order: body.po_id, // ou gere no DB
     vendor_id: body.vendor_id ?? null,
     status: body.status ?? "draft",
-    po_date: body.created_date ?? new Date().toISOString().slice(0,10),
+    order_date: body.created_date ?? new Date().toISOString().slice(0,10),
+    po_date: body.created_date ?? new Date().toISOString().slice(0,10), // manter compatibilidade
+    total_cents: 0,
+    currency: 'BRL'
   };
 
   const { data, error } = await sb.from("mm_purchase_order").insert(po).select("*").single();

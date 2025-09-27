@@ -14,15 +14,25 @@ export async function PATCH(req: Request, { params }: { params: { mm_material: s
   const body = await req.json().catch(() => ({}));
   const sb = supabaseServer();
 
-  const patch: any = {
-    mm_comercial: body.mm_comercial ?? null,
-    mm_desc: body.mm_desc,
-    mm_mat_type: body.mm_mat_type ?? null,
-    mm_mat_class: body.mm_mat_class ?? null,
-    status: body.status ?? undefined,
-    mm_vendor_id: body.mm_vendor_id ?? null,
-  };
-  if (body.unit_price_brl != null) patch.mm_price_cents = toCents(String(body.unit_price_brl));
+              const patch: any = {
+                mm_comercial: body.mm_comercial ?? null,
+                mm_desc: body.mm_desc,
+                mm_mat_type: body.mm_mat_type ?? null,
+                mm_mat_class: body.mm_mat_class ?? null,
+                status: body.status ?? undefined,
+                mm_vendor_id: body.mm_vendor_id ?? null,
+                commercial_name: body.commercial_name ?? null,
+                unit_of_measure: body.unit_of_measure ?? null,
+                dimensions: body.dimensions ?? null,
+                purity: body.purity ?? null,
+                color: body.color ?? null,
+                finish: body.finish ?? null,
+                min_stock: body.min_stock ?? null,
+                max_stock: body.max_stock ?? null,
+                lead_time_days: body.lead_time_days ?? null
+              };
+              if (body.unit_price_brl != null) patch.mm_price_cents = toCents(String(body.unit_price_brl));
+              if (body.purchase_price_brl != null) patch.mm_purchase_price_cents = toCents(String(body.purchase_price_brl));
 
   const { data, error } = await sb.from("mm_material").update(patch).eq("mm_material", params.mm_material).select("*").single();
   if (error) return NextResponse.json({ ok:false, error: error.message }, { status: 400 });

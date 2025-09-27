@@ -16,7 +16,7 @@ export function middleware(req: NextRequest) {
   }
 
   if (access && isLogin) {
-    const to = new URL('/', req.url) // ou /dashboard
+    const to = new URL('/dashboard', req.url)
     return NextResponse.redirect(to)
   }
 

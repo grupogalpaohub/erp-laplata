@@ -23,16 +23,8 @@ export default function LoginPage() {
       return
     }
 
-    // pega a sessão e atualiza cookies httpOnly no servidor
-    const { data } = await supabase.auth.getSession()
-    await fetch('/api/auth/refresh', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ event: 'SIGNED_IN', session: data.session }),
-    })
-
     setLoading(false)
-    router.replace('/') // ou '/dashboard' se preferir
+    router.replace('/dashboard') // providers.tsx já cuida da sincronização
   }
 
   return (

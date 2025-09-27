@@ -9,12 +9,17 @@ export default function Providers({ children }: { children: React.ReactNode }) {
     const { data: sub } = supabase.auth.onAuthStateChange(async (event, session) => {
       // informa o servidor para setar/limpar cookies httpOnly
       try {
-        await fetch('/api/auth/refresh', {
+        const response = await fetch('/api/auth/refresh', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ event, session }),
         })
-      } catch {}
+        if (!response.ok) {
+          console.warn('Failed to sync session:', response.status)
+        }
+      } catch (error) {
+        console.warn('Session sync error:', error)
+      }
     })
 
     return () => sub?.subscription?.unsubscribe?.()

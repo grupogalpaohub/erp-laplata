@@ -1,9 +1,4 @@
-import { redirect } from "next/navigation";
-import { getServerSupabase } from "@/lib/supabase/server";
-
-export default async function ProtectedLayout({ children }: { children: React.ReactNode }) {
-  const supabase = getServerSupabase();
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) redirect("/login");
+// Layout protegido - autenticação é feita pelo middleware
+export default function ProtectedLayout({ children }: { children: React.ReactNode }) {
   return <>{children}</>;
 }

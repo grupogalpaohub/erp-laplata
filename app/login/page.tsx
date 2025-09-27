@@ -1,22 +1,38 @@
-"use client";
-import { useState } from "react";
-import { useRouter } from "next/navigation";
-import { supabaseBrowser } from "@/lib/supabase/client";
+'use client'
+import { useState } from 'react'
+import { useRouter } from 'next/navigation'
+import { supabaseBrowser } from '@/lib/supabase/client'
 
 export default function LoginPage() {
-  const [email, setEmail] = useState("admin@teste.com");
-  const [password, setPassword] = useState("teste123");
-  const [loading, setLoading] = useState(false);
-  const [err, setErr] = useState<string | null>(null);
-  const router = useRouter();
+  const [email, setEmail] = useState('admin@teste.com')
+  const [password, setPassword] = useState('teste123')
+  const [loading, setLoading] = useState(false)
+  const [err, setErr] = useState<string | null>(null)
+  const router = useRouter()
 
-  async function onSubmit(e: React.FormEvent) {
-    e.preventDefault();
-    setLoading(true); setErr(null);
-    const { error } = await supabaseBrowser().auth.signInWithPassword({ email, password });
-    setLoading(false);
-    if (error) { setErr(error.message); return; }
-    router.replace("/dashboard");
+  const onSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setErr(null)
+    setLoading(true)
+
+    const supabase = supabaseBrowser()
+    const { error } = await supabase.auth.signInWithPassword({ email, password })
+    if (error) {
+      setErr(error.message)
+      setLoading(false)
+      return
+    }
+
+    // pega a sessão e atualiza cookies httpOnly no servidor
+    const { data } = await supabase.auth.getSession()
+    await fetch('/api/auth/refresh', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ event: 'SIGNED_IN', session: data.session }),
+    })
+
+    setLoading(false)
+    router.replace('/') // ou '/dashboard' se preferir
   }
 
   return (

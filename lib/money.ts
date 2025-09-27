@@ -34,9 +34,12 @@ export const isValidCents = (value: any): value is number => {
 };
 
 /**
- * Converte número para centavos (alias para cents)
+ * Converte número ou string para centavos
  */
-export const toCents = (n: number) => Math.round(n * 100);
+export const toCents = (value: number | string) => {
+  const n = typeof value === 'string' ? Number(value.replace(/\./g,'').replace(',','.')) : value
+  return Math.round(n * 100)
+}
 
 /**
  * Formata valor em centavos para moeda brasileira

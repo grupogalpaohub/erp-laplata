@@ -1,0 +1,37 @@
+// app/api/mm/materials/[mm_material]/route.ts
+import { NextResponse } from "next/server";
+import { supabaseServer } from "@/lib/supabase/server";
+import { toCents } from "@/lib/money";
+
+export async function GET(_: Request, { params }: { params: { mm_material: string } }) {
+  const sb = supabaseServer();
+  const { data, error } = await sb.from("mm_material").select("*").eq("mm_material", params.mm_material).single();
+  if (error) return NextResponse.json({ ok:false, error: error.message }, { status: 404 });
+  return NextResponse.json({ ok:true, material: data });
+}
+
+export async function PATCH(req: Request, { params }: { params: { mm_material: string } }) {
+  const body = await req.json().catch(() => ({}));
+  const sb = supabaseServer();
+
+  const patch: any = {
+    mm_comercial: body.mm_comercial ?? null,
+    mm_desc: body.mm_desc,
+    mm_mat_type: body.mm_mat_type ?? null,
+    mm_mat_class: body.mm_mat_class ?? null,
+    status: body.status ?? undefined,
+    mm_vendor_id: body.mm_vendor_id ?? null,
+  };
+  if (body.unit_price_brl != null) patch.mm_price_cents = toCents(String(body.unit_price_brl));
+
+  const { data, error } = await sb.from("mm_material").update(patch).eq("mm_material", params.mm_material).select("*").single();
+  if (error) return NextResponse.json({ ok:false, error: error.message }, { status: 400 });
+  return NextResponse.json({ ok:true, material: data });
+}
+
+export async function DELETE(_: Request, { params }: { params: { mm_material: string } }) {
+  const sb = supabaseServer();
+  const { error } = await sb.from("mm_material").delete().eq("mm_material", params.mm_material);
+  if (error) return NextResponse.json({ ok:false, error: error.message }, { status: 400 });
+  return NextResponse.json({ ok:true });
+}

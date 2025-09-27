@@ -1,23 +1,9 @@
+import { supabaseServer } from '@/lib/supabase/server'
 import { NextResponse } from 'next/server'
-import { createServerClient } from '@supabase/ssr'
-import { cookies } from 'next/headers'
 
 export async function POST(req: Request) {
-  // ✅ GUARDRAIL COMPLIANCE: API usando @supabase/ssr e cookies()
-  const cookieStore = cookies()
-  const supabase = createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    {
-      cookies: {
-        get(name: string) {
-          return cookieStore.get(name)?.value
-        },
-        set() {},
-        remove() {}
-      }
-    }
-  )
+  // ✅ GUARDRAIL COMPLIANCE: API usando supabaseServer()
+  const sb = supabaseServer()
   const { event, session } = await req.json().catch(() => ({}))
   const res = NextResponse.json({ ok: true })
 

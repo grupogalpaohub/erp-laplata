@@ -47,13 +47,22 @@ const isMatch = (file: string, patterns: string[]) => {
     if (!inMig && ((isCode && ddl.test(src)) || (isSql && ddl.test(src)))) {
       hit(v,file,"DDL fora de migrations","Movimente DDL para supabase/migrations/*.sql.");
     }
-    // 4) app/api/** deve usar @supabase/ssr + cookies()
+    // 4) app/api/** deve usar SSR + cookies OU o helper supabaseServer()
     if (inApi && isCode) {
       const usesBrowser = /from\s+['"]@supabase\/supabase-js['"]/.test(src) && /createClient\s*\(/.test(src);
+
+      // caminho A: usa diretamente SSR + cookies()
       const hasSSR = /from\s+['"]@supabase\/ssr['"]/.test(src) && /createServerClient\s*\(/.test(src);
       const hasCookies = /from\s+['"]next\/headers['"]/.test(src) && /cookies\s*\(/.test(src);
-      if (usesBrowser || !(hasSSR && hasCookies)) {
-        hit(v,file,"API sem requisito (SSR + cookies())","Troque para createServerClient de '@supabase/ssr' com cookies().");
+
+      // caminho B: usa helper supabaseServer() (importado do util central)
+      const usesHelper =
+        /supabaseServer\s*\(/.test(src) &&
+        /from\s+['"][.@\/\w-]*supabase\/server['"]/.test(src); // ex: "@/utils/supabase/server"
+
+      if (usesBrowser || !( (hasSSR && hasCookies) || usesHelper )) {
+        hit(v, file, "API sem requisito (SSR + cookies())",
+          "Use createServerClient de '@supabase/ssr' com cookies() OU o helper supabaseServer().");
       }
     }
     // 5) tenant hardcoded

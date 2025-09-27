@@ -18,7 +18,10 @@
     "prepush": "bash .githooks/pre-push",
     "investigate": "node scripts/guardrails/deep-investigation.js",
     "fix:api-ssr": "tsx scripts/fix-api-ssr.ts",
-    "cleanup": "tsx scripts/cleanup-repo.ts"
+    "cleanup": "tsx scripts/cleanup-repo.ts",
+    "test:rls": "tsx scripts/test-rls.ts",
+    "audit:policies": "tsx scripts/audit-policies.ts",
+    "test:login": "tsx scripts/test-login.ts"
   },
   "dependencies": {
     "@radix-ui/react-slot": "^1.2.3",

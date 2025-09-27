@@ -1,3 +1,4 @@
+-- moved by cleanup-repo.ts from sql/erp_mm_material_triggers.sql
 -- =========================================
 -- PATCH: MM Material Logs (PARTE 2)
 -- - Coluna price_last_updated_at
@@ -84,3 +85,4 @@ when (
   (new.mm_vendor_id  is distinct from old.mm_vendor_id)
 )
 execute function public.log_material_nonprice_changes();
+

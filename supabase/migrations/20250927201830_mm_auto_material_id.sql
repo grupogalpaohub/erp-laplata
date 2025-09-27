@@ -1,3 +1,4 @@
+-- moved by cleanup-repo.ts from sql/mm_auto_material_id.sql
 -- =========================================
 -- PATCH: Geração Automática de Material ID
 -- - Função para gerar ID baseado no tipo
@@ -161,3 +162,4 @@ begin
   end loop;
 end;
 $$;
+

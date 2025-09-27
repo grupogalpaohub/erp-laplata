@@ -7,3 +7,7 @@ node_modules/
 .env
 .env.*
 !.env.example
+supabase_full.dump
+supabase_full.sql
+supabase_data.sql
+supabase/backup/

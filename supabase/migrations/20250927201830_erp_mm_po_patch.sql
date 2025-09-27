@@ -1,3 +1,4 @@
+-- moved by cleanup-repo.ts from sql/erp_mm_po_patch.sql
 -- =========================================
 -- PATCH: ERP MM + Purchase Orders Enhancements (PARTE 1)
 -- - Campos em mm_purchase_order
@@ -149,3 +150,4 @@ begin
     create index idx_mm_poi_po on public.mm_purchase_order_item(po_id);
   end if;
 end $$;
+

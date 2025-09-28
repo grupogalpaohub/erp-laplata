@@ -8,9 +8,28 @@ export function supabaseServer() {
   const jar = cookies();
   return createServerClient(SUPABASE_URL, SUPABASE_ANON, {
     cookies: {
-      get: (n) => jar.get(n)?.value,
-      set: (n, v, o) => jar.set({ name: n, value: v, path: "/", httpOnly: true, sameSite: "lax", secure: isProd, ...o }),
-      remove: (n, o) => jar.set({ name: n, value: "", path: "/", httpOnly: true, sameSite: "lax", secure: isProd, maxAge: 0, ...o }),
+      get: (name) => jar.get(name)?.value,
+      set: (name, value, options) =>
+        jar.set({
+          name,
+          value,
+          path: "/",
+          httpOnly: true,
+          sameSite: "lax",
+          secure: isProd,
+          ...options,
+        }),
+      remove: (name, options) =>
+        jar.set({
+          name,
+          value: "",
+          path: "/",
+          httpOnly: true,
+          sameSite: "lax",
+          secure: isProd,
+          maxAge: 0,
+          ...options,
+        }),
     },
   });
 }

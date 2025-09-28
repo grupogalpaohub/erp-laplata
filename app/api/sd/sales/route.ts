@@ -11,8 +11,6 @@ export async function GET(req: Request) {
   const q = url.searchParams.get("q")?.trim() ?? "";
   const page = Number(url.searchParams.get("page") ?? 1);
   const pageSize = Math.min(Number(url.searchParams.get("pageSize") ?? 50), 200);
-
-  const sb = supabaseServer();
   let query = sb.from("sd_sales_order").select("*", { count: "exact" }).order("order_date", { ascending: false });
   if (q) query = query.ilike("doc_no", `%${q}%`);
 

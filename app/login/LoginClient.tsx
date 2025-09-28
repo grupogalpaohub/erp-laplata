@@ -1,40 +1,64 @@
-'use client'
-import Link from 'next/link'
-import { useEffect } from 'react'
-import { useRouter } from 'next/navigation'
-import { supabaseBrowser } from '@/lib/supabase/client'
+'use client';
 
-export default function LoginClient({ next }: { next: string }) {
-  const router = useRouter()
+import { useState } from 'react';
+import { useRouter } from 'next/navigation';
+import { supabaseBrowser } from '@/lib/supabase/client';
 
-  useEffect(() => {
-    const hash = typeof window !== 'undefined' ? window.location.hash : ''
-    if (hash && hash.includes('access_token')) {
-      const params = new URLSearchParams(hash.replace(/^#/, ''))
-      const access_token = params.get('access_token') || ''
-      const refresh_token = params.get('refresh_token') || ''
-      if (access_token && refresh_token) {
-        const sb = supabaseBrowser()
-        sb.auth.setSession({ access_token, refresh_token }).finally(() => router.replace(next))
-        return
+export default function LoginClient() {
+  const [email, setEmail] = useState('admin@teste.com');
+  const [password, setPassword] = useState('teste123');
+  const [loading, setLoading] = useState(false);
+  const [err, setErr] = useState<string | null>(null);
+  const router = useRouter();
+
+  async function onSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    setErr(null);
+    setLoading(true);
+    try {
+      const { data, error } = await supabaseBrowser.auth.signInWithPassword({ email, password });
+      if (error) { setErr(error.message); return; }
+
+      const s = data.session;
+      if (s) {
+        await fetch('/api/auth/sync', {
+          method: 'POST',
+          headers: { 'content-type': 'application/json' },
+          body: JSON.stringify({ access_token: s.access_token, refresh_token: s.refresh_token }),
+          credentials: 'include',
+        });
       }
-      router.replace(next)
+      router.replace('/dashboard');
+    } catch (e: any) {
+      setErr(String(e?.message ?? e));
+    } finally {
+      setLoading(false);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
-
-  const siteURL = process.env.NEXT_PUBLIC_SITE_URL || ''
-  const googleUrl = `${process.env.NEXT_PUBLIC_SUPABASE_URL}/auth/v1/authorize?provider=google&redirect_to=${encodeURIComponent(`${siteURL}/auth/callback?next=${encodeURIComponent(next)}`)}`
+  }
 
   return (
-    <main style={{ padding: '2rem' }}>
-      <h1>Entrar</h1>
-      <p>Faça login para acessar o sistema</p>
-      <a href={googleUrl}>Continuar com Google</a>
-      <p style={{ marginTop: 12 }}>
-        <Link href="/">Voltar</Link>
-      </p>
-    </main>
-  )
-}
+    <main className="min-h-dvh flex items-center justify-center">
+      <form onSubmit={onSubmit} className="w-full max-w-sm space-y-4">
+        <h1 className="text-xl font-semibold">Entrar</h1>
 
+        <label className="block text-sm">
+          <span className="block mb-1">E-mail</span>
+          <input type="email" className="w-full border rounded px-3 py-2"
+                 defaultValue={email} onChange={(e)=>setEmail(e.target.value)} required />
+        </label>
+
+        <label className="block text-sm">
+          <span className="block mb-1">Senha</span>
+          <input type="password" className="w-full border rounded px-3 py-2"
+                 defaultValue={password} onChange={(e)=>setPassword(e.target.value)} required />
+        </label>
+
+        {err && <p className="text-sm text-red-500">{err}</p>}
+
+        <button type="submit" disabled={loading} className="w-full rounded px-3 py-2 border">
+          {loading ? 'Entrando...' : 'Entrar'}
+        </button>
+      </form>
+    </main>
+  );
+}

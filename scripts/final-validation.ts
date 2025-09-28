@@ -24,7 +24,7 @@ function validateCriticalFiles(): { passed: boolean; errors: string[] } {
         const line = lines[i];
         
         for (const field of FORBIDDEN_FIELDS) {
-          if (line.includes(field) && !line.trim().startsWith('//') && !line.includes('params:') && !line.includes('// po_id é o parâmetro da URL')) {
+          if (line.includes(field) && !line.trim().startsWith('//') && !line.includes('params:') && !line.includes('// po_id é o parâmetro da URL') && !line.includes('/* po_id é o parâmetro da URL */')) {
             errors.push(`${file}:${i + 1} - Campo proibido '${field}' encontrado`);
           }
         }

@@ -1,6 +1,7 @@
 import { createServerClient } from '@supabase/ssr'
 import { cookies } from 'next/headers'
 import { NextResponse } from "next/server";
+import { getTenantFromSession } from '@/lib/auth'
 
 export async function GET(req: Request) {
   // ✅ GUARDRAIL COMPLIANCE: API usando @supabase/ssr e cookies()
@@ -26,7 +27,10 @@ export async function GET(req: Request) {
   const from = (page - 1) * pageSize;
   const to = from + pageSize - 1;
 
-  const { data, count, error } = await query.range(from, to);
+  // Obter tenant_id da sessão
+  const tenant_id = await getTenantFromSession(sb)
+  
+  const { data, count, error } = await query.eq('tenant_id', tenant_id).range(from, to);
   if (error) return NextResponse.json({ ok:false, error: error.message }, { status: 400 });
 
   return NextResponse.json({ ok:true, items: data, total: count ?? 0, page, pageSize });

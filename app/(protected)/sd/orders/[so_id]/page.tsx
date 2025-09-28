@@ -1,5 +1,6 @@
 import Link from 'next/link'
-import { supabaseServer } from '@/utils/supabase/server'
+import { createServerClient } from '@supabase/ssr'
+import { cookies } from 'next/headers'
 import { requireSession } from '@/lib/auth/requireSession'
 import { formatBRL } from '@/lib/money'
 import { ArrowLeft, Edit, CheckCircle, XCircle, DollarSign, Percent } from 'lucide-react'
@@ -45,7 +46,16 @@ export default async function SalesOrderDetailPage({ params }: { params: { so_id
   let error = ''
 
   try {
-    const supabase = supabaseServer()
+    const cookieStore = cookies()
+    const supabase = createServerClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+      { cookies: { get: (k) => cookieStore.get(k)?.value } }
+    )
+    
+    // Obter tenant_id da sessão
+    const { data: { session } } = await supabase.auth.getSession()
+    const tenant_id = session?.user?.user_metadata?.tenant_id || 'LaplataLunaria'
 
     // Buscar pedido
     const { data: orderData, error: orderError } = await supabase
@@ -66,6 +76,7 @@ export default async function SalesOrderDetailPage({ params }: { params: { so_id
         created_at,
         crm_customer(name)
       `)
+      .eq('tenant_id', tenant_id)
       .eq('so_id', so_id)
       .single()
 
@@ -84,8 +95,13 @@ export default async function SalesOrderDetailPage({ params }: { params: { so_id
           unit_price_cents,
           line_total_cents,
           row_no,
-          mm_material
+          mm_material,
+          material:mm_material!inner (
+            mm_desc,
+            mm_comercial
+          )
         `)
+        .eq('tenant_id', tenant_id)
         .eq('so_id', so_id)
         .order('row_no')
 
@@ -236,7 +252,7 @@ export default async function SalesOrderDetailPage({ params }: { params: { so_id
                     </tr>
                   </thead>
                   <tbody>
-                    {items.map((item) => (
+                    {(items ?? []).map((item) => (
                       <tr key={item.row_no}>
                         <td>
                           <div>

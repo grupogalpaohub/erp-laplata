@@ -24,9 +24,10 @@ export async function GET() {
     .from("mm_material")
     .select("*")
     .eq("tenant_id", tenant_id)
+    .order('created_at', { ascending: false })
     .limit(50);
     
-  return Response.json({ ok: !error, items: data ?? [], error });
+  return Response.json({ ok: !error, data: data ?? [], error });
 }
 
 export async function POST(req: Request) {
@@ -37,13 +38,36 @@ export async function POST(req: Request) {
     { cookies: { get: (n) => cookieStore.get(n)?.value } }
   )
 
-  const tenant_id = await getTenantFromSession(supabase)
   const body = await req.json()
 
-  // Guardrail: não aceitar mm_material do payload
-  if ('mm_material' in body) delete body.mm_material
+  // GUARDRAIL: Bloquear tenant_id do payload
+  if ('tenant_id' in body) {
+    return Response.json({
+      ok: false,
+      error: { code: 'TENANT_FORBIDDEN', message: 'tenant_id não pode vir do payload' }
+    }, { status: 400 });
+  }
 
-  // Campos mínimos (ajuste se precisar)
+  // GUARDRAIL: Derivar tenant_id da sessão
+  const { data: session } = await supabase.auth.getSession();
+  if (!session?.session?.user) {
+    return Response.json({
+      ok: false,
+      error: { code: 'UNAUTHORIZED', message: 'Usuário não autenticado' }
+    }, { status: 401 });
+  }
+  
+  const tenant_id = session.session.user.user_metadata?.tenant_id || 'LaplataLunaria';
+
+  // GUARDRAIL: não aceitar mm_material do payload
+  if ('mm_material' in body) {
+    return Response.json({
+      ok: false,
+      error: { code: 'MM_MATERIAL_FORBIDDEN', message: 'mm_material não pode vir do payload' }
+    }, { status: 400 });
+  }
+
+  // Campos mínimos
   const payload = {
     tenant_id,
     mm_desc: body.mm_desc ?? '',
@@ -53,7 +77,7 @@ export async function POST(req: Request) {
     mm_purchase_price_cents: body.mm_purchase_price_cents ?? null,
     mm_price_cents: body.mm_price_cents ?? null,
     mm_vendor_id: body.mm_vendor_id ?? null,
-    unit_of_measure: body.unit_of_measure ?? null,
+    unit_of_measure: body.unit_of_measure ?? 'unidade',
     barcode: body.barcode ?? null,
     weight_grams: body.weight_grams ?? null,
     status: body.status ?? "active",

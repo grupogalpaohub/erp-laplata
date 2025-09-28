@@ -4,16 +4,11 @@ import { cookies } from 'next/headers';
 import { z } from 'zod';
 
 // Schema baseado no Inventário 360° real
-const PoItemSchema = z.object({
+const CreatePOItemBody = z.object({
   mm_order: z.string().min(1),
-  plant_id: z.string().min(1),
   mm_material: z.string().min(1),
-  mm_qtt: z.number(),
-  unit_cost_cents: z.number().int(),
-  line_total_cents: z.number().int().optional(),
-  freeze_item_price: z.boolean().optional(),
-  currency: z.string().optional(),
-  notes: z.string().optional(),
+  mm_qtt: z.number().positive(),
+  unit_cost_cents: z.number().int().positive(),
 });
 
 export async function POST(req: NextRequest) {
@@ -35,7 +30,7 @@ export async function POST(req: NextRequest) {
       }, { status: 400 });
     }
 
-    const parse = PoItemSchema.safeParse(body);
+    const parse = CreatePOItemBody.safeParse(body);
     if (!parse.success) {
       return NextResponse.json({
         ok: false,
@@ -86,24 +81,37 @@ export async function POST(req: NextRequest) {
       }, { status: 400 });
     }
 
-    // Calcular line_total_cents se não fornecido
-    const line_total_cents = dto.line_total_cents || (dto.mm_qtt * dto.unit_cost_cents);
+    // Calcular line_total_cents
+    const line_total_cents = dto.mm_qtt * dto.unit_cost_cents;
+
+    // Obter próximo row_no para o item
+    const { data: lastItem } = await supabase
+      .from('mm_purchase_order_item')
+      .select('row_no')
+      .eq('tenant_id', tenant_id)
+      .eq('mm_order', dto.mm_order)
+      .order('row_no', { ascending: false })
+      .limit(1)
+      .single();
+
+    const row_no = (lastItem?.row_no || 0) + 1;
 
     const { data, error } = await supabase
       .from('mm_purchase_order_item')
       .insert({
         tenant_id,
         mm_order: dto.mm_order,
-        plant_id: dto.plant_id,
+        plant_id: 'PLANT_001', // Default plant
         mm_material: dto.mm_material,
         mm_qtt: dto.mm_qtt,
         unit_cost_cents: dto.unit_cost_cents,
         line_total_cents,
-        freeze_item_price: dto.freeze_item_price,
-        currency: dto.currency,
-        notes: dto.notes,
+        row_no,
       })
-      .select()
+      .select(`
+        *,
+        material:mm_material(mm_material, mm_desc, commercial_name)
+      `)
       .single();
 
     if (error) {

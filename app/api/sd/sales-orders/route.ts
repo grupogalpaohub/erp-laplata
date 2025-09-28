@@ -3,16 +3,14 @@ import { createServerClient } from '@supabase/ssr';
 import { cookies } from 'next/headers';
 import { z } from 'zod';
 
-// Schema baseado no Inventário 360° real
-const SoHeaderSchema = z.object({
-  so_id: z.string().min(1).optional(),
+// Schema baseado no Inventário 360° real - so_id será gerado pelo DB
+const CreateSOBody = z.object({
   customer_id: z.string().min(1),
   order_date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(),
   expected_ship: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(),
   payment_method: z.string().optional(),
   payment_term: z.string().optional(),
   notes: z.string().optional(),
-  status: z.enum(['draft','approved','invoiced','cancelled']).optional(),
 });
 
 export async function POST(req: NextRequest) {
@@ -34,7 +32,7 @@ export async function POST(req: NextRequest) {
       }, { status: 400 });
     }
 
-    const parse = SoHeaderSchema.safeParse(body);
+    const parse = CreateSOBody.safeParse(body);
     if (!parse.success) {
       return NextResponse.json({
         ok: false,
@@ -70,27 +68,21 @@ export async function POST(req: NextRequest) {
       }, { status: 400 });
     }
 
-    // Gerar so_id se não fornecido
-    let so_id = dto.so_id;
-    if (!so_id) {
-      // TODO: Chamar public.next_doc_number(tenant_id, 'SO')
-      so_id = `SO-${Date.now()}`;
-    }
-
+    // GUARDRAIL: Não enviar so_id - será gerado pelo trigger do DB
     const { data, error } = await supabase
       .from('sd_sales_order')
       .insert({
         tenant_id,
-        so_id,
         customer_id: dto.customer_id,
         order_date: dto.order_date,
         expected_ship: dto.expected_ship,
         payment_method: dto.payment_method,
         payment_term: dto.payment_term,
         notes: dto.notes,
-        status: dto.status || 'draft',
+        status: 'draft',
+        total_final_cents: 0,
       })
-      .select()
+      .select('tenant_id, so_id, customer_id, order_date, expected_ship, payment_method, payment_term, notes, status, total_final_cents')
       .single();
 
     if (error) {

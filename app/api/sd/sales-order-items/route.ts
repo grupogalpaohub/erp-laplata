@@ -3,13 +3,11 @@ import { createServerClient } from '@supabase/ssr';
 import { cookies } from 'next/headers';
 import { z } from 'zod';
 
-const SoItemSchema = z.object({
+const CreateSOItemBody = z.object({
   so_id: z.string().min(1),
-  row_no: z.number().int().optional(),
   mm_material: z.string().min(1),        // Chave de material
-  sku: z.string().optional(),
-  quantity: z.number(),                  // numeric no DB
-  unit_price_cents: z.number().int(),
+  quantity: z.number().positive(),       // numeric no DB
+  unit_price_cents: z.number().int().positive(),
 });
 
 export async function POST(req: NextRequest) {
@@ -31,7 +29,7 @@ export async function POST(req: NextRequest) {
       }, { status: 400 });
     }
 
-    const parse = SoItemSchema.safeParse(body);
+    const parse = CreateSOItemBody.safeParse(body);
     if (!parse.success) {
       return NextResponse.json({
         ok: false,
@@ -82,22 +80,36 @@ export async function POST(req: NextRequest) {
       }, { status: 400 });
     }
 
-    // Calcular line_total_cents (DB trigger fará se necessário)
+    // Calcular line_total_cents
     const line_total_cents = dto.quantity * dto.unit_price_cents;
+
+    // Obter próximo row_no para o item
+    const { data: lastItem } = await supabase
+      .from('sd_sales_order_item')
+      .select('row_no')
+      .eq('tenant_id', tenant_id)
+      .eq('so_id', dto.so_id)
+      .order('row_no', { ascending: false })
+      .limit(1)
+      .single();
+
+    const row_no = (lastItem?.row_no || 0) + 1;
 
     const { data, error } = await supabase
       .from('sd_sales_order_item')
       .insert({
         tenant_id,
         so_id: dto.so_id,
-        row_no: dto.row_no,
+        row_no,
         mm_material: dto.mm_material,    // Chave de material
-        sku: dto.sku,                    // Campo informativo
         quantity: dto.quantity,
         unit_price_cents: dto.unit_price_cents,
         line_total_cents,
       })
-      .select()
+      .select(`
+        *,
+        material:mm_material(mm_material, mm_desc, commercial_name)
+      `)
       .single();
 
     if (error) {

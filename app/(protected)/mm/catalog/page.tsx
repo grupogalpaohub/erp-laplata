@@ -37,6 +37,10 @@ async function fetchMaterials(): Promise<Material[]> {
     }
   )
   
+  // Obter tenant_id da sessão
+  const { data: { session } } = await supabase.auth.getSession()
+  const tenant_id = session?.user?.user_metadata?.tenant_id || 'LaplataLunaria'
+  
   const { data, error } = await supabase
     .from('mm_material')
     .select(`
@@ -53,6 +57,7 @@ async function fetchMaterials(): Promise<Material[]> {
       mm_vendor_id,
       status
     `)
+    .eq('tenant_id', tenant_id)
     .order('mm_material', { ascending: true })
     .limit(100)
 
@@ -132,7 +137,7 @@ export default async function CatalogoMateriais({ searchParams }: { searchParams
                 </tr>
               </thead>
               <tbody>
-                {(materials || []).map((material) => (
+                {(materials ?? []).map((material) => (
                   <tr key={material.mm_material}>
                     <td className="font-mono text-sm font-medium text-blue-600">{material.mm_material}</td>
                     <td>

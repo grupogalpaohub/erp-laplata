@@ -2,7 +2,8 @@ export const dynamic = 'force-dynamic'
 export const revalidate = 0
 export const runtime = 'nodejs'
 import { requireSession } from '@/lib/auth/requireSession'
-import { supabaseServer } from '@/utils/supabase/server'
+import { createServerClient } from '@supabase/ssr'
+import { cookies } from 'next/headers'
 import { formatBRL } from '@/lib/money'
 import Link from 'next/link'
 import ExportCSVButton from './ExportCSVButton'
@@ -22,7 +23,17 @@ type PO = {
 
 export default async function PurchaseOrdersPage({ searchParams }: { searchParams: any }) {
   await requireSession() // Verificar se está autenticado
-  const supabase = supabaseServer()
+  
+  const cookieStore = cookies()
+  const supabase = createServerClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    { cookies: { get: (k) => cookieStore.get(k)?.value } }
+  )
+  
+  // Obter tenant_id da sessão
+  const { data: { session } } = await supabase.auth.getSession()
+  const tenant_id = session?.user?.user_metadata?.tenant_id || 'LaplataLunaria'
   
   let q = supabase
     .from('mm_purchase_order')
@@ -34,7 +45,7 @@ export default async function PurchaseOrdersPage({ searchParams }: { searchParam
       total_cents,
       mm_vendor!left(vendor_name)
     `)
-    // RLS filtra automaticamente por tenant
+    .eq('tenant_id', tenant_id)
     .order('po_date', { ascending: false })
 
   if (searchParams.status) q = q.eq('status', searchParams.status)

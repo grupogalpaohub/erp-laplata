@@ -1,5 +1,6 @@
 import Link from 'next/link'
-import { supabaseServer } from '@/utils/supabase/server'
+import { createServerClient } from '@supabase/ssr'
+import { cookies } from 'next/headers'
 import { formatBRL } from '@/lib/money'
 import { Search, Download, Plus, Eye, Edit, CheckCircle, XCircle } from 'lucide-react'
 import StatusActionButtons from './StatusActionButtons'
@@ -32,9 +33,18 @@ export default async function SalesOrdersPage() {
   let totalCount = 0
 
   try {
-    const supabase = supabaseServer()
+    const cookieStore = cookies()
+    const supabase = createServerClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+      { cookies: { get: (k) => cookieStore.get(k)?.value } }
+    )
+    
+    // Obter tenant_id da sessão
+    const { data: { session } } = await supabase.auth.getSession()
+    const tenant_id = session?.user?.user_metadata?.tenant_id || 'LaplataLunaria'
 
-    // Buscar pedidos com paginação (RLS decide tenant)
+    // Buscar pedidos com paginação
     const { data, count, error } = await supabase
       .from('sd_sales_order')
       .select(`
@@ -53,6 +63,7 @@ export default async function SalesOrdersPage() {
         created_at,
         crm_customer(name)
       `, { count: 'exact' })
+      .eq('tenant_id', tenant_id)
       .order('order_date', { ascending: false })
       .limit(25)
 
@@ -193,7 +204,7 @@ export default async function SalesOrdersPage() {
                   </tr>
                 </thead>
                 <tbody>
-                  {orders.map((order) => (
+                  {(orders ?? []).map((order) => (
                     <tr key={order.so_id}>
                       <td>
                         <span className="font-mono text-sm text-fiori-primary">

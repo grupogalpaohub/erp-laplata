@@ -3,18 +3,12 @@ import { createServerClient } from '@supabase/ssr';
 import { cookies } from 'next/headers';
 import { z } from 'zod';
 
-// Schema baseado no Inventário 360° real
-const PoHeaderSchema = z.object({
-  mm_order: z.string().min(1),
+// Schema baseado no Inventário 360° real - mm_order será gerado pelo DB
+const CreatePOBody = z.object({
   vendor_id: z.string().min(1),
   order_date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
-  po_date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(),
   expected_delivery: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(),
-  currency: z.string().optional(),
-  total_cents: z.number().int().optional(),
-  total_amount: z.number().int().optional(),
   notes: z.string().optional(),
-  status: z.string().optional(),
 });
 
 export async function POST(req: NextRequest) {
@@ -36,7 +30,7 @@ export async function POST(req: NextRequest) {
       }, { status: 400 });
     }
 
-    const parse = PoHeaderSchema.safeParse(body);
+    const parse = CreatePOBody.safeParse(body);
     if (!parse.success) {
       return NextResponse.json({
         ok: false,
@@ -72,22 +66,20 @@ export async function POST(req: NextRequest) {
       }, { status: 400 });
     }
 
+    // GUARDRAIL: Não enviar mm_order - será gerado pelo trigger do DB
     const { data, error } = await supabase
       .from('mm_purchase_order')
       .insert({
         tenant_id,
-        mm_order: dto.mm_order,
         vendor_id: dto.vendor_id,
         order_date: dto.order_date,
-        po_date: dto.po_date,
         expected_delivery: dto.expected_delivery,
-        currency: dto.currency,
-        total_cents: dto.total_cents,
-        total_amount: dto.total_amount,
         notes: dto.notes,
-        status: dto.status,
+        status: 'draft',
+        currency: 'BRL',
+        total_cents: 0,
       })
-      .select()
+      .select('tenant_id, mm_order, vendor_id, order_date, expected_delivery, notes, status, total_cents')
       .single();
 
     if (error) {

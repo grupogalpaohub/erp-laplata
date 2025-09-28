@@ -2,7 +2,7 @@ export const dynamic = 'force-dynamic';
 export const revalidate = 0;
 export const fetchCache = 'force-no-store';
 
-import { supabaseServer } from '@/lib/supabase/server'
+import { supabaseServer } from '@/utils/supabase/server'
 // import { DataTable } from '@/components/DataTable'
 
 type Row = {

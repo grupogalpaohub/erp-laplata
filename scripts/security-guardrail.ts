@@ -58,7 +58,7 @@ const isMatch = (file: string, patterns: string[]) => {
       // caminho B: usa helper supabaseServer() (importado do util central)
       const usesHelper =
         /supabaseServer\s*\(/.test(src) &&
-        /from\s+['"][.@\/\w-]*supabase\/server['"]/.test(src); // ex: "@/lib/supabase/server"
+        /from\s+['"][.@\/\w-]*supabase\/server['"]/.test(src); // ex: "@/utils/supabase/server"
 
       if (usesBrowser || !( (hasSSR && hasCookies) || usesHelper )) {
         hit(v, file, "API sem requisito (SSR + cookies())",

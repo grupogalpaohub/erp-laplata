@@ -1,7 +1,7 @@
 import Link from 'next/link'
 import { ArrowLeft, Save } from 'lucide-react'
 import { requireSession } from '@/lib/auth/requireSession'
-import { supabaseServer } from '@/lib/supabase/server'
+import { supabaseServer } from '@/utils/supabase/server'
 import { redirect } from 'next/navigation'
 
 export const dynamic = 'force-dynamic'

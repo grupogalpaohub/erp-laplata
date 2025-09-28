@@ -1,4 +1,4 @@
-import { supabaseServer } from '@/lib/supabase/server'
+import { supabaseServer } from '@/utils/supabase/server'
 import { requireSession } from '@/lib/auth/requireSession'
 import Link from 'next/link'
 import { ArrowUpDown, ArrowUp, ArrowDown, Package, Calendar } from 'lucide-react'

@@ -1,4 +1,4 @@
-import { supabaseServer } from "@/lib/supabase/server";
+import { supabaseServer } from "@/utils/supabase/server";
 
 export async function GET() {
   const s = await supabaseServer().auth.getSession();

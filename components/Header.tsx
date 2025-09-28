@@ -1,5 +1,5 @@
 import Link from 'next/link'
-import { getSupabaseServerClient } from '@/lib/supabase/server'
+import { getSupabaseServerClient } from '@/utils/supabase/server'
 
 export default async function Header() {
   const sb = getSupabaseServerClient()

@@ -1,6 +1,6 @@
 "use server"
 
-import { supabaseServer } from '@/lib/supabase/server'
+import { supabaseServer } from '@/utils/supabase/server'
 import { requireSession } from "@/lib/auth/requireSession"
 import { toCents } from "@/lib/money"
 import { revalidatePath } from "next/cache"

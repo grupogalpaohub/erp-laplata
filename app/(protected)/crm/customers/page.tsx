@@ -1,5 +1,5 @@
 import Link from 'next/link'
-import { supabaseServer } from '@/lib/supabase/server'
+import { supabaseServer } from '@/utils/supabase/server'
 import { Plus, Edit, Eye } from 'lucide-react'
 
 export const dynamic = 'force-dynamic'

@@ -1,4 +1,4 @@
-import { getSupabaseServerClient } from '@/lib/supabase/server';
+import { getSupabaseServerClient } from '@/utils/supabase/server';
 import { ENV } from '@/lib/env';
 
 export async function getTenantId() {

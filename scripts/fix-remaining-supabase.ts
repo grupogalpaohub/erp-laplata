@@ -28,7 +28,7 @@ function fixFile(filePath: string) {
     // Substituir import
     newContent = newContent.replace(
       /import\s*{\s*getSupabaseServerClient\s*}\s*from\s*["']@\/lib\/supabase\/server["']/g,
-      "import { supabaseServer } from '@/lib/supabase/server'"
+      "import { supabaseServer } from '@/utils/supabase/server'"
     )
     
     // Substituir uso

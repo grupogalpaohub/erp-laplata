@@ -1,7 +1,7 @@
 import Link from 'next/link'
 import { ArrowLeft } from 'lucide-react'
 import { requireSession } from '@/lib/auth/requireSession'
-import { getServerSupabase } from '@/lib/supabase/server'
+import { getServerSupabase } from '@/utils/supabase/server'
 import { formatBRL } from '@/lib/money'
 
 export const dynamic = 'force-dynamic'

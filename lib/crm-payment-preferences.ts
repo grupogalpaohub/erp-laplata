@@ -1,4 +1,4 @@
-import { getSupabaseServerClient } from '@/lib/supabase/server';
+import { getSupabaseServerClient } from '@/utils/supabase/server';
 
 /**
  * Atualiza as preferências de pagamento de um cliente baseado no histórico de pagamentos

@@ -1,4 +1,4 @@
-import { supabaseServer, getTenantFromSession } from '@/lib/supabase/server'
+import { supabaseServer, getTenantFromSession } from '@/utils/supabase/server'
 import { success, fail } from '@/utils/http'
 import { parsePagination } from '@/utils/pagination'
 import { CRM_CustomerSchema, validateNoTenantId } from '@/utils/validation/schemas'

@@ -1,4 +1,4 @@
-import { getSupabaseServerClient } from "@/lib/supabase/server";
+import { getSupabaseServerClient } from "@/utils/supabase/server";
 
 export type SalesOrderRow = {
   so_id?: string | null;

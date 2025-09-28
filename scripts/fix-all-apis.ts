@@ -21,7 +21,7 @@ import fs from "fs";
 
     // Adicionar import do supabaseServer
     if (!/from\s+['"]@\/lib\/supabase\/server['"]/.test(s)) {
-      s = `import { supabaseServer } from '@/lib/supabase/server'\n` + s;
+      s = `import { supabaseServer } from '@/utils/supabase/server'\n` + s;
     }
 
     // Substituir criação manual do cliente

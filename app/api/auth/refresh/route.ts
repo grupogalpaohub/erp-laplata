@@ -1,21 +1,10 @@
-// app/api/auth/refresh/route.ts
-import { NextResponse } from "next/server";
-import { createServerClient } from '@supabase/ssr'
-import { cookies } from 'next/headers'
+import { NextResponse } from 'next/server'
+import { supabaseServer } from '@/utils/supabase/server'
 
-export async function GET() {
-  const cookieStore = cookies()
-  const sb = createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    {
-      cookies: {
-        get(name: string) {
-          return cookieStore.get(name)?.value
-        },
-      },
-    }
-  )
-  const { data } = await sb.auth.getSession();
-  return NextResponse.json({ ok: true, session: !!data.session });
+export async function POST() {
+  const supabase = supabaseServer()
+  const { data, error } = await supabase.auth.refreshSession()
+
+  if (error) return NextResponse.json({ error: error.message }, { status: 401 })
+  return NextResponse.json({ session: data.session })
 }

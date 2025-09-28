@@ -21,19 +21,17 @@ export default function LoginClient() {
     const { data, error } = await sb.auth.signInWithPassword({ email, password });
     if (error || !data.session) { setErr(error?.message ?? "Login inválido"); setLoading(false); return; }
 
-    // 2) sync SSR cookies
+    // 2) sync SSR cookies - agora a API usa supabaseServer() com cookies completos
     await fetch("/api/auth/sync", {
       method: "POST",
-      headers: { "content-type": "application/json" },
-      body: JSON.stringify({
-        access_token: data.session.access_token,
-        refresh_token: data.session.refresh_token,
-      }),
       credentials: "include",
     });
 
-    // 3) opcional: ping
-    await fetch("/api/auth/refresh", { credentials: "include" });
+    // 3) refresh session
+    await fetch("/api/auth/refresh", { 
+      method: "POST",
+      credentials: "include" 
+    });
 
     setLoading(false);
     router.replace("/dashboard");

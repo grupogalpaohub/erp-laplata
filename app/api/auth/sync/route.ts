@@ -5,6 +5,6 @@ export async function POST() {
   const supabase = supabaseServer()
   const { data, error } = await supabase.auth.getSession()
 
-  if (error) return NextResponse.json({ error: error.message }, { status: 401 })
-  return NextResponse.json({ session: data.session })
+  if (error) return NextResponse.json({ ok: false, error: error.message }, { status: 401 })
+  return NextResponse.json({ ok: true, session: data.session })
 }

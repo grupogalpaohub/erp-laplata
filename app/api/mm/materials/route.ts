@@ -1,89 +1,42 @@
-import { supabaseServer, getTenantFromSession } from '@/utils/supabase/server'
+import { NextResponse } from 'next/server'
+import { supabaseServer } from '@/utils/supabase/server'
 
-export async function GET() {
-  const sb = supabaseServer()
-  
-  // Obter tenant_id da sessão
-  const { data: { session } } = await sb.auth.getSession()
-  const tenant_id = session?.user?.user_metadata?.tenant_id || 'LaplataLunaria'
-  
-  const { data, error } = await sb
-    .from("mm_material")
-    .select("*")
-    .eq("tenant_id", tenant_id)
-    .order('created_at', { ascending: false })
-    .limit(50);
-    
-  return Response.json({ ok: !error, data: data ?? [], error });
-}
+const TENANT = 'LaplataLunaria'
 
 export async function POST(req: Request) {
-  const supabase = supabaseServer()
+  try {
+    const supabase = supabaseServer()
+    const { data: auth } = await supabase.auth.getUser()
+    if (!auth?.user) return NextResponse.json({ ok: false, error: 'UNAUTHENTICATED' }, { status: 401 })
 
-  const body = await req.json()
+    const body = await req.json().catch(() => ({} as any))
+    const mm_desc = (body?.mm_desc ?? '').toString().trim()
+    let mm_material = (body?.mm_material ?? '').toString().trim()
 
-  // GUARDRAIL: Bloquear tenant_id do payload
-  if ('tenant_id' in body) {
-    return Response.json({
-      ok: false,
-      error: { code: 'TENANT_FORBIDDEN', message: 'tenant_id não pode vir do payload' }
-    }, { status: 400 });
+    if (!mm_desc) return NextResponse.json({ ok: false, error: 'Campo mm_desc é obrigatório.' }, { status: 400 })
+
+    // gera código se não vier pronto
+    if (!mm_material) {
+      const { data: doc, error: docErr } = await supabase.rpc('next_doc_number', {
+        p_tenant_id: TENANT,
+        p_doc_type : 'MAT',
+      })
+      if (docErr || !doc) {
+        return NextResponse.json({
+          ok: false,
+          error: `doc_numbering ausente/inativo para (${TENANT}).(MAT)`
+        }, { status: 409 })
+      }
+      mm_material = String(doc)
+    }
+
+    const { error: insErr } = await supabase
+      .from('mm_material')
+      .insert([{ tenant_id: TENANT, mm_material, mm_desc, created_at: new Date().toISOString() }])
+
+    if (insErr) return NextResponse.json({ ok: false, error: insErr.message }, { status: 400 })
+    return NextResponse.json({ ok: true, mm_material }, { status: 201 })
+  } catch {
+    return NextResponse.json({ ok: false, error: 'Erro inesperado ao criar material.' }, { status: 500 })
   }
-
-  // GUARDRAIL: Derivar tenant_id da sessão
-  const { data: session } = await supabase.auth.getSession();
-  if (!session?.session?.user) {
-    return Response.json({
-      ok: false,
-      error: { code: 'UNAUTHORIZED', message: 'Usuário não autenticado' }
-    }, { status: 401 });
-  }
-  
-  const tenant_id = session.session.user.user_metadata?.tenant_id || 'LaplataLunaria';
-
-  // GUARDRAIL: não aceitar mm_material do payload
-  if ('mm_material' in body) {
-    return Response.json({
-      ok: false,
-      error: { code: 'MM_MATERIAL_FORBIDDEN', message: 'mm_material não pode vir do payload' }
-    }, { status: 400 });
-  }
-
-  // Campos mínimos
-  const payload = {
-    tenant_id,
-    mm_desc: body.mm_desc ?? '',
-    commercial_name: body.commercial_name ?? null,
-    mm_mat_type: body.mm_mat_type ?? null,
-    mm_mat_class: body.mm_mat_class ?? null,
-    mm_purchase_price_cents: body.mm_purchase_price_cents ?? null,
-    mm_price_cents: body.mm_price_cents ?? null,
-    mm_vendor_id: body.mm_vendor_id ?? null,
-    unit_of_measure: body.unit_of_measure ?? 'unidade',
-    barcode: body.barcode ?? null,
-    weight_grams: body.weight_grams ?? null,
-    status: body.status ?? "active",
-    mm_pur_link: body.mm_pur_link ?? null,
-    dimensions: body.dimensions ?? null,
-    purity: body.purity ?? null,
-    color: body.color ?? null,
-    finish: body.finish ?? null,
-    min_stock: body.min_stock ?? 0,
-    max_stock: body.max_stock ?? 1000,
-    lead_time_days: body.lead_time_days ?? 7,
-    price_last_updated_at: new Date().toISOString(),
-    mm_comercial: body.mm_comercial ?? null
-  }
-
-  const { data, error } = await supabase
-    .from('mm_material')
-    .insert([payload])
-    .select('tenant_id, mm_material, mm_desc, commercial_name')
-    .single()
-
-  if (error) {
-    return Response.json({ ok:false, error: { code:'MM_CREATE_FAILED', message: error.message }}, { status: 400 })
-  }
-
-  return Response.json({ ok:true, data })
 }

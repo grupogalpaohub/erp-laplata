@@ -8,13 +8,9 @@ export function supabaseServer() {
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
     {
       cookies: {
-        get: (name: string) => cookieStore.get(name)?.value,
-        set: (name: string, value: string, options: any) => {
-          try { cookieStore.set({ name, value, ...options }) } catch {}
-        },
-        remove: (name: string, options: any) => {
-          try { cookieStore.set({ name, value: '', ...options, maxAge: 0 }) } catch {}
-        },
+        get: (n: string) => cookieStore.get(n)?.value,
+        set: (n: string, v: string, o: any) => { try { cookieStore.set({ name: n, value: v, ...o }) } catch {} },
+        remove: (n: string, o: any) => { try { cookieStore.set({ name: n, value: '', ...o, maxAge: 0 }) } catch {} },
       },
     }
   )

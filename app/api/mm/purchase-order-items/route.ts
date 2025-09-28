@@ -139,7 +139,7 @@ export async function POST(req: Request): Promise<NextResponse<ApiResponse<MM_Pu
       notes: body.notes ?? null,
       currency: body.currency ?? null,
       quantity: body.quantity ?? null,
-      material_id: body.material_id ?? null,
+      // material_id removido - usar mm_material
       freeze_item_price: body.freeze_item_price ?? null,
     };
     

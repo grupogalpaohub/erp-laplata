@@ -1,34 +1,21 @@
-import { supabaseServer } from '@/lib/supabase/server'
 // app/api/mm/purchases/[po_id]/items/route.ts
-import { NextResponse } from "next/server";
+// ROTA LEGACY - Redirecionamento para nova API
+// GUARDRAIL COMPLIANCE: Apenas redirecionamento, sem Supabase
 
-
-import { toCents } from "@/lib/money";
+import { NextResponse } from 'next/server';
 
 export async function GET(_: Request, { params }: { params: { po_id: string } }) {
-  // ✅ GUARDRAIL COMPLIANCE: API usando @supabase/ssr e cookies()
-  const sb = supabaseServer()
-  const { data, error } = await sb.from("mm_purchase_order_item").select("*").eq("mm_order", params.po_id).order("po_item_id");
-  if (error) return NextResponse.json({ ok:false, error: error.message }, { status: 400 });
-  return NextResponse.json({ ok:true, items: data });
+  // Redirecionar para nova API
+  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000';
+  return NextResponse.redirect(
+    new URL(`/api/mm/purchase-order-items?mm_order=${encodeURIComponent(params.po_id)}`, baseUrl)
+  );
 }
 
 export async function POST(req: Request, { params }: { params: { po_id: string } }) {
-  const body = await req.json().catch(() => ({}));
-  // ✅ GUARDRAIL COMPLIANCE: API usando @supabase/ssr e cookies()
-  const sb = supabaseServer()
-
-  const item = {
-    mm_order: params.po_id,
-    plant_id: body.plant_id ?? "001", // Default plant
-    mm_material: body.mm_material,
-    mm_qtt: Number(body.mm_qtt ?? body.qty ?? 1),
-    unit_cost_cents: body.unit_price_brl != null ? toCents(String(body.unit_price_brl)) : 0,
-    line_total_cents: Number(body.mm_qtt ?? body.qty ?? 1) * (body.unit_price_brl != null ? toCents(String(body.unit_price_brl)) : 0),
-    notes: body.notes ?? null,
-  };
-
-  const { data, error } = await sb.from("mm_purchase_order_item").insert(item).select("*").single();
-  if (error) return NextResponse.json({ ok:false, error: error.message }, { status: 400 });
-  return NextResponse.json({ ok:true, item: data }, { status: 201 });
+  // Redirecionar para nova API
+  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000';
+  return NextResponse.redirect(
+    new URL(`/api/mm/purchase-order-items`, baseUrl)
+  );
 }

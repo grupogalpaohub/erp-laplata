@@ -19,7 +19,7 @@ export async function POST(req: Request) {
   const body = await req.json().catch(() => ({}));
 
   const po = {
-    mm_order: body.mm_order, // CORRETO - não po_id
+    mm_order: body.mm_order, // Campo correto
     vendor_id: body.vendor_id ?? null,
     order_date: body.order_date ?? new Date().toISOString().slice(0,10), // OBRIGATÓRIO
     status: body.status ?? "draft",

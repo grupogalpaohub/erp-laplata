@@ -170,7 +170,7 @@ export async function POST(req: Request): Promise<NextResponse<ApiResponse<SD_Sa
     const soi: SD_SalesOrderItem = {
       tenant_id,
       so_id: body.so_id,
-      mm_material: body.mm_material,              // CORRETO - não material_id
+      mm_material: body.mm_material,              // Campo correto
       quantity: body.quantity,                    // string (numeric)
       unit_price_cents: body.unit_price_cents,
       line_total_cents: body.line_total_cents,

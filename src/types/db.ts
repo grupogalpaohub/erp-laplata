@@ -428,7 +428,7 @@ export const FORBIDDEN_FIELDS = {
 // ============================================================================
 
 export const FIELD_MAPPINGS = {
-  // OLD -> NEW
+  // OLD -> NEW (para migração)
   'po_id': 'mm_order',
   'transaction_type': 'type',
   'movement_type': 'type',

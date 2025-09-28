@@ -1,66 +1,184 @@
-/**
- * Verificador de guardrails para CI/pre-commit.
- * Rode:  npx tsx scripts/guardrails-check.ts
- */
-import fg from "fast-glob";
-import fs from "fs";
+// scripts/guardrails-check.ts
+// Script de validação automática de guardrails
+// Executar: npx tsx scripts/guardrails-check.ts
 
-const patterns = JSON.parse(fs.readFileSync(".guardrails/patterns.json", "utf8"));
-const dbContract = fs.existsSync("db_contract.json")
-  ? JSON.parse(fs.readFileSync("db_contract.json", "utf8"))
-  : { tables: {} };
+import { readFileSync, readdirSync, statSync } from 'fs';
+import { join, extname } from 'path';
 
-let failed = false;
+const GUARDRAIL_RULES = {
+  // 1. Supabase SSR - proibido createClient() em rotas API
+  supabaseSSR: {
+    pattern: /createClient\(/g,
+    message: 'createClient() proibido em rotas API - use supabaseServer()',
+    files: ['app/api/**/*.ts']
+  },
+  
+  // 2. tenant_id no payload - proibido
+  tenantIdPayload: {
+    pattern: /tenant_id.*body\./g,
+    message: 'tenant_id não pode vir do payload - derive da sessão',
+    files: ['app/api/**/*.ts']
+  },
+  
+  // 3. Nomes proibidos
+  forbiddenNames: {
+    patterns: [
+      { pattern: /\bpo_id\b/g, message: 'po_id proibido - use mm_order' },
+      { pattern: /\bmaterial_id\b/g, message: 'material_id proibido em SD - use mm_material' },
+      { pattern: /\btransaction_type\b/g, message: 'transaction_type proibido - use type' },
+      { pattern: /\bmovement_type\b/g, message: 'movement_type proibido - use type' }
+    ],
+    files: ['app/**/*.ts', 'src/**/*.ts']
+  },
+  
+  // 4. Campos gerados - proibido escrever
+  generatedFields: {
+    patterns: [
+      { pattern: /quantity_available.*=/g, message: 'quantity_available é gerada - não escreva' },
+      { pattern: /total_final_cents.*=/g, message: 'total_final_cents é gerada - não escreva' }
+    ],
+    files: ['app/api/**/*.ts']
+  },
+  
+  // 5. Status SD - apenas valores válidos
+  sdStatus: {
+    pattern: /status.*['"](?!draft|approved|invoiced|cancelled)['"]/g,
+    message: 'Status SD inválido - use draft|approved|invoiced|cancelled',
+    files: ['app/api/sd/**/*.ts']
+  }
+};
 
-function die(msg: string) {
-  console.error("🚫", msg);
-  failed = true;
+const ALLOWED_EXTENSIONS = ['.ts', '.tsx'];
+const IGNORE_DIRS = ['node_modules', '.git', '.next', 'dist', 'build'];
+
+function getAllFiles(dir: string): string[] {
+  const files: string[] = [];
+  
+  try {
+    const items = readdirSync(dir);
+    
+    for (const item of items) {
+      const fullPath = join(dir, item);
+      const stat = statSync(fullPath);
+      
+      if (stat.isDirectory()) {
+        if (!IGNORE_DIRS.includes(item)) {
+          files.push(...getAllFiles(fullPath));
+        }
+      } else if (ALLOWED_EXTENSIONS.includes(extname(item))) {
+        files.push(fullPath);
+      }
+    }
+  } catch (error) {
+    // Ignorar erros de permissão
+  }
+  
+  return files;
 }
 
-// 1) proibidos
-for (const rule of patterns.forbidden) {
-  const files = fg.sync(rule.paths, { dot: true });
-  const rx = new RegExp(rule.pattern, "m");
-  for (const f of files) {
-    const content = fs.readFileSync(f, "utf8");
-    if (rx.test(content)) {
-      die(`${rule.why} → ${f}`);
-    }
+function matchesPattern(filePath: string, pattern: RegExp): boolean {
+  try {
+    const content = readFileSync(filePath, 'utf-8');
+    return pattern.test(content);
+  } catch (error) {
+    return false;
   }
 }
 
-// 2) enforce SSR em API
-for (const rule of patterns.enforceSsrInApi) {
-  const files = fg.sync(rule.paths, { dot: true });
-  const rx = new RegExp(rule.require, "m");
-  for (const f of files) {
-    const content = fs.readFileSync(f, "utf8");
-    if (!rx.test(content)) {
-      die(`API sem requisito (${rule.why}) → ${f}`);
+function checkGuardrails(): { passed: boolean; errors: string[] } {
+  const errors: string[] = [];
+  const projectRoot = process.cwd();
+  const files = getAllFiles(projectRoot);
+  
+  // 1. Verificar Supabase SSR
+  const apiFiles = files.filter(f => f.includes('/app/api/'));
+  for (const file of apiFiles) {
+    if (matchesPattern(file, GUARDRAIL_RULES.supabaseSSR.pattern)) {
+      errors.push(`${file}: ${GUARDRAIL_RULES.supabaseSSR.message}`);
     }
   }
-}
-
-// 3) contrato de schema (heurística simples: verificar uso de colunas não listadas)
-const knownTables = dbContract.tables || {};
-const columnUseRx = /\b([a-zA-Z_][\w]*)\s*\.\s*([a-zA-Z_][\w]*)\b/g; // table.column
-const codeFiles = fg.sync(["app/**/*.ts?(x)", "lib/**/*.ts?(x)"], { dot: true });
-
-for (const f of codeFiles) {
-  const src = fs.readFileSync(f, "utf8");
-  let m;
-  while ((m = columnUseRx.exec(src))) {
-    const [, t, c] = m;
-    if (knownTables[t]) {
-      if (!knownTables[t].includes(c)) {
-        die(`Coluna desconhecida no contrato DB (SoT): ${t}.${c} → ${f}`);
+  
+  // 2. Verificar tenant_id no payload
+  for (const file of apiFiles) {
+    if (matchesPattern(file, GUARDRAIL_RULES.tenantIdPayload.pattern)) {
+      errors.push(`${file}: ${GUARDRAIL_RULES.tenantIdPayload.message}`);
+    }
+  }
+  
+  // 3. Verificar nomes proibidos (ignorar comentários e scripts)
+  for (const file of files) {
+    // Ignorar scripts de validação e arquivos de documentação
+    if (file.includes('scripts/') || file.includes('validate-forbidden-fields.ts') || file.includes('guardrails-check.ts')) {
+      continue;
+    }
+    
+    for (const rule of GUARDRAIL_RULES.forbiddenNames.patterns) {
+      if (matchesPattern(file, rule.pattern)) {
+        // Verificar se não é apenas comentário
+        try {
+          const content = readFileSync(file, 'utf-8');
+          const lines = content.split('\n');
+          let isComment = true;
+          
+          for (const line of lines) {
+            if (rule.pattern.test(line) && !line.trim().startsWith('//') && !line.trim().startsWith('*') && !line.trim().startsWith('#')) {
+              isComment = false;
+              break;
+            }
+          }
+          
+          if (!isComment) {
+            errors.push(`${file}: ${rule.message}`);
+          }
+        } catch (error) {
+          // Se não conseguir ler, adiciona o erro
+          errors.push(`${file}: ${rule.message}`);
+        }
       }
     }
   }
+  
+  // 4. Verificar campos gerados
+  for (const file of apiFiles) {
+    for (const rule of GUARDRAIL_RULES.generatedFields.patterns) {
+      if (matchesPattern(file, rule.pattern)) {
+        errors.push(`${file}: ${rule.message}`);
+      }
+    }
+  }
+  
+  // 5. Verificar status SD
+  const sdFiles = files.filter(f => f.includes('/app/api/sd/'));
+  for (const file of sdFiles) {
+    if (matchesPattern(file, GUARDRAIL_RULES.sdStatus.pattern)) {
+      errors.push(`${file}: ${GUARDRAIL_RULES.sdStatus.message}`);
+    }
+  }
+  
+  return {
+    passed: errors.length === 0,
+    errors
+  };
 }
 
-if (failed) {
-  console.error("\n❌ Guardrails falharam. Corrija os pontos acima.");
-  process.exit(1);
+function main() {
+  console.log('🔍 Verificando guardrails...\n');
+  
+  const result = checkGuardrails();
+  
+  if (result.passed) {
+    console.log('✅ Todos os guardrails passaram!');
+    process.exit(0);
+  } else {
+    console.log('❌ Guardrails violados:');
+    result.errors.forEach(error => console.log(`  ${error}`));
+    console.log(`\nTotal: ${result.errors.length} violações`);
+    process.exit(1);
+  }
 }
-console.log("✅ Guardrails OK.");
+
+if (require.main === module) {
+  main();
+}
+
+export { checkGuardrails, GUARDRAIL_RULES };

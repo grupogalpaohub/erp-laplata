@@ -2,35 +2,46 @@
 
 import { useEffect } from 'react'
 import { usePathname, useSearchParams } from 'next/navigation'
+import { supabaseBrowser } from '@/utils/supabase/browser'
 
-async function syncOnce() {
+async function pushSession() {
   try {
-    await fetch('/api/auth/sync', { method: 'POST', credentials: 'include' })
-    await fetch('/api/auth/refresh', { method: 'POST', credentials: 'include' })
+    const supabase = supabaseBrowser()
+    const { data } = await supabase.auth.getSession()
+    const at = data.session?.access_token
+    const rt = data.session?.refresh_token
+    if (!at || !rt) return
+    await fetch('/api/auth/sync', {
+      method: 'POST',
+      credentials: 'include',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ access_token: at, refresh_token: rt }),
+    })
   } catch {}
 }
 
 export function Providers({ children }: { children: React.ReactNode }) {
   const pathname = usePathname()
   const search = useSearchParams()
+  const supabase = supabaseBrowser()
 
   // 1) Ao montar
-  useEffect(() => { syncOnce() }, [])
+  useEffect(() => { pushSession() }, [])
 
-  // 2) Ao mudar de rota (pathname ou query)
-  useEffect(() => { syncOnce() }, [pathname, search?.toString()])
-
-  // 3) Ao voltar o foco na aba
+  // 2) Em toda mudança de auth
   useEffect(() => {
-    const onVis = () => { if (document.visibilityState === 'visible') syncOnce() }
+    const { data: sub } = supabase.auth.onAuthStateChange(() => { pushSession() })
+    return () => { sub.subscription.unsubscribe() }
+  }, [supabase])
+
+  // 3) Ao mudar de rota/query
+  useEffect(() => { pushSession() }, [pathname, search?.toString()])
+
+  // 4) Ao voltar o foco
+  useEffect(() => {
+    const onVis = () => { if (document.visibilityState === 'visible') pushSession() }
     document.addEventListener('visibilitychange', onVis)
     return () => document.removeEventListener('visibilitychange', onVis)
-  }, [])
-
-  // 4) Heartbeat a cada 15 min (mantém sessão viva no servidor)
-  useEffect(() => {
-    const id = setInterval(syncOnce, 15 * 60 * 1000)
-    return () => clearInterval(id)
   }, [])
 
   return <>{children}</>

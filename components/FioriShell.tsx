@@ -3,8 +3,18 @@ import { getUserServer } from '@/lib/auth/getUserServer'
 import { ENV } from '@/lib/env'
 
 export default async function FioriShell({ children }: { children: React.ReactNode }) {
-  const user = await getUserServer();
-  const isAuthenticated = !!user;
+  let user = null;
+  let isAuthenticated = false;
+  
+  try {
+    user = await getUserServer();
+    isAuthenticated = !!user;
+  } catch (error) {
+    console.error('Erro ao obter usuário:', error);
+    // Em caso de erro, assumir não autenticado
+    user = null;
+    isAuthenticated = false;
+  }
 
   return (
     <div className="min-h-screen bg-fiori-primary">

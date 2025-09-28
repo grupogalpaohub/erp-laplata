@@ -3,16 +3,13 @@ import { createServerClient } from '@supabase/ssr';
 import { cookies } from 'next/headers';
 import { z } from 'zod';
 
-const SD_SalesOrderItemSchema = z.object({
+const SoItemSchema = z.object({
   so_id: z.string().min(1),
-  mm_material: z.string().min(1),        // Campo ativo - FK obrigatória
-  sku: z.string().optional(),            // Campo legado mantido
-  quantity: z.number().positive(),
-  unit_price_cents: z.number().int(),
-  line_total_cents: z.number().int().optional(),
   row_no: z.number().int().optional(),
-  unit_price_cents_at_order: z.number().int().optional(),
-  material_id: z.string().optional(),    // Campo legado mantido
+  mm_material: z.string().min(1),        // Chave de material
+  sku: z.string().optional(),
+  quantity: z.number(),                  // numeric no DB
+  unit_price_cents: z.number().int(),
 });
 
 export async function POST(req: NextRequest) {
@@ -34,7 +31,7 @@ export async function POST(req: NextRequest) {
       }, { status: 400 });
     }
 
-    const parse = SD_SalesOrderItemSchema.safeParse(body);
+    const parse = SoItemSchema.safeParse(body);
     if (!parse.success) {
       return NextResponse.json({
         ok: false,
@@ -75,22 +72,20 @@ export async function POST(req: NextRequest) {
       }, { status: 400 });
     }
 
-    // Calcular line_total_cents se não fornecido
-    const line_total_cents = dto.line_total_cents || (dto.quantity * dto.unit_price_cents);
+    // Calcular line_total_cents (DB trigger fará se necessário)
+    const line_total_cents = dto.quantity * dto.unit_price_cents;
 
     const { data, error } = await supabase
       .from('sd_sales_order_item')
       .insert({
         tenant_id,
         so_id: dto.so_id,
-        mm_material: dto.mm_material,    // Campo ativo
-        sku: dto.sku,                    // Campo legado
+        row_no: dto.row_no,
+        mm_material: dto.mm_material,    // Chave de material
+        sku: dto.sku,                    // Campo informativo
         quantity: dto.quantity,
         unit_price_cents: dto.unit_price_cents,
         line_total_cents,
-        row_no: dto.row_no,
-        unit_price_cents_at_order: dto.unit_price_cents_at_order,
-        material_id: dto.material_id,    // Campo legado
       })
       .select()
       .single();

@@ -1,233 +1,136 @@
-// app/api/fi/transactions/route.ts
-// API para Financial Transactions usando campos CORRETOS do schema real
-// GUARDRAIL COMPLIANCE: @supabase/ssr + cookies()
+import { NextRequest, NextResponse } from 'next/server';
+import { createServerClient } from '@supabase/ssr';
+import { cookies } from 'next/headers';
+import { z } from 'zod';
 
-import { NextResponse } from 'next/server';
-import { supabaseServer } from '@/utils/supabase/server';
-import { getTenantFromSession } from '@/utils/supabase/tenant';
-import { FI_Transaction, ApiResponse, PaginatedResponse } from '@/src/types/db';
+// Schema baseado no Inventário 360° real
+const FI_TransactionSchema = z.object({
+  transaction_id: z.string().min(1),
+  account_id: z.string().min(1),
+  type: z.enum(['debito', 'credito']),  // Enum real do banco
+  amount_cents: z.number().int(),
+  date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
+  description: z.string().optional(),
+});
 
-export async function GET(req: Request): Promise<NextResponse<PaginatedResponse<FI_Transaction>>> {
+export async function POST(req: NextRequest) {
   try {
-    const tenant_id = await getTenantFromSession();
-    const supabase = supabaseServer();
+    const cookieStore = cookies();
+    const supabase = createServerClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+      { cookies: { get: (k) => cookieStore.get(k)?.value } }
+    );
+
+    const body = await req.json();
     
-    const url = new URL(req.url);
-    const account_id = url.searchParams.get("account_id")?.trim();
-    const type = url.searchParams.get("type")?.trim();
-    const ref_type = url.searchParams.get("ref_type")?.trim();
-    const page = Number(url.searchParams.get("page") ?? 1);
-    const pageSize = Math.min(Number(url.searchParams.get("pageSize") ?? 50), 200);
-    
-    let query = supabase
+    // GUARDRAIL: Bloquear tenant_id do payload
+    if ('tenant_id' in body) {
+      return NextResponse.json({
+        ok: false,
+        error: { code: 'TENANT_FORBIDDEN', message: 'tenant_id não pode vir do payload' }
+      }, { status: 400 });
+    }
+
+    const parse = FI_TransactionSchema.safeParse(body);
+    if (!parse.success) {
+      return NextResponse.json({
+        ok: false,
+        error: { code: 'FI_INVALID_TYPE', message: parse.error.message }
+      }, { status: 400 });
+    }
+
+    const dto = parse.data;
+    const tenant_id = 'LaplataLunaria'; // TODO: derivar da sessão
+
+    // Validar FK account_id
+    const { data: account, error: accountError } = await supabase
+      .from('fi_account')
+      .select('account_id')
+      .eq('tenant_id', tenant_id)
+      .eq('account_id', dto.account_id)
+      .single();
+
+    if (accountError || !account) {
+      return NextResponse.json({
+        ok: false,
+        error: { code: 'FK_NOT_FOUND', message: 'account_id inexistente' }
+      }, { status: 400 });
+    }
+
+    const { data, error } = await supabase
+      .from('fi_transaction')
+      .insert({
+        tenant_id,
+        transaction_id: dto.transaction_id,
+        account_id: dto.account_id,
+        type: dto.type,
+        amount_cents: dto.amount_cents,
+        date: dto.date,
+        description: dto.description,
+      })
+      .select()
+      .single();
+
+    if (error) {
+      return NextResponse.json({
+        ok: false,
+        error: { code: 'DB_ERROR', message: error.message }
+      }, { status: 500 });
+    }
+
+    return NextResponse.json({ ok: true, data });
+
+  } catch (error) {
+    return NextResponse.json({
+      ok: false,
+      error: { code: 'DB_ERROR', message: 'Erro interno do servidor' }
+    }, { status: 500 });
+  }
+}
+
+export async function GET(req: NextRequest) {
+  try {
+    const cookieStore = cookies();
+    const supabase = createServerClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+      { cookies: { get: (k) => cookieStore.get(k)?.value } }
+    );
+
+    const { searchParams } = new URL(req.url);
+    const page = Math.max(1, Number(searchParams.get('page') || 1));
+    const pageSize = Math.min(100, Math.max(1, Number(searchParams.get('pageSize') || 20)));
+    const from = (page - 1) * pageSize;
+    const to = from + pageSize - 1;
+
+    const tenant_id = 'LaplataLunaria'; // TODO: derivar da sessão
+
+    const { data, count, error } = await supabase
       .from('fi_transaction')
       .select('*', { count: 'exact' })
       .eq('tenant_id', tenant_id)
-      .order('date', { ascending: false });
-    
-    if (account_id) {
-      query = query.eq('account_id', account_id);
-    }
-    
-    if (type) {
-      query = query.eq('type', type);
-    }
-    
-    if (ref_type) {
-      query = query.eq('ref_type', ref_type);
-    }
-    
-    const from = (page - 1) * pageSize;
-    const to = from + pageSize - 1;
-    
-    const { data, count, error } = await query.range(from, to);
-    
+      .range(from, to);
+
     if (error) {
       return NextResponse.json({
         ok: false,
-        error: { code: 'FI_FETCH_FAILED', message: error.message }
-      }, { status: 400 });
+        error: { code: 'DB_ERROR', message: error.message }
+      }, { status: 500 });
     }
-    
+
     return NextResponse.json({
       ok: true,
       data: data || [],
-      total: count ?? 0,
+      total: count || 0,
       page,
       pageSize
     });
-    
-  } catch (error: any) {
-    return NextResponse.json({
-      ok: false,
-      error: { code: 'FI_FETCH_ERROR', message: error.message }
-    }, { status: 500 });
-  }
-}
 
-export async function POST(req: Request): Promise<NextResponse<ApiResponse<FI_Transaction>>> {
-  try {
-    const tenant_id = await getTenantFromSession();
-    const supabase = supabaseServer();
-    const body = await req.json();
-    
-    // VALIDAÇÃO RIGOROSA: Campos obrigatórios da Transaction
-    const requiredFields = ['transaction_id', 'account_id', 'type', 'amount_cents'];
-    const missingFields = requiredFields.filter(field => !body[field]);
-    
-    if (missingFields.length > 0) {
-      return NextResponse.json({
-        ok: false,
-        error: { 
-          code: 'FI_MISSING_FIELDS', 
-          message: `Financial Transaction - Campos obrigatórios ausentes: ${missingFields.join(', ')}` 
-        }
-      }, { status: 400 });
-    }
-    
-    // VALIDAÇÃO: NUNCA aceitar tenant_id do payload
-    if (body.tenant_id) {
-      return NextResponse.json({
-        ok: false,
-        error: { 
-          code: 'FI_TENANT_FORBIDDEN', 
-          message: 'tenant_id é derivado da sessão - não pode ser fornecido no payload' 
-        }
-      }, { status: 400 });
-    }
-    
-    // Validar enum type
-    const validTypes = ['debito', 'credito'];
-    if (!validTypes.includes(body.type)) {
-      return NextResponse.json({
-        ok: false,
-        error: { 
-          code: 'FI_INVALID_TYPE', 
-          message: `Tipo inválido. Valores aceitos: ${validTypes.join(', ')}` 
-        }
-      }, { status: 400 });
-    }
-    
-    // Validar que amount_cents é um número
-    if (typeof body.amount_cents !== 'number') {
-      return NextResponse.json({
-        ok: false,
-        error: { 
-          code: 'FI_INVALID_AMOUNT', 
-          message: 'amount_cents deve ser um número' 
-        }
-      }, { status: 400 });
-    }
-    
-    const transaction: FI_Transaction = {
-      tenant_id,
-      transaction_id: body.transaction_id,        // OBRIGATÓRIO
-      account_id: body.account_id,                // OBRIGATÓRIO
-      type: body.type,                            // OBRIGATÓRIO - enum (debito/credito)
-      amount_cents: body.amount_cents,            // OBRIGATÓRIO
-      ref_type: body.ref_type ?? null,
-      ref_id: body.ref_id ?? null,
-      date: body.date ?? new Date().toISOString().split('T')[0], // yyyy-mm-dd
-      created_at: new Date().toISOString(),
-    };
-    
-    const { data, error } = await supabase
-      .from('fi_transaction')
-      .insert(transaction)
-      .select('*')
-      .single();
-    
-    if (error) {
-      return NextResponse.json({
-        ok: false,
-        error: { code: 'FI_CREATE_FAILED', message: error.message }
-      }, { status: 400 });
-    }
-    
-    return NextResponse.json({
-      ok: true,
-      data
-    }, { status: 201 });
-    
-  } catch (error: any) {
+  } catch (error) {
     return NextResponse.json({
       ok: false,
-      error: { code: 'FI_CREATE_ERROR', message: error.message }
-    }, { status: 500 });
-  }
-}
-
-export async function PUT(req: Request): Promise<NextResponse<ApiResponse<FI_Transaction>>> {
-  try {
-    const tenant_id = await getTenantFromSession();
-    const supabase = supabaseServer();
-    const body = await req.json();
-    
-    // Validar campos obrigatórios para update
-    const requiredFields = ['transaction_id'];
-    const missingFields = requiredFields.filter(field => !body[field]);
-    
-    if (missingFields.length > 0) {
-      return NextResponse.json({
-        ok: false,
-        error: { 
-          code: 'FI_MISSING_FIELDS', 
-          message: `Campos obrigatórios ausentes: ${missingFields.join(', ')}` 
-        }
-      }, { status: 400 });
-    }
-    
-    // Validar enum type se fornecido
-    if (body.type && !['debito', 'credito'].includes(body.type)) {
-      return NextResponse.json({
-        ok: false,
-        error: { 
-          code: 'FI_INVALID_TYPE', 
-          message: 'Tipo inválido. Valores aceitos: debito, credito' 
-        }
-      }, { status: 400 });
-    }
-    
-    const updateData: Partial<Omit<FI_Transaction, 'tenant_id' | 'transaction_id' | 'created_at'>> = {
-      account_id: body.account_id ?? undefined,
-      type: body.type ?? undefined,
-      amount_cents: body.amount_cents ?? undefined,
-      ref_type: body.ref_type ?? undefined,
-      ref_id: body.ref_id ?? undefined,
-      date: body.date ?? undefined,
-    };
-    
-    // Remover campos undefined
-    Object.keys(updateData).forEach(key => {
-      if (updateData[key as keyof typeof updateData] === undefined) {
-        delete updateData[key as keyof typeof updateData];
-      }
-    });
-    
-    const { data, error } = await supabase
-      .from('fi_transaction')
-      .update(updateData)
-      .eq('tenant_id', tenant_id)
-      .eq('transaction_id', body.transaction_id)
-      .select('*')
-      .single();
-    
-    if (error) {
-      return NextResponse.json({
-        ok: false,
-        error: { code: 'FI_UPDATE_FAILED', message: error.message }
-      }, { status: 400 });
-    }
-    
-    return NextResponse.json({
-      ok: true,
-      data
-    });
-    
-  } catch (error: any) {
-    return NextResponse.json({
-      ok: false,
-      error: { code: 'FI_UPDATE_ERROR', message: error.message }
+      error: { code: 'DB_ERROR', message: 'Erro interno do servidor' }
     }, { status: 500 });
   }
 }

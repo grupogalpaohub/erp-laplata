@@ -103,12 +103,14 @@ export interface SD_SalesOrder {
 export interface SD_SalesOrderItem {
   tenant_id: TenantId;
   so_id: string;
-  mm_material: string;                // NOT NULL - substitui material_id/sku
-  quantity: string;                   // numeric -> string para precisão
+  sku?: string;                       // Campo legado mantido
+  quantity: number;                   // numeric no banco real
   unit_price_cents: number;
   line_total_cents: number;
   row_no: number;
   unit_price_cents_at_order?: number | null; // preço no momento do pedido
+  material_id?: string;               // Campo legado mantido
+  mm_material: string;                // Campo ativo - FK para mm_material
 }
 
 // ============================================================================

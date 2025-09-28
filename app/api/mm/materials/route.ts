@@ -11,32 +11,39 @@ export async function POST(req: Request) {
 
     const body = await req.json().catch(() => ({} as any))
     const mm_desc = (body?.mm_desc ?? '').toString().trim()
-    let mm_material = (body?.mm_material ?? '').toString().trim()
 
     if (!mm_desc) return NextResponse.json({ ok: false, error: 'Campo mm_desc é obrigatório.' }, { status: 400 })
 
-    // gera código se não vier pronto
-    if (!mm_material) {
-      const { data: doc, error: docErr } = await supabase.rpc('next_doc_number', {
-        p_tenant_id: TENANT,
-        p_doc_type : 'MAT',
-      })
-      if (docErr || !doc) {
-        return NextResponse.json({
-          ok: false,
-          error: `doc_numbering ausente/inativo para (${TENANT}).(MAT)`
-        }, { status: 409 })
-      }
-      mm_material = String(doc)
+    // GUARDRAIL: Não aceitar mm_material do payload (será gerado pelo trigger)
+    if (body?.mm_material) {
+      return NextResponse.json({ 
+        ok: false, 
+        error: 'mm_material não deve ser enviado no payload (gerado automaticamente pelo trigger)' 
+      }, { status: 400 })
     }
 
-    const { error: insErr } = await supabase
+    // Inserir material - o trigger trg_mm_material_assign_id_bi gerará o mm_material automaticamente
+    const { data, error: insErr } = await supabase
       .from('mm_material')
-      .insert([{ tenant_id: TENANT, mm_material, mm_desc, created_at: new Date().toISOString() }])
+      .insert([{ 
+        tenant_id: TENANT, 
+        mm_desc,
+        // mm_material será gerado pelo trigger
+        status: 'active',
+        unit_of_measure: 'unidade',
+        min_stock: 0,
+        max_stock: 1000,
+        lead_time_days: 7,
+        mm_price_cents: 0,
+        mm_purchase_price_cents: 0
+      }])
+      .select('mm_material')
+      .single()
 
     if (insErr) return NextResponse.json({ ok: false, error: insErr.message }, { status: 400 })
-    return NextResponse.json({ ok: true, mm_material }, { status: 201 })
-  } catch {
+    return NextResponse.json({ ok: true, mm_material: data.mm_material }, { status: 201 })
+  } catch (error) {
+    console.error('Erro ao criar material:', error)
     return NextResponse.json({ ok: false, error: 'Erro inesperado ao criar material.' }, { status: 500 })
   }
 }

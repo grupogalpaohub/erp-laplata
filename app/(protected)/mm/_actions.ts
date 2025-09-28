@@ -1,50 +1,59 @@
 "use server"
 
-import { createServerClient } from '@supabase/ssr'
-import { cookies } from 'next/headers'
+import { supabaseServer } from '@/utils/supabase/server'
 import { requireSession } from "@/lib/auth/requireSession"
 import { toCents } from "@/lib/money"
 import { revalidatePath } from "next/cache"
 
-// Helper function para criar cliente Supabase com guardrails compliance
-function getSupabaseClient() {
-  const cookieStore = cookies()
-  return createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    {
-      cookies: {
-        get(name: string) {
-          return cookieStore.get(name)?.value
-        },
-      },
-    }
-  )
-}
-
 export async function createMaterial(formData: FormData) {
   await requireSession()
   
-  const supabase = getSupabaseClient()
+  const supabase = supabaseServer()
   
   // Obter tenant_id da sessão
   const { data: { session } } = await supabase.auth.getSession()
   const tenant_id = session?.user?.user_metadata?.tenant_id || 'LaplataLunaria'
   
+  // GUARDRAIL: Validar campos obrigatórios
+  const mm_desc = String(formData.get("mm_desc") ?? "").trim()
+  const mm_vendor_id = String(formData.get("mm_vendor_id") ?? "").trim()
+  const mm_price = Number(formData.get("mm_price") || 0)
+  const mm_purchase_price = Number(formData.get("mm_purchase_price") || 0)
+  
+  if (!mm_desc) {
+    throw new Error("Descrição é obrigatória")
+  }
+  
+  if (!mm_vendor_id) {
+    throw new Error("Fornecedor é obrigatório")
+  }
+  
+  if (mm_price <= 0) {
+    throw new Error("Preço de venda deve ser maior que zero")
+  }
+  
+  if (mm_purchase_price <= 0) {
+    throw new Error("Preço de compra deve ser maior que zero")
+  }
+  
   const payload = {
     tenant_id,
     // mm_material será gerado automaticamente pelo DB
     mm_comercial: String(formData.get("mm_comercial") ?? "").trim() || null,
-    mm_desc: String(formData.get("mm_desc") ?? "").trim(),
+    mm_desc,
     mm_mat_type: String(formData.get("mm_mat_type") ?? "").trim() || null,
     mm_mat_class: String(formData.get("mm_mat_class") ?? "").trim() || null,
-    mm_price_cents: toCents(Number(formData.get("mm_price") || 0)),
-    mm_purchase_price_cents: toCents(Number(formData.get("mm_purchase_price") || 0)),
+    mm_price_cents: toCents(mm_price),
+    mm_purchase_price_cents: toCents(mm_purchase_price),
     mm_pur_link: String(formData.get("mm_pur_link") ?? "").trim() || null,
     commercial_name: String(formData.get("commercial_name") ?? "").trim() || null,
-    lead_time_days: formData.get("lead_time_days") ? Number(formData.get("lead_time_days")) : null,
-    mm_vendor_id: String(formData.get("mm_vendor_id") ?? "").trim() || null,
-    status: String(formData.get("status") ?? "active").trim(),
+    lead_time_days: formData.get("lead_time_days") ? Number(formData.get("lead_time_days")) : 7,
+    mm_vendor_id,
+    status: "active",
+    unit_of_measure: "unidade",
+    min_stock: 0,
+    max_stock: 1000,
+    price_last_updated_at: new Date().toISOString(),
   }
 
   const { data, error } = await supabase
@@ -67,7 +76,7 @@ export async function createMaterial(formData: FormData) {
 export async function updateMaterial(mm_material: string, formData: FormData) {
   await requireSession()
   
-  const supabase = getSupabaseClient()
+  const supabase = supabaseServer()
   
   const payload = {
     mm_comercial: String(formData.get("mm_comercial") ?? "").trim() || null,
@@ -102,7 +111,7 @@ export async function updateMaterial(mm_material: string, formData: FormData) {
 export async function deleteMaterial(mm_material: string) {
   await requireSession()
   
-  const supabase = getSupabaseClient()
+  const supabase = supabaseServer()
   
   const { error } = await supabase
     .from("mm_material")
@@ -123,7 +132,7 @@ export async function deleteMaterial(mm_material: string) {
 export async function updatePurchaseOrderStatus(mm_order: string, formData: FormData) {
   await requireSession()
   
-  const supabase = getSupabaseClient()
+  const supabase = supabaseServer()
   
   const status = String(formData.get("status") ?? "").trim()
 
@@ -149,7 +158,7 @@ export async function updatePurchaseOrderStatus(mm_order: string, formData: Form
 export async function getVendors() {
   await requireSession()
   
-  const supabase = getSupabaseClient()
+  const supabase = supabaseServer()
   
   const { data, error } = await supabase
     .from("mm_vendor")
@@ -167,7 +176,7 @@ export async function getVendors() {
 
 export async function getMaterials() {
   await requireSession()
-  const supabase = getSupabaseClient()
+  const supabase = supabaseServer()
   
   // Obter tenant_id da sessão
   const { data: { session } } = await supabase.auth.getSession()
@@ -192,7 +201,7 @@ export async function getMaterials() {
 export async function getCustomizingData() {
   await requireSession()
   
-  const supabase = getSupabaseClient()
+  const supabase = supabaseServer()
   
   // Buscar tipos de material da tabela de definição
   const { data: types, error: typesError } = await supabase
@@ -230,7 +239,7 @@ export async function getCustomizingData() {
 export async function createPurchaseOrder(formData: FormData) {
   await requireSession()
   
-  const supabase = getSupabaseClient()
+  const supabase = supabaseServer()
   
   const vendor_id = String(formData.get("vendor_id") ?? "")
   const po_date = String(formData.get("po_date") ?? "")
@@ -271,7 +280,7 @@ export async function createPurchaseOrder(formData: FormData) {
 export async function validateBulkMaterials(materials: any[]) {
   await requireSession()
   
-  const supabase = getSupabaseClient()
+  const supabase = supabaseServer()
   const validationResults = []
   
   for (let i = 0; i < materials.length; i++) {
@@ -307,7 +316,7 @@ export async function validateBulkMaterials(materials: any[]) {
 export async function bulkImportMaterials(materials: any[]) {
   await requireSession()
   
-  const supabase = getSupabaseClient()
+  const supabase = supabaseServer()
   const results = []
   
   for (const material of materials) {
@@ -347,7 +356,7 @@ export async function bulkImportMaterials(materials: any[]) {
 export async function bulkUpdateMaterials(updates: any[]) {
   await requireSession()
   
-  const supabase = getSupabaseClient()
+  const supabase = supabaseServer()
   const results = []
   
   for (const update of updates) {

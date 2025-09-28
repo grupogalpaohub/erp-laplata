@@ -25,48 +25,45 @@ export async function GET(
     
     const tenant_id = session.session.user.user_metadata?.tenant_id || 'LaplataLunaria';
 
-    // Buscar PO por (tenant_id, mm_order)
-    const { data: po, error: poError } = await supabase
+    // Buscar PO com JOIN de itens + materiais em uma única query
+    const { data, error } = await supabase
       .from('mm_purchase_order')
       .select(`
-        *,
-        vendor:mm_vendor(vendor_id, vendor_name, email)
+        tenant_id,
+        mm_order,
+        vendor_id,
+        order_date,
+        expected_delivery,
+        total_cents,
+        status,
+        notes,
+        vendor:mm_vendor(vendor_id, vendor_name, email),
+        items:mm_purchase_order_item (
+          row_no,
+          mm_material,
+          mm_qtt,
+          unit_cost_cents,
+          line_total_cents,
+          material:mm_material (
+            mm_desc,
+            commercial_name
+          )
+        )
       `)
       .eq('tenant_id', tenant_id)
       .eq('mm_order', params.mm_order)
       .single();
 
-    if (poError || !po) {
+    if (error || !data) {
       return NextResponse.json({
         ok: false,
         error: { code: 'PO_NOT_FOUND', message: 'Pedido de compra não encontrado' }
       }, { status: 404 });
     }
 
-    // Buscar itens do PO com JOIN com mm_material
-    const { data: items, error: itemsError } = await supabase
-      .from('mm_purchase_order_item')
-      .select(`
-        *,
-        material:mm_material(mm_material, mm_desc, commercial_name)
-      `)
-      .eq('tenant_id', tenant_id)
-      .eq('mm_order', params.mm_order)
-      .order('row_no');
-
-    if (itemsError) {
-      return NextResponse.json({
-        ok: false,
-        error: { code: 'DB_ERROR', message: itemsError.message }
-      }, { status: 500 });
-    }
-
     return NextResponse.json({
       ok: true,
-      data: {
-        ...po,
-        items: items || []
-      }
+      data
     });
 
   } catch (error) {

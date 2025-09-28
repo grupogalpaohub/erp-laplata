@@ -19,15 +19,15 @@ export async function POST(req: Request) {
   const body = await req.json().catch(() => ({}));
 
   const po = {
-    mm_order: body.po_id, // ou gere no DB
+    mm_order: body.mm_order, // CORRETO - não po_id
     vendor_id: body.vendor_id ?? null,
+    order_date: body.order_date ?? new Date().toISOString().slice(0,10), // OBRIGATÓRIO
     status: body.status ?? "draft",
     po_date: body.po_date ?? new Date().toISOString().slice(0,10),
     expected_delivery: body.expected_delivery ?? null,
     notes: body.notes ?? null,
     total_amount: body.total_amount ?? 0,
     currency: body.currency ?? 'BRL',
-    order_date: body.order_date ?? new Date().toISOString().slice(0,10),
     total_cents: body.total_cents ?? 0
   };
 

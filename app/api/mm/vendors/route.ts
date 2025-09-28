@@ -1,22 +1,13 @@
-import { createServerClient } from '@supabase/ssr'
-import { cookies } from 'next/headers'
+import { supabaseServer } from '@/utils/supabase/server'
 import { NextResponse } from "next/server";
-import { getTenantFromSession } from '@/lib/auth'
 
 export async function GET(req: Request) {
-  // ✅ GUARDRAIL COMPLIANCE: API usando @supabase/ssr e cookies()
-  const cookieStore = cookies()
-  const sb = createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    {
-      cookies: {
-        get(name: string) {
-          return cookieStore.get(name)?.value
-        },
-      },
-    }
-  )
+  const sb = supabaseServer()
+  
+  // Obter tenant_id da sessão
+  const { data: { session } } = await sb.auth.getSession()
+  const tenant_id = session?.user?.user_metadata?.tenant_id || 'LaplataLunaria'
+  
   const url = new URL(req.url);
   const q = url.searchParams.get("q")?.trim() ?? "";
   const page = Number(url.searchParams.get("page") ?? 1);
@@ -26,9 +17,6 @@ export async function GET(req: Request) {
 
   const from = (page - 1) * pageSize;
   const to = from + pageSize - 1;
-
-  // Obter tenant_id da sessão
-  const tenant_id = await getTenantFromSession(sb)
   
   const { data, count, error } = await query.eq('tenant_id', tenant_id).range(from, to);
   if (error) return NextResponse.json({ ok:false, error: error.message }, { status: 400 });
@@ -38,21 +26,14 @@ export async function GET(req: Request) {
 
 export async function POST(req: Request) {
   const body = await req.json().catch(() => ({}));
-  // ✅ GUARDRAIL COMPLIANCE: API usando @supabase/ssr e cookies()
-  const cookieStore = cookies()
-  const sb = createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    {
-      cookies: {
-        get(name: string) {
-          return cookieStore.get(name)?.value
-        },
-      },
-    }
-  )
+  const sb = supabaseServer()
+  
+  // Obter tenant_id da sessão
+  const { data: { session } } = await sb.auth.getSession()
+  const tenant_id = session?.user?.user_metadata?.tenant_id || 'LaplataLunaria'
 
   const vendor = {
+    tenant_id,
     vendor_id: body.vendor_id,
     vendor_name: body.vendor_name,
     email: body.email ?? null,

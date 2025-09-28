@@ -1,7 +1,8 @@
 import Link from 'next/link'
 import { ArrowLeft } from 'lucide-react'
 import { requireSession } from '@/lib/auth/requireSession'
-import { getServerSupabase } from '@/lib/supabase/server'
+import { createServerClient } from '@supabase/ssr'
+import { cookies } from 'next/headers'
 
 export const dynamic = 'force-dynamic'
 export const revalidate = 0
@@ -18,7 +19,18 @@ export default async function CRMPage() {
 
   try {
     await requireSession() // Verificar se está autenticado
-    const supabase = getServerSupabase()
+    const cookieStore = cookies()
+    const supabase = createServerClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+      {
+        cookies: {
+          get(name: string) {
+            return cookieStore.get(name)?.value
+          },
+        },
+      }
+    )
 
     // Buscar dados para KPIs (RLS filtra automaticamente por tenant)
     const [customersResult, opportunitiesResult, activitiesResult] = await Promise.allSettled([

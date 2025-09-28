@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import { requireSession } from '@/lib/auth/requireSession'
-import { getServerSupabase } from '@/lib/supabase/server'
+import { createServerClient } from '@supabase/ssr'
+import { cookies } from 'next/headers'
 import { ArrowLeft } from 'lucide-react'
 import { formatBRL } from '@/lib/money'
 
@@ -16,7 +17,18 @@ export default async function SDPage() {
 
   try {
     await requireSession() // Verificar se está autenticado
-    const supabase = getServerSupabase()
+    const cookieStore = cookies()
+    const supabase = createServerClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+      {
+        cookies: {
+          get(name: string) {
+            return cookieStore.get(name)?.value
+          },
+        },
+      }
+    )
 
     // Buscar dados para KPIs (RLS filtra automaticamente por tenant)
     const [ordersResult, customersResult, totalOrdersResult, totalValueResult] = await Promise.allSettled([

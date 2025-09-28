@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import { requireSession } from '@/lib/auth/requireSession'
-import { supabaseServer } from '@/lib/supabase/server'
+import { createServerClient } from '@supabase/ssr'
+import { cookies } from 'next/headers'
 import { formatBRL } from '@/lib/money'
 
 export const runtime = 'nodejs';
@@ -22,7 +23,18 @@ export default async function HomePage() {
 
   try {
     await requireSession() // Verificar se est� autenticado
-    const supabase = supabaseServer()
+    const cookieStore = cookies()
+    const supabase = createServerClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+      {
+        cookies: {
+          get(name: string) {
+            return cookieStore.get(name)?.value
+          },
+        },
+      }
+    )
 
           // Buscar dados para KPIs com tratamento de erro (RLS filtra automaticamente por tenant)
           const [materialsResult, vendorsResult, ordersResult, salesResult, inventoryResult] = await Promise.allSettled([

@@ -2,7 +2,8 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { getSupabaseServerClient } from "@/lib/supabase/server";
+import { createServerClient } from '@supabase/ssr'
+import { cookies } from 'next/headers'
 import { requireSession } from "@/lib/auth/requireSession";
 import { BASE_COLUMNS, OPTIONAL_COLUMNS, CRM_CUSTOMER_TABLE } from "@/lib/crm/columns";
 
@@ -40,7 +41,18 @@ function stripUnknownFromError(payload: Record<string, any>, errMsg: string) {
 export async function createCustomerAction(prev: FormState, formData: FormData): Promise<FormState> {
   try {
     await requireSession(); // GUARDRAIL: Server Actions com requireSession()
-    const supabase = getSupabaseServerClient();
+    const cookieStore = cookies()
+    const supabase = createServerClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+      {
+        cookies: {
+          get(name: string) {
+            return cookieStore.get(name)?.value
+          },
+        },
+      }
+    )
 
     // Monta payload a partir do form (usando campos corretos da tabela)
     const payloadRaw: Record<string, any> = {

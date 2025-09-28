@@ -1,7 +1,8 @@
 import Link from 'next/link'
 import { CheckCircle, XCircle } from 'lucide-react'
 import { formatBRL } from '@/lib/money'
-import { getSupabaseServerClient } from '@/lib/supabase/server'
+import { createServerClient } from '@supabase/ssr'
+import { cookies } from 'next/headers'
 import ExportCSVButton from './ExportCSVButton'
 
 type Material = {
@@ -23,7 +24,18 @@ type Material = {
 export const dynamic = 'force-dynamic'
 
 async function fetchMaterials(): Promise<Material[]> {
-  const supabase = getSupabaseServerClient()
+  const cookieStore = cookies()
+  const supabase = createServerClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    {
+      cookies: {
+        get(name: string) {
+          return cookieStore.get(name)?.value
+        },
+      },
+    }
+  )
   
   const { data, error } = await supabase
     .from('mm_material')

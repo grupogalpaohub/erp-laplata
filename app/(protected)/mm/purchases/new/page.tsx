@@ -1,7 +1,8 @@
 import Link from 'next/link'
 import NewPOClient from './NewPOClient'
 import { getVendors } from '@/app/(protected)/mm/_actions'
-import { getSupabaseServerClient } from '@/lib/supabase/server'
+import { createServerClient } from '@supabase/ssr'
+import { cookies } from 'next/headers'
 import { requireSession } from '@/lib/auth/requireSession'
 
 type Vendor = {
@@ -26,7 +27,18 @@ export default async function NewPOPage() {
   ])
 
   async function getMaterials(): Promise<Material[]> {
-    const supabase = getSupabaseServerClient()
+    const cookieStore = cookies()
+    const supabase = createServerClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+      {
+        cookies: {
+          get(name: string) {
+            return cookieStore.get(name)?.value
+          },
+        },
+      }
+    )
     
     const { data, error } = await supabase
       .from("mm_material")

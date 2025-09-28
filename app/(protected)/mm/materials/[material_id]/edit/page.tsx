@@ -5,7 +5,8 @@ import MaterialTypeSelect from '@/components/MaterialTypeSelect'
 import MaterialClassSelect from '@/components/MaterialClassSelect'
 import { formatBRL } from '@/lib/money'
 import { getVendors, updateMaterial } from '@/app/(protected)/mm/_actions'
-import { getSupabaseServerClient } from '@/lib/supabase/server'
+import { createServerClient } from '@supabase/ssr'
+import { cookies } from 'next/headers'
 import { requireSession } from '@/lib/auth/requireSession'
 
 type Material = {
@@ -37,8 +38,19 @@ export default async function EditMaterialPage({ params }: { params: { material_
     getVendors()
   ])
 
-  async function getMaterial(material_id: string): Promise<Material | null> {
-    const supabase = getSupabaseServerClient()
+async function getMaterial(material_id: string): Promise<Material | null> {
+  const cookieStore = cookies()
+  const supabase = createServerClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    {
+      cookies: {
+        get(name: string) {
+          return cookieStore.get(name)?.value
+        },
+      },
+    }
+  )
     
     const { data, error } = await supabase
       .from("mm_material")

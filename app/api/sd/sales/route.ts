@@ -1,12 +1,21 @@
-import { supabaseServer } from '@/utils/supabase/server'
-// app/api/sd/sales/route.ts
+import { createServerClient } from '@supabase/ssr'
+import { cookies } from 'next/headers'
 import { NextResponse } from "next/server";
-
-
 
 export async function GET(req: Request) {
   // ✅ GUARDRAIL COMPLIANCE: API usando @supabase/ssr e cookies()
-  const sb = supabaseServer()
+  const cookieStore = cookies()
+  const sb = createServerClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    {
+      cookies: {
+        get(name: string) {
+          return cookieStore.get(name)?.value
+        },
+      },
+    }
+  )
   const url = new URL(req.url);
   const q = url.searchParams.get("q")?.trim() ?? "";
   const page = Number(url.searchParams.get("page") ?? 1);
@@ -26,7 +35,18 @@ export async function GET(req: Request) {
 export async function POST(req: Request) {
   const body = await req.json().catch(() => ({}));
   // ✅ GUARDRAIL COMPLIANCE: API usando @supabase/ssr e cookies()
-  const sb = supabaseServer()
+  const cookieStore = cookies()
+  const sb = createServerClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    {
+      cookies: {
+        get(name: string) {
+          return cookieStore.get(name)?.value
+        },
+      },
+    }
+  )
 
   const so = {
     so_id: body.so_id, // ou gere no DB
@@ -34,11 +54,15 @@ export async function POST(req: Request) {
     status: body.status ?? "draft",
     order_date: body.order_date ?? new Date().toISOString().slice(0,10),
     expected_ship: body.expected_ship ?? null,
-    total_cents: 0,
+    total_cents: body.total_cents ?? 0,
+    created_at: new Date().toISOString(),
     doc_no: body.doc_no ?? null,
     payment_method: body.payment_method ?? null,
     payment_term: body.payment_term ?? null,
-    notes: body.notes ?? null
+    total_final_cents: body.total_final_cents ?? null,
+    total_negotiated_cents: body.total_negotiated_cents ?? null,
+    notes: body.notes ?? null,
+    updated_at: new Date().toISOString()
   };
 
   const { data, error } = await sb.from("sd_sales_order").insert(so).select("*").single();

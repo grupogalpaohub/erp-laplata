@@ -52,7 +52,8 @@
       "notes",
       "currency",
       "quantity",
-      "material_id"
+      "material_id",
+      "freeze_item_price"
     ],
     "crm_customer": [
       "tenant_id",
@@ -108,7 +109,10 @@
       "plant_id",
       "mm_material",
       "on_hand_qty",
-      "reserved_qty"
+      "reserved_qty",
+      "last_count_date",
+      "status",
+      "quantity_available"
     ],
     "sd_sales_order": [
       "tenant_id",
@@ -118,7 +122,14 @@
       "order_date",
       "expected_ship",
       "total_cents",
-      "created_at"
+      "created_at",
+      "doc_no",
+      "payment_method",
+      "payment_term",
+      "total_final_cents",
+      "total_negotiated_cents",
+      "notes",
+      "updated_at"
     ],
     "sd_sales_order_item": [
       "tenant_id",

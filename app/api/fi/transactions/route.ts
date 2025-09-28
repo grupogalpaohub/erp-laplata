@@ -71,7 +71,7 @@ export async function POST(req: Request): Promise<NextResponse<ApiResponse<FI_Tr
     const supabase = supabaseServer();
     const body = await req.json();
     
-    // Validar campos obrigatórios
+    // VALIDAÇÃO RIGOROSA: Campos obrigatórios da Transaction
     const requiredFields = ['transaction_id', 'account_id', 'type', 'amount_cents'];
     const missingFields = requiredFields.filter(field => !body[field]);
     
@@ -80,7 +80,18 @@ export async function POST(req: Request): Promise<NextResponse<ApiResponse<FI_Tr
         ok: false,
         error: { 
           code: 'FI_MISSING_FIELDS', 
-          message: `Campos obrigatórios ausentes: ${missingFields.join(', ')}` 
+          message: `Financial Transaction - Campos obrigatórios ausentes: ${missingFields.join(', ')}` 
+        }
+      }, { status: 400 });
+    }
+    
+    // VALIDAÇÃO: NUNCA aceitar tenant_id do payload
+    if (body.tenant_id) {
+      return NextResponse.json({
+        ok: false,
+        error: { 
+          code: 'FI_TENANT_FORBIDDEN', 
+          message: 'tenant_id é derivado da sessão - não pode ser fornecido no payload' 
         }
       }, { status: 400 });
     }

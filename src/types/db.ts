@@ -37,7 +37,7 @@ export interface MM_Material {
 
 export interface MM_PurchaseOrder {
   tenant_id: TenantId;
-  mm_order: string;                    // NOT NULL - campo correto (não po_id)
+  mm_order: string;                    // NOT NULL - campo correto
   vendor_id: string;                   // NOT NULL
   order_date: string;                  // NOT NULL - ISO date
   status?: string | null;              // enum
@@ -130,7 +130,7 @@ export interface WH_InventoryBalance {
   reserved_qty?: string | null;        // numeric -> string
   last_count_date?: string | null;     // date
   status?: string | null;              // text
-  quantity_available?: number | null;  // READ-ONLY (generated column) - NUNCA inserir
+  quantity_available?: number | null;  // READ-ONLY (generated column)
 }
 
 // ============================================================================
@@ -427,7 +427,7 @@ export const FORBIDDEN_FIELDS = {
 // ============================================================================
 
 export const FIELD_MAPPINGS = {
-  // OLD (incorrect) -> NEW (correct)
+  // OLD -> NEW
   'po_id': 'mm_order',
   'transaction_type': 'type',
   'movement_type': 'type',

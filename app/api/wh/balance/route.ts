@@ -68,7 +68,7 @@ export async function POST(req: Request): Promise<NextResponse<ApiResponse<WH_In
     const supabase = supabaseServer();
     const body = await req.json();
     
-    // Validar campos obrigatórios
+    // VALIDAÇÃO RIGOROSA: Campos obrigatórios do Inventory Balance
     const requiredFields = ['plant_id', 'mm_material'];
     const missingFields = requiredFields.filter(field => !body[field]);
     
@@ -77,7 +77,18 @@ export async function POST(req: Request): Promise<NextResponse<ApiResponse<WH_In
         ok: false,
         error: { 
           code: 'WH_MISSING_FIELDS', 
-          message: `Campos obrigatórios ausentes: ${missingFields.join(', ')}` 
+          message: `Inventory Balance - Campos obrigatórios ausentes: ${missingFields.join(', ')}` 
+        }
+      }, { status: 400 });
+    }
+    
+    // VALIDAÇÃO: NUNCA aceitar tenant_id do payload
+    if (body.tenant_id) {
+      return NextResponse.json({
+        ok: false,
+        error: { 
+          code: 'WH_TENANT_FORBIDDEN', 
+          message: 'tenant_id é derivado da sessão - não pode ser fornecido no payload' 
         }
       }, { status: 400 });
     }

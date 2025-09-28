@@ -61,7 +61,7 @@ export async function POST(req: Request): Promise<NextResponse<ApiResponse<SD_Sa
     const supabase = supabaseServer();
     const body = await req.json();
     
-    // Validar campos obrigatórios
+    // VALIDAÇÃO RIGOROSA: Campos obrigatórios do Sales Order
     const requiredFields = ['so_id', 'customer_id'];
     const missingFields = requiredFields.filter(field => !body[field]);
     
@@ -70,9 +70,34 @@ export async function POST(req: Request): Promise<NextResponse<ApiResponse<SD_Sa
         ok: false,
         error: { 
           code: 'SO_MISSING_FIELDS', 
-          message: `Campos obrigatórios ausentes: ${missingFields.join(', ')}` 
+          message: `Sales Order - Campos obrigatórios ausentes: ${missingFields.join(', ')}` 
         }
       }, { status: 400 });
+    }
+    
+    // VALIDAÇÃO: NUNCA aceitar tenant_id do payload
+    if (body.tenant_id) {
+      return NextResponse.json({
+        ok: false,
+        error: { 
+          code: 'SO_TENANT_FORBIDDEN', 
+          message: 'tenant_id é derivado da sessão - não pode ser fornecido no payload' 
+        }
+      }, { status: 400 });
+    }
+    
+    // VALIDAÇÃO: Formato de data se fornecida
+    if (body.order_date) {
+      const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
+      if (!dateRegex.test(body.order_date)) {
+        return NextResponse.json({
+          ok: false,
+          error: { 
+            code: 'SO_INVALID_DATE', 
+            message: 'order_date deve estar no formato yyyy-mm-dd' 
+          }
+        }, { status: 400 });
+      }
     }
     
     // Gerar doc_no se não fornecido

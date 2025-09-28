@@ -62,7 +62,7 @@ export async function POST(req: Request): Promise<NextResponse<ApiResponse<MM_Pu
     const supabase = supabaseServer();
     const body = await req.json();
     
-    // Validar campos obrigatórios
+    // VALIDAÇÃO RIGOROSA: Campos obrigatórios do Item PO
     const requiredFields = ['po_item_id', 'mm_order', 'plant_id', 'mm_material', 'mm_qtt', 'unit_cost_cents', 'line_total_cents'];
     const missingFields = requiredFields.filter(field => !body[field]);
     
@@ -71,7 +71,36 @@ export async function POST(req: Request): Promise<NextResponse<ApiResponse<MM_Pu
         ok: false,
         error: { 
           code: 'POI_MISSING_FIELDS', 
-          message: `Campos obrigatórios ausentes: ${missingFields.join(', ')}` 
+          message: `Item PO - Campos obrigatórios ausentes: ${missingFields.join(', ')}` 
+        }
+      }, { status: 400 });
+    }
+    
+    // VALIDAÇÃO: NUNCA aceitar tenant_id do payload
+    if (body.tenant_id) {
+      return NextResponse.json({
+        ok: false,
+        error: { 
+          code: 'POI_TENANT_FORBIDDEN', 
+          message: 'tenant_id é derivado da sessão - não pode ser fornecido no payload' 
+        }
+      }, { status: 400 });
+    }
+    
+    // VALIDAÇÃO FK: Verificar se mm_order existe
+    const { data: poExists, error: poError } = await supabase
+      .from('mm_purchase_order')
+      .select('mm_order')
+      .eq('tenant_id', tenant_id)
+      .eq('mm_order', body.mm_order)
+      .single();
+    
+    if (poError || !poExists) {
+      return NextResponse.json({
+        ok: false,
+        error: { 
+          code: 'FK_MM_ORDER_NOT_FOUND', 
+          message: `Purchase Order '${body.mm_order}' não encontrada` 
         }
       }, { status: 400 });
     }
@@ -101,7 +130,7 @@ export async function POST(req: Request): Promise<NextResponse<ApiResponse<MM_Pu
     const poi: MM_PurchaseOrderItem = {
       tenant_id,
       po_item_id: body.po_item_id,              // BIGINT -> number
-      mm_order: body.mm_order,                  // CORRETO - não po_id
+      mm_order: body.mm_order,                  // Campo correto
       plant_id: body.plant_id,                  // OBRIGATÓRIO
       mm_material: body.mm_material,
       mm_qtt: body.mm_qtt,                      // numeric -> string

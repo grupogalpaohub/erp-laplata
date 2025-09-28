@@ -2,7 +2,7 @@
 
 import { useEffect } from 'react'
 
-export function Providers({ children }: { children: React.ReactNode }) {
+export default function Providers({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     // Primeiro sync, depois refresh
     fetch('/api/auth/sync', { method: 'POST' })

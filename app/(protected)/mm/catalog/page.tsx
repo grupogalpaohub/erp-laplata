@@ -1,7 +1,6 @@
 import Link from 'next/link'
 import { CheckCircle, XCircle } from 'lucide-react'
 import { formatBRL } from '@/lib/money'
-import { supabaseServer } from '@/utils/supabase/server'
 import ExportCSVButton from './ExportCSVButton'
 
 type Material = {
@@ -23,38 +22,23 @@ type Material = {
 export const dynamic = 'force-dynamic'
 
 async function fetchMaterials(): Promise<Material[]> {
-  const supabase = supabaseServer()
-  
-  // Obter tenant_id da sessão
-  const { data: { session } } = await supabase.auth.getSession()
-  const tenant_id = session?.user?.user_metadata?.tenant_id || 'LaplataLunaria'
-  
-  const { data, error } = await supabase
-    .from('mm_material')
-    .select(`
-      mm_material,
-      mm_comercial,
-      mm_desc,
-      mm_mat_type,
-      mm_mat_class,
-      mm_price_cents,
-      mm_purchase_price_cents,
-      mm_pur_link,
-      commercial_name,
-      lead_time_days,
-      mm_vendor_id,
-      status
-    `)
-    .eq('tenant_id', tenant_id)
-    .order('mm_material', { ascending: true })
-    .limit(100)
-
-  if (error) {
-    console.error('Erro ao buscar materiais:', error)
-    throw new Error('Erro ao carregar materiais')
-  }
-
-  return data || []
+  // Versão simplificada para debug - retorna dados mock
+  return [
+    {
+      mm_material: 'TEST-001',
+      mm_comercial: 'Material Teste',
+      mm_desc: 'Material de teste para debug',
+      mm_mat_type: 'finished_good',
+      mm_mat_class: 'teste',
+      mm_price_cents: 1000,
+      mm_purchase_price_cents: 800,
+      mm_pur_link: null,
+      commercial_name: 'Material Teste',
+      lead_time_days: 7,
+      mm_vendor_id: 'VENDOR-001',
+      status: 'active'
+    }
+  ]
 }
 
 export default async function CatalogoMateriais({ searchParams }: { searchParams: { success?: string; error?: string } }) {

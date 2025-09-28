@@ -115,7 +115,7 @@ export async function deleteMaterial(mm_material: string) {
   return { success: true }
 }
 
-export async function updatePurchaseOrderStatus(po_id: string, formData: FormData) {
+export async function updatePurchaseOrderStatus(mm_order: string, formData: FormData) {
   await requireSession()
   
   const supabase = getSupabaseClient()
@@ -128,7 +128,7 @@ export async function updatePurchaseOrderStatus(po_id: string, formData: FormDat
       status,
       updated_at: new Date().toISOString()
     })
-    .eq("mm_order", po_id)
+    .eq("mm_order", mm_order)
 
   if (error) {
     console.error("Erro ao atualizar status do pedido:", error)
@@ -136,7 +136,7 @@ export async function updatePurchaseOrderStatus(po_id: string, formData: FormDat
   }
 
   revalidatePath("/mm/purchases")
-  revalidatePath(`/mm/purchases/${po_id}`)
+  revalidatePath(`/mm/purchases/${mm_order}`)
   
   return { success: true }
 }
@@ -251,7 +251,7 @@ export async function createPurchaseOrder(formData: FormData) {
   }
 
   revalidatePath('/mm/purchases')
-  return { success: true, po_id: purchaseOrder.mm_order }
+  return { success: true, mm_order: purchaseOrder.mm_order }
 }
 
 export async function validateBulkMaterials(materials: any[]) {

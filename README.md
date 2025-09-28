@@ -25,7 +25,7 @@ app/
 │   └── mm/               # APIs do módulo MM
 ├── mm/                    # Material Management
 │   ├── materials/        # Gestão de materiais
-│   ├── purchases/        # Pedidos de compra
+│   ├── purchase-orders/  # Pedidos de compra
 │   └── vendors/          # Fornecedores
 ├── sd/                    # Sales & Distribution
 ├── wh/                    # Warehouse Management
@@ -428,7 +428,7 @@ vercel --prod
 - **Gestão de fornecedores** com campos completos (CPF/CNPJ)
 - **Total movimentado** por fornecedor
 - **Triggers automáticos** para cálculo de preços e totais
-- **Compatibilidade** com campos quantity e material_id
+- **Compatibilidade** com campos quantity e mm_material
 - **Validação de preços** automática do banco de dados
 
 ### ✅ Autenticação e Segurança

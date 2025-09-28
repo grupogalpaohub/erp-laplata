@@ -26,13 +26,13 @@ interface PurchaseOrderItem {
   notes?: string
 }
 
-async function getPurchaseOrder(po_id: string): Promise<PurchaseOrder | null> {
+async function getPurchaseOrder(mm_order: string): Promise<PurchaseOrder | null> {
   const supabase = getSupabaseServerClient()
   
   const { data, error } = await supabase
     .from('mm_purchase_order')
     .select('*')
-    .eq('mm_order', po_id)
+    .eq('mm_order', mm_order)
     .single()
 
   if (error) {
@@ -43,7 +43,7 @@ async function getPurchaseOrder(po_id: string): Promise<PurchaseOrder | null> {
   return data
 }
 
-async function getPurchaseOrderItems(po_id: string): Promise<PurchaseOrderItem[]> {
+async function getPurchaseOrderItems(mm_order: string): Promise<PurchaseOrderItem[]> {
   const supabase = getSupabaseServerClient()
   
   const { data, error } = await supabase
@@ -58,7 +58,7 @@ async function getPurchaseOrderItems(po_id: string): Promise<PurchaseOrderItem[]
       mm_comercial: false, // mapeado no código
       mm_desc
     `)
-    .eq('mm_order', po_id)
+    .eq('mm_order', mm_order)
     .order('po_item_id')
 
   if (error) {
@@ -87,7 +87,7 @@ async function getVendor(vendorId: string) {
 
 export default async function PurchaseOrderDetailPage({ params }: { params: { po_id: string } }) {
   const [purchaseOrder, items] = await Promise.all([
-    getPurchaseOrder(params.po_id),
+    getPurchaseOrder(params.po_id), // po_id é o parâmetro da URL, mas internamente usamos mm_order
     getPurchaseOrderItems(params.po_id)
   ])
 

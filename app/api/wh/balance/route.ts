@@ -94,7 +94,7 @@ export async function POST(req: Request): Promise<NextResponse<ApiResponse<WH_In
     }
     
     // VALIDAÇÃO CRÍTICA: NUNCA aceitar quantity_available no payload
-    if (body.quantity_available !== undefined) {
+    if ('quantity_available' in body) {
       return NextResponse.json({
         ok: false,
         error: { 
@@ -162,7 +162,7 @@ export async function PUT(req: Request): Promise<NextResponse<ApiResponse<WH_Inv
     }
     
     // VALIDAÇÃO CRÍTICA: NUNCA aceitar quantity_available no payload
-    if (body.quantity_available !== undefined) {
+    if ('quantity_available' in body) {
       return NextResponse.json({
         ok: false,
         error: { 

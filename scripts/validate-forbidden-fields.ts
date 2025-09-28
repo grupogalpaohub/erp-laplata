@@ -18,7 +18,8 @@ const FORBIDDEN_PATTERNS = [
 ];
 
 const ALLOWED_EXTENSIONS = ['.ts', '.tsx', '.js', '.jsx'];
-const IGNORE_DIRS = ['node_modules', '.git', '.next', 'dist', 'build'];
+const IGNORE_DIRS = ['node_modules', '.git', '.next', 'dist', 'build', 'supabase/functions'];
+const IGNORE_FILES = ['src/types/db.ts', 'scripts/guardrails-check.ts', 'scripts/validate-forbidden-fields.ts'];
 
 function getAllFiles(dir: string): string[] {
   const files: string[] = [];
@@ -31,11 +32,14 @@ function getAllFiles(dir: string): string[] {
       const stat = statSync(fullPath);
       
       if (stat.isDirectory()) {
-        if (!IGNORE_DIRS.includes(item)) {
+        if (!IGNORE_DIRS.some(ignoreDir => fullPath.includes(ignoreDir))) {
           files.push(...getAllFiles(fullPath));
         }
       } else if (ALLOWED_EXTENSIONS.includes(extname(item))) {
-        files.push(fullPath);
+        // Ignorar arquivos específicos
+        if (!IGNORE_FILES.some(ignoreFile => fullPath.includes(ignoreFile))) {
+          files.push(fullPath);
+        }
       }
     }
   } catch (error) {

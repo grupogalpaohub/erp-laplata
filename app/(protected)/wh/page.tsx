@@ -28,7 +28,7 @@ export default async function WHPage() {
         .select('mm_material, quantity, unit_cost_cents'),
       supabase
         .from('wh_inventory_ledger')
-        .select('movement_id, movement_type, quantity, created_at')
+        .select('movement_id, type, quantity, created_at')
         .gte('created_at', new Date().toISOString().split('T')[0]),
       supabase
         .from('wh_transfer')
@@ -239,7 +239,7 @@ export default async function WHPage() {
                 {movements.slice(0, 5).map((movement) => (
                   <div key={movement.movement_id} className="flex items-center justify-between p-3 bg-fiori-secondary rounded">
                     <div>
-                      <p className="text-fiori-primary font-medium capitalize">{movement.movement_type}</p>
+                      <p className="text-fiori-primary font-medium capitalize">{movement.type}</p>
                       <p className="text-fiori-secondary text-sm">Qtd: {movement.quantity}</p>
                     </div>
                     <span className="text-fiori-primary text-sm">

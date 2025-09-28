@@ -35,6 +35,7 @@ interface PurchaseOrder {
 }
 
 export default function EditPurchaseOrderPage({ params }: { params: { po_id: string } }) {
+  // po_id é o parâmetro da URL, mas internamente usamos mm_order
   const router = useRouter()
   const [purchaseOrder, setPurchaseOrder] = useState<PurchaseOrder | null>(null)
   const [items, setItems] = useState<PurchaseOrderItem[]>([])

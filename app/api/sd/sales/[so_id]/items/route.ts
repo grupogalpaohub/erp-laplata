@@ -21,7 +21,7 @@ export async function POST(req: Request, { params }: { params: { so_id: string }
   const item = {
     so_id: params.so_id,
     sku: body.sku,
-    material_id: body.material_id ?? body.sku, // fallback para compatibilidade
+    mm_material: body.mm_material ?? body.sku, // CORRETO - usar mm_material
     quantity: Number(body.quantity ?? 1),
     unit_price_cents: body.unit_price_brl != null ? toCents(String(body.unit_price_brl)) : 0,
     line_total_cents: Number(body.quantity ?? 1) * (body.unit_price_brl != null ? toCents(String(body.unit_price_brl)) : 0),

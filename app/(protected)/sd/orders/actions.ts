@@ -19,7 +19,7 @@ export async function createSalesOrder(formData: FormData) {
   const items = raw.map(j => JSON.parse(j));
   const rows = items.map((it:any) => ({
     so_id: so.so_id,
-    material_id: it.material_id,
+    mm_material: it.mm_material,
     quantity: Number(it.quantity||0),
     unit_price_cents_at_order: toCents(it.unit_price),
   }));

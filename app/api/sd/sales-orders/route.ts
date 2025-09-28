@@ -75,6 +75,17 @@ export async function POST(req: Request): Promise<NextResponse<ApiResponse<SD_Sa
       }, { status: 400 });
     }
     
+    // VALIDAÇÃO: Status enum padronizado
+    if (body.status && !['draft', 'approved', 'invoiced', 'cancelled'].includes(body.status)) {
+      return NextResponse.json({
+        ok: false,
+        error: { 
+          code: 'INVALID_STATUS', 
+          message: 'Status inválido. Valores aceitos: draft, approved, invoiced, cancelled' 
+        }
+      }, { status: 400 });
+    }
+    
     // VALIDAÇÃO: NUNCA aceitar tenant_id do payload
     if (body.tenant_id) {
       return NextResponse.json({
@@ -82,6 +93,17 @@ export async function POST(req: Request): Promise<NextResponse<ApiResponse<SD_Sa
         error: { 
           code: 'SO_TENANT_FORBIDDEN', 
           message: 'tenant_id é derivado da sessão - não pode ser fornecido no payload' 
+        }
+      }, { status: 400 });
+    }
+    
+    // VALIDAÇÃO: NUNCA aceitar total_final_cents do payload (calculado por trigger)
+    if (body.total_final_cents !== undefined) {
+      return NextResponse.json({
+        ok: false,
+        error: { 
+          code: 'SO_FORBIDDEN_FIELD', 
+          message: 'total_final_cents é calculado automaticamente pela trigger do banco' 
         }
       }, { status: 400 });
     }

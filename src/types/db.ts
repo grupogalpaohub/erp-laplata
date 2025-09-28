@@ -86,7 +86,7 @@ export interface SD_SalesOrder {
   tenant_id: TenantId;
   so_id: string;                       // NOT NULL
   customer_id: string;                 // NOT NULL
-  status?: string | null;              // enum
+  status?: 'draft' | 'approved' | 'invoiced' | 'cancelled' | null; // enum padronizado
   order_date?: string | null;          // date
   expected_ship?: string | null;       // date
   total_cents?: number | null;         // integer
@@ -94,7 +94,7 @@ export interface SD_SalesOrder {
   doc_no?: string | null;              // text
   payment_method?: string | null;      // text
   payment_term?: string | null;        // text
-  total_final_cents?: number | null;   // integer
+  total_final_cents?: number | null;   // integer (READ-ONLY - calculado por trigger)
   total_negotiated_cents?: number | null; // integer
   notes?: string | null;               // text
   updated_at?: string | null;          // timestamptz
@@ -103,11 +103,12 @@ export interface SD_SalesOrder {
 export interface SD_SalesOrderItem {
   tenant_id: TenantId;
   so_id: string;
-  sku: string;
-  quantity: number;
+  mm_material: string;                // NOT NULL - substitui material_id/sku
+  quantity: string;                   // numeric -> string para precisão
   unit_price_cents: number;
   line_total_cents: number;
   row_no: number;
+  unit_price_cents_at_order?: number | null; // preço no momento do pedido
 }
 
 // ============================================================================

@@ -1,24 +1,33 @@
 import { createServerClient } from '@supabase/ssr'
 import { cookies } from 'next/headers'
-import { SUPABASE_URL, SUPABASE_ANON } from '@/src/env'
 
 export const supabaseServer = () => {
   const cookieStore = cookies()
-  return createServerClient(SUPABASE_URL, SUPABASE_ANON, {
-    cookies: {
-      get(name: string) {
-        return cookieStore.get(name)?.value
+  return createServerClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    {
+      cookies: {
+        get(name: string) {
+          return cookieStore.get(name)?.value
+        },
+        set(name: string, value: string, options: any) {
+          try {
+            cookieStore.set({ name, value, ...options })
+          } catch {
+            // Ignore errors in server components
+          }
+        },
+        remove(name: string, options: any) {
+          try {
+            cookieStore.set({ name, value: '', ...options, maxAge: 0 })
+          } catch {
+            // Ignore errors in server components
+          }
+        },
       },
-      set(name: string, value: string, options: any) {
-        // Cookies só podem ser setados em Route Handlers ou Server Actions
-        // Aqui apenas lemos
-      },
-      remove(name: string, options: any) {
-        // Cookies só podem ser removidos em Route Handlers ou Server Actions
-        // Aqui apenas lemos
-      },
-    },
-  })
+    }
+  )
 }
 
 // Manter compatibilidade com código existente

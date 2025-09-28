@@ -1,7 +1,7 @@
 'use client'
-import { createClient, SupabaseClient } from '@supabase/supabase-js'
+import { createClient } from '@supabase/supabase-js'
 
-let client: SupabaseClient | null = null
+let client: any
 
 export function supabaseBrowser() {
   if (!client) {

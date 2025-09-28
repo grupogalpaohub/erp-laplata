@@ -203,13 +203,12 @@ export default async function NewMaterialPage() {
 
           {/* Botões */}
           <div className="flex justify-end gap-4 pt-6 border-t border-gray-200">
-            <button
-              type="button"
-              onClick={() => window.history.back()}
+            <a
+              href="/mm/materials"
               className="btn-fiori-outline"
             >
               Cancelar
-            </button>
+            </a>
             <button
               type="submit"
               className="btn-fiori-primary"

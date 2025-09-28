@@ -15,7 +15,7 @@ interface PurchaseOrder {
 interface PurchaseOrderItem {
   po_item_id: number
   mm_material: string
-  mm_comercial: string | null
+  mm_comercial: boolean // mapeado no código
   mm_desc: string | null
   mm_qtt: number
   unit_cost_cents: number
@@ -122,7 +122,7 @@ export default function PurchaseOrderClient({ order, items, vendor }: PurchaseOr
                     {item.mm_material}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                    {item.mm_comercial || item.mm_desc || '-'}
+                    {item.mm_desc || '-'}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                     {item.mm_qtt}

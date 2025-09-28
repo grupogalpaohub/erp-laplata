@@ -11,7 +11,7 @@ type Vendor = {
 
 type Material = {
   mm_material: string
-  mm_comercial: string | null
+  mm_comercial: boolean // mapeado no código
   mm_desc: string
   mm_purchase_price_cents: number | null
 }
@@ -30,7 +30,7 @@ export default async function NewPOPage() {
     
     const { data, error } = await supabase
       .from("mm_material")
-      .select("mm_material, mm_comercial, mm_desc, mm_purchase_price_cents")
+      .select("mm_material, mm_desc, mm_purchase_price_cents")
       .eq("status", "active")
       .order("mm_material")
 

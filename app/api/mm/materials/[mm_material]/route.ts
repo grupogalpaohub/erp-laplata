@@ -19,7 +19,7 @@ export async function PATCH(req: Request, { params }: { params: { mm_material: s
   const sb = supabaseServer()
 
               const patch: any = {
-                mm_comercial: body.mm_comercial ?? null,
+                // mm_comercial: false, // não persistir - mapeado no código
                 mm_desc: body.mm_desc,
                 mm_mat_type: body.mm_mat_type ?? null,
                 mm_mat_class: body.mm_mat_class ?? null,

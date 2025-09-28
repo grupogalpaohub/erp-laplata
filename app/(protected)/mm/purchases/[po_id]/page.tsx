@@ -18,7 +18,7 @@ interface PurchaseOrder {
 interface PurchaseOrderItem {
   po_item_id: number
   mm_material: string
-  mm_comercial: string | null
+  mm_comercial: boolean // mapeado no código
   mm_desc: string | null
   mm_qtt: number
   unit_cost_cents: number
@@ -55,7 +55,7 @@ async function getPurchaseOrderItems(po_id: string): Promise<PurchaseOrderItem[]
       unit_cost_cents,
       line_total_cents,
       notes,
-      mm_comercial,
+      mm_comercial: false, // mapeado no código
       mm_desc
     `)
     .eq('mm_order', po_id)
@@ -73,7 +73,7 @@ async function getVendor(vendorId: string) {
   const supabase = getSupabaseServerClient()
   const { data, error } = await supabase
     .from('mm_vendor')
-    .select('vendor_id, vendor_name, contact_email, contact_phone')
+    .select('vendor_id, vendor_name, email, telefone')
     .eq('vendor_id', vendorId)
     .single()
 

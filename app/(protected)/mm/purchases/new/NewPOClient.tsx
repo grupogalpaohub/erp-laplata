@@ -7,7 +7,7 @@ import { createPurchaseOrder } from '@/app/(protected)/mm/_actions'
 
 interface Material {
   mm_material: string
-  mm_comercial: string | null
+  mm_comercial: boolean // mapeado no código
   mm_desc: string | null
   mm_purchase_price_cents: number | null
 }
@@ -221,7 +221,7 @@ export default function NewPOClient({ vendors, materials }: NewPOClientProps) {
                       <option value="">Selecione o material...</option>
                       {materials.map((material) => (
                         <option key={material.mm_material} value={material.mm_material}>
-                          {material.mm_material} - {material.mm_comercial || material.mm_desc}
+                          {material.mm_material} - {material.mm_desc}
                         </option>
                       ))}
                     </select>

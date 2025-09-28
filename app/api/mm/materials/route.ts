@@ -30,7 +30,7 @@ export async function POST(req: Request) {
 
               const payload: any = {
                 mm_material: body.mm_material,
-                mm_comercial: body.mm_comercial ?? null,
+                // mm_comercial: false, // não persistir - mapeado no código
                 mm_desc: body.mm_desc,
                 mm_mat_type: body.mm_mat_type ?? null,
                 mm_mat_class: body.mm_mat_class ?? null,

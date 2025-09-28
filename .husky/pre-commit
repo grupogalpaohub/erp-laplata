@@ -1,3 +1,17 @@
 #!/usr/bin/env sh
-. "$(dirname -- "$0")/_/husky.sh"
-npm run guardrails
+# Husky v9+: não use . "$(dirname -- "$0")/_/husky.sh"
+# Executa os guardrails de forma segura no Windows/WSL
+
+# Se não houver Node (ex. GitHub Desktop sem PATH), não bloqueia commit
+command -v node >/dev/null 2>&1 || {
+  echo "⚠️ Node não encontrado no PATH; ignorando guardrails neste commit."
+  exit 0
+}
+
+# Rode seus checks aqui
+npm run -s guardrails || {
+  echo "❌ Guardrails falharam. Corrija os erros ou use --no-verify (NÃO recomendado)."
+  exit 1
+}
+
+exit 0

@@ -2,7 +2,7 @@ import "@/styles/fiori-helpers.css";
 import './globals.css'
 import FioriShell from '@/components/FioriShell'
 import SuppressHydrationWarnings from '@/components/SuppressHydrationWarnings'
-import Providers from './providers'
+import { Providers } from './providers'
 
 export const dynamic = 'force-dynamic'
 export const metadata = { title: 'ERP LaPlata' }

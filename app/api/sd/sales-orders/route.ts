@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createServerClient } from '@supabase/ssr';
-import { cookies } from 'next/headers';
+import { supabaseServer } from '@/utils/supabase/server';
 import { z } from 'zod';
 
 // Schema baseado no Inventário 360° real - so_id será gerado pelo DB
@@ -15,12 +14,7 @@ const CreateSOBody = z.object({
 
 export async function POST(req: NextRequest) {
   try {
-    const cookieStore = cookies();
-    const supabase = createServerClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-      { cookies: { get: (k) => cookieStore.get(k)?.value } }
-    );
+    const supabase = supabaseServer();
 
     const body = await req.json();
     
@@ -104,12 +98,7 @@ export async function POST(req: NextRequest) {
 
 export async function GET(req: NextRequest) {
   try {
-    const cookieStore = cookies();
-    const supabase = createServerClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-      { cookies: { get: (k) => cookieStore.get(k)?.value } }
-    );
+    const supabase = supabaseServer();
 
     const { searchParams } = new URL(req.url);
     const page = Math.max(1, Number(searchParams.get('page') || 1));

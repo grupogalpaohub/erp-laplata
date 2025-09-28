@@ -8,13 +8,18 @@ export default function Providers({ children }: { children: React.ReactNode }) {
 
   // 1) Sincroniza cookies httpOnly IMEDIATAMENTE no mount
   useEffect(() => {
-    fetch('/api/auth/refresh', { method: 'POST', credentials: 'include' }).catch(() => {});
+    // Primeiro sync, depois refresh
+    fetch('/api/auth/sync', { method: 'POST', credentials: 'include' })
+      .then(() => fetch('/api/auth/refresh', { method: 'POST', credentials: 'include' }))
+      .catch(() => {});
   }, []);
 
   // 2) Sincroniza cookies a cada mudança de auth
   useEffect(() => {
     const { data: sub } = supabase.auth.onAuthStateChange(async () => {
       try {
+        // Primeiro sync, depois refresh
+        await fetch('/api/auth/sync', { method: 'POST', credentials: 'include' });
         await fetch('/api/auth/refresh', { method: 'POST', credentials: 'include' });
       } catch {}
     });

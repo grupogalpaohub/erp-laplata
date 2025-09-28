@@ -1,18 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createServerClient } from '@supabase/ssr';
-import { cookies } from 'next/headers';
+import { supabaseServer } from '@/utils/supabase/server';
 
 export async function GET(
   req: NextRequest,
   { params }: { params: { mm_order: string } }
 ) {
   try {
-    const cookieStore = cookies();
-    const supabase = createServerClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-      { cookies: { get: (k) => cookieStore.get(k)?.value } }
-    );
+    const supabase = supabaseServer();
 
     // GUARDRAIL: Derivar tenant_id da sessão
     const { data: session } = await supabase.auth.getSession();
@@ -79,12 +73,7 @@ export async function PUT(
   { params }: { params: { mm_order: string } }
 ) {
   try {
-    const cookieStore = cookies();
-    const supabase = createServerClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-      { cookies: { get: (k) => cookieStore.get(k)?.value } }
-    );
+    const supabase = supabaseServer();
 
     const body = await req.json();
     

@@ -1,20 +1,9 @@
 import Link from 'next/link'
-import { getUserServer } from '@/lib/auth/getUserServer'
-import { ENV } from '@/lib/env'
 
-export default async function FioriShell({ children }: { children: React.ReactNode }) {
-  let user = null;
-  let isAuthenticated = false;
-  
-  try {
-    user = await getUserServer();
-    isAuthenticated = !!user;
-  } catch (error) {
-    console.error('Erro ao obter usuário:', error);
-    // Em caso de erro, assumir não autenticado
-    user = null;
-    isAuthenticated = false;
-  }
+export default function FioriShell({ children }: { children: React.ReactNode }) {
+  // Versão simplificada para debug - sem autenticação
+  const isAuthenticated = true; // Temporariamente sempre autenticado
+  const user = { email: 'admin@teste.com' }; // Usuário fixo para debug
 
   return (
     <div className="min-h-screen bg-fiori-primary">
@@ -26,11 +15,9 @@ export default async function FioriShell({ children }: { children: React.ReactNo
                 <span className="text-white font-bold text-sm">E</span>
               </div>
               <span className="text-xl font-semibold text-fiori-primary">ERP LaPlata</span>
-              {ENV.AUTH_DISABLED && (
-                <span className="ml-2 px-2 py-0.5 text-xs rounded bg-yellow-500/20 text-yellow-300 border border-yellow-400/40">
-                  DEV (auth off)
-                </span>
-              )}
+              <span className="ml-2 px-2 py-0.5 text-xs rounded bg-yellow-500/20 text-yellow-300 border border-yellow-400/40">
+                DEBUG MODE
+              </span>
             </div>
             <nav className="hidden md:flex items-center gap-1">
               {[
@@ -55,11 +42,7 @@ export default async function FioriShell({ children }: { children: React.ReactNo
             </nav>
           </div>
           <div className="flex items-center gap-4">
-            {ENV.AUTH_DISABLED ? (
-              <div className="text-sm text-gray-300">
-                Modo Desenvolvimento
-              </div>
-            ) : isAuthenticated ? (
+            {isAuthenticated ? (
               <div className="flex items-center gap-3">
                 <span className="text-sm text-gray-300">{user?.email}</span>
                 <form action="/api/logout" method="POST">

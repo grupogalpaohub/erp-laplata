@@ -1,5 +1,5 @@
 import Link from 'next/link'
-import { getSupabaseServerClient } from '@/lib/supabase/server'
+import { supabaseServer } from '@/utils/supabase/server'
 import { formatBRL } from '@/lib/money'
 import { Search, Download, Plus, Eye, Edit, CheckCircle, XCircle } from 'lucide-react'
 import StatusActionButtons from './StatusActionButtons'
@@ -32,7 +32,7 @@ export default async function SalesOrdersPage() {
   let totalCount = 0
 
   try {
-    const supabase = getSupabaseServerClient()
+    const supabase = supabaseServer()
 
     // Buscar pedidos com paginação (RLS decide tenant)
     const { data, count, error } = await supabase

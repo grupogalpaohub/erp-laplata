@@ -1,12 +1,12 @@
 "use server";
-import { getSupabaseServerClient } from "@/lib/supabase/server";
+import { supabaseServer } from '@/utils/supabase/server';
 import { requireSession } from "@/lib/auth/requireSession";
 import { toCents } from "@/lib/money";
 import { revalidatePath } from "next/cache";
 
 export async function createMaterial(formData: FormData) {
   await requireSession();
-  const supabase = getSupabaseServerClient();
+  const supabase = supabaseServer();
   const payload = {
     mm_material: String(formData.get("mm_material") ?? "").trim(),
     name: String(formData.get("name") ?? "").trim(),

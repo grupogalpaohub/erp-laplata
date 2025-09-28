@@ -1,12 +1,12 @@
 "use server";
-import { getSupabaseServerClient } from "@/lib/supabase/server";
+import { supabaseServer } from '@/utils/supabase/server';
 import { requireSession } from "@/lib/auth/requireSession";
 import { toCents } from "@/lib/money";
 import { revalidatePath } from "next/cache";
 
 export async function createSalesOrder(formData: FormData) {
   await requireSession();
-  const supabase = getSupabaseServerClient();
+  const supabase = supabaseServer();
   const header = {
     customer_id: String(formData.get("customer_id") ?? "").trim(),
     payment_method: String(formData.get("payment_method") ?? ""),

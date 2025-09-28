@@ -35,7 +35,9 @@ async function getPurchaseOrder(mm_order: string): Promise<PurchaseOrder | null>
     { cookies: { get: (k) => cookieStore.get(k)?.value } }
   )
   
-  const tenant_id = 'LaplataLunaria' // TODO: derivar da sessão
+  // Obter tenant_id da sessão
+  const { data: { session } } = await supabase.auth.getSession()
+  const tenant_id = session?.user?.user_metadata?.tenant_id || 'LaplataLunaria'
   
   const { data, error } = await supabase
     .from('mm_purchase_order')
@@ -60,7 +62,9 @@ async function getPurchaseOrderItems(mm_order: string): Promise<PurchaseOrderIte
     { cookies: { get: (k) => cookieStore.get(k)?.value } }
   )
   
-  const tenant_id = 'LaplataLunaria' // TODO: derivar da sessão
+  // Obter tenant_id da sessão
+  const { data: { session } } = await supabase.auth.getSession()
+  const tenant_id = session?.user?.user_metadata?.tenant_id || 'LaplataLunaria'
   
   const { data, error } = await supabase
     .from('mm_purchase_order_item')
@@ -106,7 +110,9 @@ async function getVendor(vendorId: string) {
     { cookies: { get: (k) => cookieStore.get(k)?.value } }
   )
   
-  const tenant_id = 'LaplataLunaria' // TODO: derivar da sessão
+  // Obter tenant_id da sessão
+  const { data: { session } } = await supabase.auth.getSession()
+  const tenant_id = session?.user?.user_metadata?.tenant_id || 'LaplataLunaria'
   
   const { data, error } = await supabase
     .from('mm_vendor')
@@ -123,10 +129,10 @@ async function getVendor(vendorId: string) {
   return data
 }
 
-export default async function PurchaseOrderDetailPage({ params }: { params: { po_id: string } }) {
+export default async function PurchaseOrderDetailPage({ params }: { params: { mm_order: string } }) {
   const [purchaseOrder, items] = await Promise.all([
-    getPurchaseOrder(params.po_id), // po_id é o parâmetro da URL, mas internamente usamos mm_order
-    getPurchaseOrderItems(params.po_id) // po_id é o parâmetro da URL, mas internamente usamos mm_order
+    getPurchaseOrder(params.mm_order),
+    getPurchaseOrderItems(params.mm_order)
   ])
 
   const vendor = purchaseOrder ? await getVendor(purchaseOrder.vendor_id) : null

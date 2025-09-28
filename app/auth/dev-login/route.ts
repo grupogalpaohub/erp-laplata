@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { getSupabaseServerClient } from "@/lib/supabase/server";
+import { supabaseServer } from "@/utils/supabase/server";
 export const runtime = "nodejs";
 
 export async function POST(req: Request) {
@@ -12,7 +12,7 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Missing email/password" }, { status: 400 });
     }
 
-    const supabase = getSupabaseServerClient();
+    const supabase = supabaseServer();
     const { data, error } = await supabase.auth.signInWithPassword({ email, password });
 
     if (error) {

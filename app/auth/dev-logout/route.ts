@@ -1,8 +1,8 @@
 import { NextResponse } from "next/server";
-import { getSupabaseServerClient } from "@/lib/supabase/server";
+import { supabaseServer } from "@/utils/supabase/server";
 
 export async function POST() {
-  const supabase = getSupabaseServerClient();
+  const supabase = supabaseServer();
   await supabase.auth.signOut();
   return NextResponse.json({ ok: true }, { status: 200 });
 }

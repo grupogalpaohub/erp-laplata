@@ -1,5 +1,5 @@
 import Link from 'next/link'
-import { getSupabaseServerClient } from '@/lib/supabase/server'
+import { supabaseServer } from '@/utils/supabase/server'
 import { requireSession } from '@/lib/auth/requireSession'
 import { ArrowLeft, Save, X } from 'lucide-react'
 import { notFound, redirect } from 'next/navigation'
@@ -48,7 +48,7 @@ async function updateCustomer(formData: FormData) {
   'use server'
   
   try {
-    const supabase = getSupabaseServerClient()
+    const supabase = supabaseServer()
     await requireSession()
     const customerId = String(formData.get('customer_id') || '')
 
@@ -163,7 +163,7 @@ export default async function EditCustomerPage({ params }: PageProps) {
   let customer: Customer | null = null
 
   try {
-    const supabase = getSupabaseServerClient()
+    const supabase = supabaseServer()
     await requireSession()
 
     // Buscar dados do cliente

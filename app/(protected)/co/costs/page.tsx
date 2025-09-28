@@ -1,5 +1,5 @@
 import Link from 'next/link'
-import { getSupabaseServerClient } from '@/lib/supabase/server'
+import { supabaseServer } from '@/utils/supabase/server'
 import { requireSession } from '@/lib/auth/requireSession'
 import { ArrowLeft, Search, Download, Filter, Plus, Eye, Edit, Trash2 } from 'lucide-react'
 
@@ -22,7 +22,7 @@ export default async function CostsPage() {
   let totalCount = 0
 
   try {
-    const supabase = getSupabaseServerClient()
+    const supabase = supabaseServer()
     await requireSession()
 
     // Buscar centros de custo

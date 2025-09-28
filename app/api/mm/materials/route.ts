@@ -14,7 +14,17 @@ export async function GET() {
       },
     }
   )
-  const { data, error } = await sb.from("mm_material").select("*").limit(50);
+  
+  // Obter tenant_id da sessão
+  const { data: { session } } = await sb.auth.getSession()
+  const tenant_id = session?.user?.user_metadata?.tenant_id || 'LaplataLunaria'
+  
+  const { data, error } = await sb
+    .from("mm_material")
+    .select("*")
+    .eq("tenant_id", tenant_id)
+    .limit(50);
+    
   return Response.json({ ok: !error, items: data ?? [], error });
 }
 
@@ -31,9 +41,15 @@ export async function POST(req: Request) {
       },
     }
   )
+  
+  // Obter tenant_id da sessão
+  const { data: { session } } = await sb.auth.getSession()
+  const tenant_id = session?.user?.user_metadata?.tenant_id || 'LaplataLunaria'
+  
   const body = await req.json().catch(() => ({}));
   
   const material = {
+    tenant_id,
     mm_material: body.mm_material,
     mm_comercial: body.mm_comercial ?? null,
     mm_desc: body.mm_desc,

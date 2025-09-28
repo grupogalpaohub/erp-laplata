@@ -219,7 +219,7 @@ export default function NewPOClient({ vendors, materials }: NewPOClientProps) {
                       onChange={(e) => updateItem(index, 'mm_material', e.target.value)}
                     >
                       <option value="">Selecione o material...</option>
-                      {materials.map((material) => (
+                      {(materials || []).map((material) => (
                         <option key={material.mm_material} value={material.mm_material}>
                           {material.mm_material} - {material.mm_desc}
                         </option>

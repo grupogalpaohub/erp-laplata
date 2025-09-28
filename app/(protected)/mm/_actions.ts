@@ -163,16 +163,25 @@ export async function getVendors() {
 export async function getMaterials() {
   await requireSession()
   const supabase = getSupabaseClient()
+  
+  // Obter tenant_id da sessão
+  const { data: { session } } = await supabase.auth.getSession()
+  const tenant_id = session?.user?.user_metadata?.tenant_id || 'LaplataLunaria'
+  
   const { data, error } = await supabase
     .from("mm_material")
     .select("mm_material, mm_comercial, mm_desc, mm_price_cents, mm_purchase_price_cents")
+    .eq("tenant_id", tenant_id)
     .eq("status", "active")
     .order("mm_material")
+    
   if (error) {
     console.error("Erro ao buscar materiais:", error)
     return []
   }
-  return data || []
+  
+  // Garantir que sempre retorna um array
+  return Array.isArray(data) ? data : []
 }
 
 export async function getCustomizingData() {

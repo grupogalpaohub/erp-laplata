@@ -1,13 +1,13 @@
 "use server"
 
-import { getSupabaseServerClient } from "@/lib/supabase/server"
+import { supabaseServer } from '@/utils/supabase/server'
 import { requireSession } from "@/lib/auth/requireSession"
 import { revalidatePath } from "next/cache"
 
 export async function createCustomer(formData: FormData) {
   await requireSession()
   
-  const supabase = getSupabaseServerClient()
+  const supabase = supabaseServer()
   
   const payload = {
     name: String(formData.get("name") ?? "").trim(),
@@ -51,7 +51,7 @@ export async function createCustomer(formData: FormData) {
 export async function updateCustomer(customer_id: string, formData: FormData) {
   await requireSession()
   
-  const supabase = getSupabaseServerClient()
+  const supabase = supabaseServer()
   
   const payload = {
     name: String(formData.get("name") ?? "").trim(),
@@ -94,7 +94,7 @@ export async function updateCustomer(customer_id: string, formData: FormData) {
 export async function deleteCustomer(customer_id: string) {
   await requireSession()
   
-  const supabase = getSupabaseServerClient()
+  const supabase = supabaseServer()
   
   const { error } = await supabase
     .from("crm_customer")
@@ -115,7 +115,7 @@ export async function deleteCustomer(customer_id: string) {
 export async function toggleCustomerStatus(customer_id: string, is_active: boolean) {
   await requireSession()
   
-  const supabase = getSupabaseServerClient()
+  const supabase = supabaseServer()
   
   const { error } = await supabase
     .from("crm_customer")

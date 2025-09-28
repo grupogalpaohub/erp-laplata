@@ -1,4 +1,4 @@
-import { getSupabaseServerClient } from '@/lib/supabase/server'
+import { supabaseServer } from '@/utils/supabase/server'
 import { requireSession } from '@/lib/auth/requireSession'
 import Link from 'next/link'
 import { Package, Eye, TrendingUp, AlertTriangle } from 'lucide-react'
@@ -21,7 +21,7 @@ interface InventoryItem {
 }
 
 export default async function InventoryPage() {
-  const supabase = getSupabaseServerClient()
+  const supabase = supabaseServer()
   await requireSession()
 
   // Buscar posição de estoque

@@ -1,6 +1,6 @@
-import { getSupabaseServerClient } from "@/lib/supabase/server";
+import { supabaseServer } from '@/utils/supabase/server';
 export async function fetchSalesOrders(limit=100) {
-  const supabase = getSupabaseServerClient();
+  const supabase = supabaseServer();
   const { data, error } = await supabase
     .from("sd_sales_order")
     .select("*")

@@ -2,7 +2,7 @@ export const dynamic = 'force-dynamic'
 export const revalidate = 0
 export const runtime = 'nodejs'
 import { requireSession } from '@/lib/auth/requireSession'
-import { getSupabaseServerClient } from '@/lib/supabase/server'
+import { supabaseServer } from '@/utils/supabase/server'
 import { formatBRL } from '@/lib/money'
 import Link from 'next/link'
 import ExportCSVButton from './ExportCSVButton'
@@ -22,7 +22,7 @@ type PO = {
 
 export default async function PurchaseOrdersPage({ searchParams }: { searchParams: any }) {
   await requireSession() // Verificar se está autenticado
-  const supabase = getSupabaseServerClient()
+  const supabase = supabaseServer()
   
   let q = supabase
     .from('mm_purchase_order')

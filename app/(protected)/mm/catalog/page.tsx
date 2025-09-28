@@ -132,7 +132,7 @@ export default async function CatalogoMateriais({ searchParams }: { searchParams
                 </tr>
               </thead>
               <tbody>
-                {materials.map((material) => (
+                {(materials || []).map((material) => (
                   <tr key={material.mm_material}>
                     <td className="font-mono text-sm font-medium text-blue-600">{material.mm_material}</td>
                     <td>

@@ -34,8 +34,8 @@ interface PurchaseOrder {
   notes?: string
 }
 
-export default function EditPurchaseOrderPage({ params }: { params: { po_id: string } }) {
-  // po_id é o parâmetro da URL, mas internamente usamos mm_order
+export default function EditPurchaseOrderPage({ params }: { params: { mm_order: string } }) {
+  // mm_order é o parâmetro da URL
   const router = useRouter()
   const [purchaseOrder, setPurchaseOrder] = useState<PurchaseOrder | null>(null)
   const [items, setItems] = useState<PurchaseOrderItem[]>([])
@@ -52,14 +52,14 @@ export default function EditPurchaseOrderPage({ params }: { params: { po_id: str
   const loadData = async () => {
     try {
       // Carregar pedido
-      const poResponse = await fetch(`/api/mm/purchase-orders?mm_order=${params.po_id}`) // po_id é o parâmetro da URL
+      const poResponse = await fetch(`/api/mm/purchase-orders?mm_order=${params.mm_order}`)
       if (!poResponse.ok) throw new Error('Erro ao carregar pedido')
       const poData = await poResponse.json()
       if (!poData.ok) throw new Error(poData.error || 'Erro ao carregar pedido')
       setPurchaseOrder(poData.po)
 
       // Carregar itens
-      const itemsResponse = await fetch(`/api/mm/purchase-order-items?mm_order=${params.po_id}`) // po_id é o parâmetro da URL
+      const itemsResponse = await fetch(`/api/mm/purchase-order-items?mm_order=${params.mm_order}`)
       if (itemsResponse.ok) {
         const itemsData = await itemsResponse.json()
         if (itemsData.ok) {
@@ -133,7 +133,7 @@ export default function EditPurchaseOrderPage({ params }: { params: { po_id: str
 
     try {
       // Atualizar header do pedido
-      const headerResponse = await fetch(`/api/mm/purchase-orders/${params.po_id}`, { // po_id é o parâmetro da URL
+      const headerResponse = await fetch(`/api/mm/purchase-orders/${params.mm_order}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -153,7 +153,7 @@ export default function EditPurchaseOrderPage({ params }: { params: { po_id: str
       // Por enquanto, vamos apenas logar que os itens foram "atualizados"
       console.log('Items to update:', items)
 
-      router.push(`/mm/purchases/${params.po_id}`) // po_id é o parâmetro da URL
+      router.push(`/mm/purchases/${params.mm_order}`)
     } catch (error) {
       console.error('Erro ao salvar:', error)
       setError('Erro ao salvar alterações')
@@ -190,7 +190,7 @@ export default function EditPurchaseOrderPage({ params }: { params: { po_id: str
     <main className="mx-auto max-w-7xl px-4 py-6 space-y-6">
       <div className="flex items-center justify-between">
         <div className="flex items-center space-x-4">
-          <Link href={`/mm/purchases/${params.po_id}`} className="btn-fiori-outline flex items-center gap-2"> {/* po_id é o parâmetro da URL */}
+          <Link href={`/mm/purchases/${params.mm_order}`} className="btn-fiori-outline flex items-center gap-2">
             <ArrowLeft className="w-4 h-4" />
             Voltar
           </Link>
@@ -308,7 +308,7 @@ export default function EditPurchaseOrderPage({ params }: { params: { po_id: str
                           className="input-fiori w-full"
                         >
                           <option value="">Selecione o material...</option>
-                          {materials.map((material) => (
+                          {(materials || []).map((material) => (
                             <option key={material.mm_material} value={material.mm_material}>
                               {material.mm_material} - {material.mm_desc}
                             </option>

@@ -1,5 +1,5 @@
 import Link from 'next/link'
-import { getSupabaseServerClient } from '@/lib/supabase/server'
+import { supabaseServer } from '@/utils/supabase/server'
 import { requireSession } from '@/lib/auth/requireSession'
 import { formatBRL } from '@/lib/money'
 import { ArrowLeft, Edit, CheckCircle, XCircle, DollarSign, Percent } from 'lucide-react'
@@ -45,7 +45,7 @@ export default async function SalesOrderDetailPage({ params }: { params: { so_id
   let error = ''
 
   try {
-    const supabase = getSupabaseServerClient()
+    const supabase = supabaseServer()
 
     // Buscar pedido
     const { data: orderData, error: orderError } = await supabase

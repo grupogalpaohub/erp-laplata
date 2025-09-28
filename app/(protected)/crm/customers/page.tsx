@@ -1,5 +1,5 @@
 import Link from 'next/link'
-import { getSupabaseServerClient } from '@/lib/supabase/server'
+import { supabaseServer } from '@/utils/supabase/server'
 import { Plus, Edit, Eye } from 'lucide-react'
 
 export const dynamic = 'force-dynamic'
@@ -10,7 +10,7 @@ export default async function CustomersPage() {
   let customers: any[] = []
 
   try {
-    const supabase = getSupabaseServerClient()
+    const supabase = supabaseServer()
 
     const { data, error } = await supabase
       .from('crm_customer')

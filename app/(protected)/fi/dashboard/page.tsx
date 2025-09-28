@@ -1,5 +1,5 @@
 import Link from 'next/link'
-import { getSupabaseServerClient } from '@/lib/supabase/server'
+import { supabaseServer } from '@/utils/supabase/server'
 import { requireSession } from '@/lib/auth/requireSession'
 import { formatBRL } from '@/lib/money'
 import { ArrowLeft, TrendingUp, TrendingDown, DollarSign, BarChart3 } from 'lucide-react'
@@ -16,7 +16,7 @@ export default async function FIDashboardPage() {
   let recentEntries: any[] = []
 
   try {
-    const supabase = getSupabaseServerClient()
+    const supabase = supabaseServer()
     await requireSession()
 
     // Buscar dados para KPIs

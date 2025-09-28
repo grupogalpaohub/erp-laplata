@@ -1,5 +1,5 @@
 import Link from 'next/link'
-import { getSupabaseServerClient } from '@/lib/supabase/server'
+import { supabaseServer } from '@/utils/supabase/server'
 import { requireSession } from '@/lib/auth/requireSession'
 import { ArrowLeft, Search, Download, Filter, Package, Plus, Eye } from 'lucide-react'
 
@@ -28,7 +28,7 @@ export default async function EntriesPage() {
   let totalCount = 0
 
   try {
-    const supabase = getSupabaseServerClient()
+    const supabase = supabaseServer()
     await requireSession()
 
     // Buscar movimentações de estoque

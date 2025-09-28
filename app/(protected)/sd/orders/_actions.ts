@@ -1,6 +1,6 @@
 'use server'
 
-import { getSupabaseServerClient } from '@/lib/supabase/server'
+import { supabaseServer } from '@/utils/supabase/server'
 import { requireSession } from '@/lib/auth/requireSession'
 import { toCents, formatBRL } from '@/lib/money'
 import { revalidatePath } from 'next/cache'
@@ -13,7 +13,7 @@ export async function createOrderAction(input: {
 }) {
   try {
     await requireSession()
-    const supabase = getSupabaseServerClient()
+    const supabase = supabaseServer()
     
     // Gerar ID único baseado em timestamp
     const timestamp = Date.now()
@@ -56,7 +56,7 @@ export async function addOrderItemAction(input: {
 }) {
   try {
     await requireSession()
-    const supabase = getSupabaseServerClient()
+    const supabase = supabaseServer()
     
     // Buscar preço do material se não fornecido
     let unit_price_cents = 0
@@ -117,7 +117,7 @@ export async function removeOrderItemAction(input: {
 }) {
   try {
     await requireSession()
-    const supabase = getSupabaseServerClient()
+    const supabase = supabaseServer()
     
     const { error } = await supabase
       .from('sd_sales_order_item')
@@ -148,7 +148,7 @@ export async function updateOrderAction(input: {
 }) {
   try {
     await requireSession()
-    const supabase = getSupabaseServerClient()
+    const supabase = supabaseServer()
     
     const updateData: any = {
       updated_at: new Date().toISOString()
@@ -184,7 +184,7 @@ export async function updateOrderStatusAction(input: {
 }) {
   try {
     await requireSession()
-    const supabase = getSupabaseServerClient()
+    const supabase = supabaseServer()
     
     // Validar status permitidos (conforme enum order_status no Supabase)
     const allowedStatuses = ['draft', 'approved', 'invoiced', 'cancelled']

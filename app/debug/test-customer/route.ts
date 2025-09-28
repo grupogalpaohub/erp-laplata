@@ -1,11 +1,11 @@
 import { NextResponse } from "next/server";
-import { getSupabaseServerClient } from "@/lib/supabase/server";
+import { supabaseServer } from "@/utils/supabase/server";
 
 export const runtime = "nodejs";
 
 export async function POST() {
   try {
-    const supabase = getSupabaseServerClient();
+    const supabase = supabaseServer();
     
     // Tentar inserir um cliente de teste
     const { data, error } = await supabase

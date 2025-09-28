@@ -1,11 +1,11 @@
-import { getSupabaseServerClient } from '@/lib/supabase/server'
+import { supabaseServer } from '@/utils/supabase/server'
 import { requireSession } from '@/lib/auth/requireSession'
 import { formatBRL } from '@/lib/money'
 import { notFound } from 'next/navigation'
 
 async function getSalesOrder(soId: string) {
   await requireSession()
-  const supabase = getSupabaseServerClient()
+  const supabase = supabaseServer()
 
   try {
     // Buscar dados do pedido

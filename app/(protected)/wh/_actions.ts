@@ -1,13 +1,13 @@
 "use server"
 
-import { getSupabaseServerClient } from "@/lib/supabase/server"
+import { supabaseServer } from '@/utils/supabase/server'
 import { requireSession } from "@/lib/auth/requireSession"
 import { revalidatePath } from "next/cache"
 
 export async function createTransfer(formData: FormData) {
   await requireSession()
   
-  const supabase = getSupabaseServerClient()
+  const supabase = supabaseServer()
   
   const transferData = {
     mm_material: String(formData.get("mm_material") ?? ""),

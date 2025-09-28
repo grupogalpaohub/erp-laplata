@@ -1,5 +1,5 @@
 'use server';
-import { supabaseServer } from '@/utils/supabase/server';
+import { supabaseServer } from '@/lib/supabase/server';
 import { ENV } from '@/lib/env';
 
 export async function loginWithGoogle(next?: string) {

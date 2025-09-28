@@ -9,7 +9,7 @@ const FIXES = [
   {
     name: 'Supabase SSR',
     pattern: /import\s+{\s*createClient\s*}\s+from\s+['"]@supabase\/supabase-js['"]/g,
-    replacement: "import { supabaseServer, getTenantFromSession } from '@/utils/supabase/server'"
+    replacement: "import { supabaseServer, getTenantFromSession } from '@/lib/supabase/server'"
   },
   {
     name: 'Supabase Client Usage',

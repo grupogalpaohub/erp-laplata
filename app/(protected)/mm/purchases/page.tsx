@@ -2,7 +2,7 @@ export const dynamic = 'force-dynamic'
 export const revalidate = 0
 export const runtime = 'nodejs'
 import { requireSession } from '@/lib/auth/requireSession'
-import { supabaseServer } from '@/utils/supabase/server'
+import { supabaseServer } from '@/lib/supabase/server'
 import { formatBRL } from '@/lib/money'
 import Link from 'next/link'
 import ExportCSVButton from './ExportCSVButton'

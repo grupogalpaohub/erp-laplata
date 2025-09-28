@@ -1,5 +1,5 @@
 import { ENV } from '@/lib/env';
-import { supabaseServer } from '@/utils/supabase/server';
+import { supabaseServer } from '@/lib/supabase/server';
 
 export async function getUserServer() {
   if (ENV.AUTH_DISABLED) {

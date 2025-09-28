@@ -1,4 +1,4 @@
-import { supabaseServer } from '@/utils/supabase/server';
+import { supabaseServer } from '@/lib/supabase/server';
 export async function fetchMaterials(limit = 100) {
   const supabase = supabaseServer();
   const { data, error } = await supabase

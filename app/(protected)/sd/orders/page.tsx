@@ -1,5 +1,5 @@
 import Link from 'next/link'
-import { supabaseServer } from '@/utils/supabase/server'
+import { supabaseServer } from '@/lib/supabase/server'
 import { formatBRL } from '@/lib/money'
 import { Search, Download, Plus, Eye, Edit, CheckCircle, XCircle } from 'lucide-react'
 import StatusActionButtons from './StatusActionButtons'

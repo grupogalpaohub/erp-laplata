@@ -1,5 +1,5 @@
 import Link from 'next/link'
-import { supabaseServer } from '@/utils/supabase/server'
+import { supabaseServer } from '@/lib/supabase/server'
 import { requireSession } from '@/lib/auth/requireSession'
 import { ArrowLeft, Search, Download, Filter, Plus, Eye, Edit, Trash2 } from 'lucide-react'
 

@@ -1,4 +1,4 @@
-import { supabaseServer } from '@/utils/supabase/server'
+import { supabaseServer } from '@/lib/supabase/server'
 import { requireSession } from '@/lib/auth/requireSession'
 import Link from 'next/link'
 import { BookOpen, Plus, Edit, Eye } from 'lucide-react'

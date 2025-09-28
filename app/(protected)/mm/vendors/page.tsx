@@ -1,7 +1,7 @@
 import Link from 'next/link'
 import { ArrowLeft, Plus, Search, Edit, Eye } from 'lucide-react'
 import { requireSession } from '@/lib/auth/requireSession'
-import { supabaseServer } from '@/utils/supabase/server'
+import { supabaseServer } from '@/lib/supabase/server'
 import ExportCSVButton from './ExportCSVButton'
 
 export const dynamic = 'force-dynamic'

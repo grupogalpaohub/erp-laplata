@@ -6,7 +6,7 @@ import { join } from 'path'
 
 const TARGET_DIR = 'app'
 const OLD_IMPORT = "import { getSupabaseServerClient } from '@/lib/supabase/server'"
-const NEW_IMPORT = "import { supabaseServer } from '@/utils/supabase/server'"
+const NEW_IMPORT = "import { supabaseServer } from '@/lib/supabase/server'"
 const OLD_USAGE = 'getSupabaseServerClient()'
 const NEW_USAGE = 'supabaseServer()'
 

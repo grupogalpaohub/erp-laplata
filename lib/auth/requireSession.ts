@@ -1,5 +1,5 @@
 import { redirect } from 'next/navigation'
-import { supabaseServer } from '@/utils/supabase/server'
+import { supabaseServer } from '@/lib/supabase/server'
 
 export async function requireSession(nextPath: string = '/dashboard') {
   const supabase = supabaseServer()

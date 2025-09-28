@@ -1,6 +1,5 @@
 import Link from 'next/link'
-import { createServerClient } from '@supabase/ssr'
-import { cookies } from 'next/headers'
+import { supabaseServer } from '@/utils/supabase/server'
 import { formatBRL } from '@/lib/money'
 import { Search, Download, Plus, Eye, Edit, CheckCircle, XCircle } from 'lucide-react'
 import StatusActionButtons from './StatusActionButtons'
@@ -33,12 +32,7 @@ export default async function SalesOrdersPage() {
   let totalCount = 0
 
   try {
-    const cookieStore = cookies()
-    const supabase = createServerClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-      { cookies: { get: (k) => cookieStore.get(k)?.value } }
-    )
+    const supabase = supabaseServer()
     
     // Obter tenant_id da sessão
     const { data: { session } } = await supabase.auth.getSession()

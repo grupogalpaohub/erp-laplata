@@ -13,6 +13,20 @@ export function supabaseServer() {
         get(name: string) {
           return cookieStore.get(name)?.value;
         },
+        set(name: string, value: string, options: any) {
+          try {
+            cookieStore.set({ name, value, ...options });
+          } catch {
+            // Ignore cookie setting errors in server components
+          }
+        },
+        remove(name: string, options: any) {
+          try {
+            cookieStore.set({ name, value: '', ...options, maxAge: 0 });
+          } catch {
+            // Ignore cookie removal errors in server components
+          }
+        },
       },
     }
   );

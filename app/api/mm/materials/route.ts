@@ -1,20 +1,7 @@
-import { createServerClient } from '@supabase/ssr'
-import { cookies } from 'next/headers'
-import { getTenantFromSession } from '@/lib/auth'
+import { supabaseServer, getTenantFromSession } from '@/utils/supabase/server'
 
 export async function GET() {
-  const cookieStore = cookies()
-  const sb = createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    {
-      cookies: {
-        get(name: string) {
-          return cookieStore.get(name)?.value
-        },
-      },
-    }
-  )
+  const sb = supabaseServer()
   
   // Obter tenant_id da sessão
   const { data: { session } } = await sb.auth.getSession()
@@ -31,12 +18,7 @@ export async function GET() {
 }
 
 export async function POST(req: Request) {
-  const cookieStore = cookies()
-  const supabase = createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    { cookies: { get: (n) => cookieStore.get(n)?.value } }
-  )
+  const supabase = supabaseServer()
 
   const body = await req.json()
 

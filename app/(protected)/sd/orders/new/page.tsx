@@ -1,5 +1,6 @@
 import Link from 'next/link'
-import { getSupabaseServerClient } from '@/lib/supabase/server'
+import { createServerClient } from '@supabase/ssr'
+import { cookies } from 'next/headers'
 import { requireSession } from '@/lib/auth/requireSession'
 import { ArrowLeft, Save, X, Plus, Trash2 } from 'lucide-react'
 import NewSalesOrderForm from './NewSalesOrderForm'
@@ -19,27 +20,41 @@ export default async function NewSalesOrderPage({ searchParams }: NewSalesOrderP
   let paymentTerms: any[] = []
 
   try {
-    const supabase = getSupabaseServerClient()
+    const cookieStore = cookies()
+    const supabase = createServerClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+      { cookies: { get: (k) => cookieStore.get(k)?.value } }
+    )
+    
     await requireSession()
+    
+    // GUARDRAIL: Derivar tenant_id da sessão
+    const { data: session } = await supabase.auth.getSession();
+    if (!session?.session?.user) {
+      throw new Error('Usuário não autenticado');
+    }
+    
+    const tenant_id = session.session.user.user_metadata?.tenant_id || 'LaplataLunaria';
 
-    // Buscar dados necessários
+    // Buscar dados necessários com filtro por tenant_id
     const [customersResult, materialsResult, paymentTermsResult] = await Promise.allSettled([
       supabase
         .from('crm_customer')
         .select('customer_id, name, contact_email')
-        
+        .eq('tenant_id', tenant_id)
         .eq('is_active', true)
         .order('name'),
       supabase
         .from('mm_material')
         .select('mm_material, mm_comercial, mm_desc, mm_price_cents')
-        
+        .eq('tenant_id', tenant_id)
         .eq('status', 'active')
         .order('mm_comercial'),
       supabase
         .from('fi_payment_terms_def')
         .select('terms_code, description')
-        
+        .eq('tenant_id', tenant_id)
         .eq('is_active', true)
         .order('description')
     ])

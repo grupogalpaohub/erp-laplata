@@ -41,7 +41,17 @@ export async function POST(req: NextRequest) {
     }
 
     const dto = parse.data;
-    const tenant_id = 'LaplataLunaria'; // TODO: derivar da sessão
+    
+    // GUARDRAIL: Derivar tenant_id da sessão
+    const { data: session } = await supabase.auth.getSession();
+    if (!session?.session?.user) {
+      return NextResponse.json({
+        ok: false,
+        error: { code: 'UNAUTHORIZED', message: 'Usuário não autenticado' }
+      }, { status: 401 });
+    }
+    
+    const tenant_id = session.session.user.user_metadata?.tenant_id || 'LaplataLunaria';
 
     // Validar FK account_id
     const { data: account, error: accountError } = await supabase
@@ -104,7 +114,16 @@ export async function GET(req: NextRequest) {
     const from = (page - 1) * pageSize;
     const to = from + pageSize - 1;
 
-    const tenant_id = 'LaplataLunaria'; // TODO: derivar da sessão
+    // GUARDRAIL: Derivar tenant_id da sessão
+    const { data: session } = await supabase.auth.getSession();
+    if (!session?.session?.user) {
+      return NextResponse.json({
+        ok: false,
+        error: { code: 'UNAUTHORIZED', message: 'Usuário não autenticado' }
+      }, { status: 401 });
+    }
+    
+    const tenant_id = session.session.user.user_metadata?.tenant_id || 'LaplataLunaria';
 
     const { data, count, error } = await supabase
       .from('fi_transaction')

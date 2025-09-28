@@ -1,4 +1,5 @@
-import { getSupabaseServerClient } from '@/lib/supabase/server'
+import { createServerClient } from '@supabase/ssr'
+import { cookies } from 'next/headers'
 import { requireSession } from '@/lib/auth/requireSession'
 import Link from 'next/link'
 import { ArrowLeft, Printer, Edit } from 'lucide-react'
@@ -27,11 +28,19 @@ interface PurchaseOrderItem {
 }
 
 async function getPurchaseOrder(mm_order: string): Promise<PurchaseOrder | null> {
-  const supabase = getSupabaseServerClient()
+  const cookieStore = cookies()
+  const supabase = createServerClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    { cookies: { get: (k) => cookieStore.get(k)?.value } }
+  )
+  
+  const tenant_id = 'LaplataLunaria' // TODO: derivar da sessão
   
   const { data, error } = await supabase
     .from('mm_purchase_order')
     .select('*')
+    .eq('tenant_id', tenant_id)
     .eq('mm_order', mm_order)
     .single()
 
@@ -44,7 +53,14 @@ async function getPurchaseOrder(mm_order: string): Promise<PurchaseOrder | null>
 }
 
 async function getPurchaseOrderItems(mm_order: string): Promise<PurchaseOrderItem[]> {
-  const supabase = getSupabaseServerClient()
+  const cookieStore = cookies()
+  const supabase = createServerClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    { cookies: { get: (k) => cookieStore.get(k)?.value } }
+  )
+  
+  const tenant_id = 'LaplataLunaria' // TODO: derivar da sessão
   
   const { data, error } = await supabase
     .from('mm_purchase_order_item')
@@ -55,9 +71,12 @@ async function getPurchaseOrderItems(mm_order: string): Promise<PurchaseOrderIte
       unit_cost_cents,
       line_total_cents,
       notes,
-      mm_comercial: false, // mapeado no código
-      mm_desc
+      material:mm_material!inner (
+        mm_desc,
+        mm_comercial
+      )
     `)
+    .eq('tenant_id', tenant_id)
     .eq('mm_order', mm_order)
     .order('po_item_id')
 
@@ -66,14 +85,33 @@ async function getPurchaseOrderItems(mm_order: string): Promise<PurchaseOrderIte
     return []
   }
 
-  return data || []
+  // Mapear os dados para o formato esperado
+  return (data || []).map(item => ({
+    po_item_id: item.po_item_id,
+    mm_material: item.mm_material,
+    mm_comercial: item.material?.mm_comercial || false,
+    mm_desc: item.material?.mm_desc || null,
+    mm_qtt: item.mm_qtt,
+    unit_cost_cents: item.unit_cost_cents,
+    line_total_cents: item.line_total_cents,
+    notes: item.notes
+  }))
 }
 
 async function getVendor(vendorId: string) {
-  const supabase = getSupabaseServerClient()
+  const cookieStore = cookies()
+  const supabase = createServerClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    { cookies: { get: (k) => cookieStore.get(k)?.value } }
+  )
+  
+  const tenant_id = 'LaplataLunaria' // TODO: derivar da sessão
+  
   const { data, error } = await supabase
     .from('mm_vendor')
     .select('vendor_id, vendor_name, email, telefone')
+    .eq('tenant_id', tenant_id)
     .eq('vendor_id', vendorId)
     .single()
 

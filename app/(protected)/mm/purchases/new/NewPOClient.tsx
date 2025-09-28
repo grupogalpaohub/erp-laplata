@@ -117,7 +117,7 @@ export default function NewPOClient({ vendors, materials }: NewPOClientProps) {
 
       if (result.success) {
         // Redirecionar para o pedido criado
-        window.location.href = `/mm/purchases/${result.po_id}?success=Pedido criado com sucesso`
+        window.location.href = `/mm/purchases/${result.mm_order}?success=Pedido criado com sucesso`
       } else {
         setError(result.error || 'Erro ao criar pedido')
       }

@@ -88,7 +88,7 @@ async function getVendor(vendorId: string) {
 export default async function PurchaseOrderDetailPage({ params }: { params: { po_id: string } }) {
   const [purchaseOrder, items] = await Promise.all([
     getPurchaseOrder(params.po_id), // po_id é o parâmetro da URL, mas internamente usamos mm_order
-    getPurchaseOrderItems(params.po_id)
+    getPurchaseOrderItems(params.po_id) // po_id é o parâmetro da URL, mas internamente usamos mm_order
   ])
 
   const vendor = purchaseOrder ? await getVendor(purchaseOrder.vendor_id) : null

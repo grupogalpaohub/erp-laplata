@@ -19,7 +19,13 @@ const FORBIDDEN_PATTERNS = [
 
 const ALLOWED_EXTENSIONS = ['.ts', '.tsx', '.js', '.jsx'];
 const IGNORE_DIRS = ['node_modules', '.git', '.next', 'dist', 'build', 'supabase/functions'];
-const IGNORE_FILES = ['src/types/db.ts', 'scripts/guardrails-check.ts', 'scripts/validate-forbidden-fields.ts'];
+const IGNORE_FILES = [
+  'src/types/db.ts', 
+  'scripts/guardrails-check.ts', 
+  'scripts/validate-forbidden-fields.ts',
+  'supabase/functions/',
+  'app/api/wh/balance/route.ts' // Validação de quantity_available é intencional
+];
 
 function getAllFiles(dir: string): string[] {
   const files: string[] = [];

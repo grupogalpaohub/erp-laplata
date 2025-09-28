@@ -10,14 +10,14 @@ interface AccountsPayable {
   ap_id: string
   tenant_id: string
   vendor_id: string
-  po_id: string
+  mm_order: string
   amount_cents: number
   due_date: string
   status: 'PENDING' | 'PAID' | 'OVERDUE'
   created_at: string
   paid_at: string | null
   vendor_name?: string
-  po_number?: string
+  mm_order_number?: string
 }
 
 export default async function AccountsPayablePage() {
@@ -30,7 +30,7 @@ export default async function AccountsPayablePage() {
     .select(`
       *,
       vendor:mm_vendor(vendor_name),
-      po:mm_purchase_order(po_id)
+      po:mm_purchase_order(mm_order)
     `)
     
     .order('due_date', { ascending: true })
@@ -199,10 +199,10 @@ export default async function AccountsPayablePage() {
                       <td>
                         <div>
                           <div className="font-medium">
-                            {ap.po_number || ap.po_id}
+                            {ap.mm_order_number || ap.mm_order}
                           </div>
                           <div className="text-xs text-fiori-muted font-mono">
-                            {ap.po_id}
+                            {ap.mm_order}
                           </div>
                         </div>
                       </td>

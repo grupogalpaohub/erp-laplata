@@ -27,8 +27,13 @@ export async function createMaterial(formData: FormData) {
   
   const supabase = getSupabaseClient()
   
+  // Obter tenant_id da sessão
+  const { data: { session } } = await supabase.auth.getSession()
+  const tenant_id = session?.user?.user_metadata?.tenant_id || 'LaplataLunaria'
+  
   const payload = {
-    mm_material: String(formData.get("mm_material") ?? "").trim(),
+    tenant_id,
+    // mm_material será gerado automaticamente pelo DB
     mm_comercial: String(formData.get("mm_comercial") ?? "").trim() || null,
     mm_desc: String(formData.get("mm_desc") ?? "").trim(),
     mm_mat_type: String(formData.get("mm_mat_type") ?? "").trim() || null,

@@ -405,7 +405,7 @@ export default function EditSalesOrderForm({ order, customers, materials }: Edit
                         className="select-fiori"
                       >
                         <option value="">Selecione um material</option>
-                        {materials.map((material) => (
+                        {(materials || []).map((material) => (
                           <option key={material.mm_material} value={material.mm_material}>
                             {material.mm_material} - {material.mm_comercial || material.mm_desc}
                           </option>

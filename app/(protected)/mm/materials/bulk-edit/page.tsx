@@ -276,7 +276,7 @@ export default function BulkEditPage() {
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-200">
-              {materials.map((material) => (
+              {(materials || []).map((material) => (
                 <tr key={material.mm_material} className="hover:bg-gray-50">
                   <td className="px-4 py-3 text-sm font-mono">{material.mm_material}</td>
                   <td className="px-4 py-3">

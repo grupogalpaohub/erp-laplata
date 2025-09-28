@@ -3,6 +3,7 @@ export const revalidate = 0
 export const runtime = 'nodejs'
 import { requireSession } from '@/lib/auth/requireSession'
 import { getSupabaseServerClient } from '@/lib/supabase/server'
+import { formatBRL } from '@/lib/money'
 import Link from 'next/link'
 import ExportCSVButton from './ExportCSVButton'
 import StatusUpdateButton from './StatusUpdateButton'
@@ -113,7 +114,7 @@ export default async function PurchaseOrdersPage({ searchParams }: { searchParam
                       {r.status}
                     </span>
                   </td>
-                  <td className="text-right font-medium">R$ {(r.total_cents/100).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</td>
+                  <td className="text-right font-medium">{formatBRL(r.total_cents)}</td>
                   <td>
                     <div className="flex gap-2">
                       <Link href={`/mm/purchases/${r.mm_order}`} className="btn-fiori-outline btn-sm">

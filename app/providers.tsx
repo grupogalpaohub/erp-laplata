@@ -1,29 +1,29 @@
-'use client'
-import { useEffect } from 'react'
-import { supabaseBrowser } from '@/lib/supabase/client'
+'use client';
+
+import React, { useEffect, useMemo } from 'react';
+import { supabaseBrowser } from '@/lib/supabase/client';
 
 export default function Providers({ children }: { children: React.ReactNode }) {
+  // cria uma instância do cliente apenas uma vez no browser
+  const supabase = useMemo(() => supabaseBrowser(), []);
+
   useEffect(() => {
-    const supabase = supabaseBrowser()
-
-    const { data: sub } = supabase.auth.onAuthStateChange(async (event, session) => {
-      // informa o servidor para setar/limpar cookies httpOnly
+    // assina mudanças de auth e sincroniza cookies httpOnly com o server
+    const { data: sub } = supabase.auth.onAuthStateChange(async () => {
       try {
-        const response = await fetch('/api/auth/refresh', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ event, session }),
-        })
-        if (!response.ok) {
-          console.warn('Failed to sync session:', response.status)
-        }
-      } catch (error) {
-        console.warn('Session sync error:', error)
+        await fetch('/api/auth/refresh', {
+          method: 'GET',
+          credentials: 'include',
+        });
+      } catch {
+        // silencioso por segurança; sem logs de segredos
       }
-    })
+    });
 
-    return () => sub?.subscription?.unsubscribe?.()
-  }, [])
+    return () => {
+      sub?.subscription.unsubscribe();
+    };
+  }, [supabase]);
 
-  return <>{children}</>
+  return <>{children}</>;
 }

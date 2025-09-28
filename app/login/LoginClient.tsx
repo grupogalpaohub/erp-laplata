@@ -1,63 +1,52 @@
-'use client';
+// app/login/LoginClient.tsx
+"use client";
 
-import { useState } from 'react';
-import { useRouter } from 'next/navigation';
-import { supabaseBrowser } from '@/lib/supabase/client';
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { supabaseBrowser } from "@/lib/supabase/client";
 
 export default function LoginClient() {
-  const [email, setEmail] = useState('admin@teste.com');
-  const [password, setPassword] = useState('teste123');
+  const router = useRouter();
+  const [email, setEmail] = useState("admin@teste.com");
+  const [password, setPassword] = useState("teste123");
   const [loading, setLoading] = useState(false);
   const [err, setErr] = useState<string | null>(null);
-  const router = useRouter();
 
-  async function onSubmit(e: React.FormEvent) {
+  const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setErr(null);
-    setLoading(true);
-    try {
-      const { data, error } = await supabaseBrowser.auth.signInWithPassword({ email, password });
-      if (error) { setErr(error.message); return; }
+    setLoading(true); setErr(null);
+    const sb = supabaseBrowser();
 
-      const s = data.session;
-      if (s) {
-        await fetch('/api/auth/sync', {
-          method: 'POST',
-          headers: { 'content-type': 'application/json' },
-          body: JSON.stringify({ access_token: s.access_token, refresh_token: s.refresh_token }),
-          credentials: 'include',
-        });
-      }
-      router.replace('/dashboard');
-    } catch (e: any) {
-      setErr(String(e?.message ?? e));
-    } finally {
-      setLoading(false);
-    }
-  }
+    // 1) signIn
+    const { data, error } = await sb.auth.signInWithPassword({ email, password });
+    if (error || !data.session) { setErr(error?.message ?? "Login inválido"); setLoading(false); return; }
+
+    // 2) sync SSR cookies
+    await fetch("/api/auth/sync", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({
+        access_token: data.session.access_token,
+        refresh_token: data.session.refresh_token,
+      }),
+      credentials: "include",
+    });
+
+    // 3) opcional: ping
+    await fetch("/api/auth/refresh", { credentials: "include" });
+
+    setLoading(false);
+    router.replace("/dashboard");
+  };
 
   return (
-    <main className="min-h-dvh flex items-center justify-center">
-      <form onSubmit={onSubmit} className="w-full max-w-sm space-y-4">
-        <h1 className="text-xl font-semibold">Entrar</h1>
-
-        <label className="block text-sm">
-          <span className="block mb-1">E-mail</span>
-          <input type="email" className="w-full border rounded px-3 py-2"
-                 defaultValue={email} onChange={(e)=>setEmail(e.target.value)} required />
-        </label>
-
-        <label className="block text-sm">
-          <span className="block mb-1">Senha</span>
-          <input type="password" className="w-full border rounded px-3 py-2"
-                 defaultValue={password} onChange={(e)=>setPassword(e.target.value)} required />
-        </label>
-
-        {err && <p className="text-sm text-red-500">{err}</p>}
-
-        <button type="submit" disabled={loading} className="w-full rounded px-3 py-2 border">
-          {loading ? 'Entrando...' : 'Entrar'}
-        </button>
+    <main className="min-h-dvh grid place-content-center">
+      <form onSubmit={onSubmit} className="w-[420px] space-y-3">
+        <h1>Entrar</h1>
+        <input value={email} onChange={e=>setEmail(e.target.value)} placeholder="E-mail" />
+        <input type="password" value={password} onChange={e=>setPassword(e.target.value)} placeholder="Senha" />
+        {err && <p style={{color:"salmon"}}>{err}</p>}
+        <button disabled={loading}>{loading ? "Entrando..." : "Entrar"}</button>
       </form>
     </main>
   );

@@ -16,8 +16,21 @@ export async function middleware(req: any) {
   );
 
   const { data } = await supabase.auth.getSession();
+  
+  // Se estiver autenticado E tentando acessar /login, redireciona para dashboard
   if (req.nextUrl.pathname === "/login" && data.session) {
     return NextResponse.redirect(new URL("/dashboard", req.url));
+  }
+  
+  // Se não estiver autenticado E tentando acessar páginas protegidas, redireciona para login
+  const protectedPaths = ["/dashboard", "/mm", "/sd", "/wh", "/co", "/crm", "/fi", "/analytics"];
+  if (protectedPaths.some(path => req.nextUrl.pathname.startsWith(path)) && !data.session) {
+    return NextResponse.redirect(new URL("/login", req.url));
+  }
+  
+  // Se não estiver autenticado E tentando acessar /, redireciona para login
+  if (req.nextUrl.pathname === "/" && !data.session) {
+    return NextResponse.redirect(new URL("/login", req.url));
   }
   return res;
 }

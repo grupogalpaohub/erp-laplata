@@ -10,7 +10,7 @@ export default function NavBar() {
   const router = useRouter();
 
   useEffect(() => {
-    const supabase = supabaseBrowser() // <- pega a instância
+    const supabase = supabaseBrowser() // <- chama a função
 
     supabase.auth.getUser().then(({ data }) => {
       setUser(data?.user ?? null)

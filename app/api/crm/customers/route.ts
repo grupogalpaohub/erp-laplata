@@ -1,4 +1,4 @@
-import { supabaseServer } from '@/lib/supabase/server'
+import { supabaseServer } from '@/utils/supabase/server'
 // app/api/crm/customers/route.ts
 import { NextResponse } from "next/server";
 
@@ -12,7 +12,6 @@ export async function GET(req: Request) {
   const page = Number(url.searchParams.get("page") ?? 1);
   const pageSize = Math.min(Number(url.searchParams.get("pageSize") ?? 50), 200);
 
-  const sb = supabaseServer();
   let query = sb.from("crm_customer").select("*", { count: "exact" }).order("created_date", { ascending: false });
   if (q) query = query.ilike("name", `%${q}%`).or(`contact_email.ilike.%${q}%,customer_id.ilike.%${q}%`);
 

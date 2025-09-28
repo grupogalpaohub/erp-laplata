@@ -1,4 +1,6 @@
-// Layout protegido - autenticação é feita pelo middleware
-export default function ProtectedLayout({ children }: { children: React.ReactNode }) {
+import { requireSession } from '@/lib/auth/requireSession'
+
+export default async function ProtectedLayout({ children }: { children: React.ReactNode }) {
+  await requireSession()
   return <>{children}</>
 }

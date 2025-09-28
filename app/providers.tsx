@@ -4,25 +4,21 @@ import React, { useEffect, useMemo } from 'react';
 import { supabaseBrowser } from '@/lib/supabase/client';
 
 export default function Providers({ children }: { children: React.ReactNode }) {
-  // cria uma instância do cliente apenas uma vez no browser
   const supabase = useMemo(() => supabaseBrowser(), []);
 
+  // 1) Sincroniza cookies httpOnly IMEDIATAMENTE no mount
   useEffect(() => {
-    // assina mudanças de auth e sincroniza cookies httpOnly com o server
+    fetch('/api/auth/refresh', { method: 'GET', credentials: 'include' }).catch(() => {});
+  }, []);
+
+  // 2) Sincroniza cookies a cada mudança de auth
+  useEffect(() => {
     const { data: sub } = supabase.auth.onAuthStateChange(async () => {
       try {
-        await fetch('/api/auth/refresh', {
-          method: 'GET',
-          credentials: 'include',
-        });
-      } catch {
-        // silencioso por segurança; sem logs de segredos
-      }
+        await fetch('/api/auth/refresh', { method: 'GET', credentials: 'include' });
+      } catch {}
     });
-
-    return () => {
-      sub?.subscription.unsubscribe();
-    };
+    return () => sub?.subscription.unsubscribe();
   }, [supabase]);
 
   return <>{children}</>;

@@ -5,32 +5,68 @@ export const MATERIAL_CONFIG = {
 } as const;
 
 export const MATERIAL_TYPES = [
-  'Raw Material',
-  'Finished Good',
-  'Semi-Finished',
-  'Component',
-  'Consumable',
-  'Tool',
-  'Equipment'
+  'raw_material',
+  'finished_good',
+  'component',
+  'service',
+  'Brinco',
+  'Choker',
+  'Gargantilha',
+  'Kit',
+  'Pulseira'
 ] as const;
 
 export const MATERIAL_CLASSIFICATIONS = [
-  'A - High Value',
-  'B - Medium Value', 
-  'C - Low Value',
-  'Critical',
-  'Non-Critical'
+  'prata',
+  'ouro',
+  'acabamento',
+  'embalagem',
+  'Amuletos',
+  'Elementar',
+  'Ciclos',
+  'Ancestral'
 ] as const;
 
 export const UNITS_OF_MEASURE = [
-  'PCS',
-  'KG',
-  'L',
-  'M',
-  'M2',
-  'M3',
-  'EA',
-  'BOX',
-  'PALLET'
+  'unidade',
+  'kg',
+  'g',
+  'm',
+  'cm',
+  'l',
+  'ml',
+  'pcs',
+  'box',
+  'pallet'
+] as const;
+
+export const MATERIAL_PURITY_OPTIONS = [
+  '925',
+  '750',
+  '585',
+  '375',
+  '999',
+  '999.9'
+] as const;
+
+export const MATERIAL_COLOR_OPTIONS = [
+  'Dourado',
+  'Prateado',
+  'Rose Gold',
+  'Bronze',
+  'Cobre',
+  'Preto',
+  'Branco',
+  'Colorido'
+] as const;
+
+export const MATERIAL_FINISH_OPTIONS = [
+  'Polido',
+  'Fosco',
+  'Escovado',
+  'Martelado',
+  'Lixado',
+  'Brutal',
+  'Acetinado'
 ] as const;
 

@@ -1,3 +1,290 @@
 {
-  "tables": {}
+  "tables": {
+    "mm_material": [
+      "tenant_id",
+      "mm_material",
+      "mm_comercial",
+      "mm_desc",
+      "mm_mat_type",
+      "mm_mat_class",
+      "mm_price_cents",
+      "barcode",
+      "weight_grams",
+      "status",
+      "mm_pur_link",
+      "mm_vendor_id",
+      "created_at",
+      "commercial_name",
+      "unit_of_measure",
+      "dimensions",
+      "purity",
+      "color",
+      "finish",
+      "min_stock",
+      "max_stock",
+      "lead_time_days",
+      "price_last_updated_at",
+      "mm_purchase_price_cents"
+    ],
+    "mm_purchase_order": [
+      "tenant_id",
+      "mm_order",
+      "vendor_id",
+      "status",
+      "po_date",
+      "expected_delivery",
+      "notes",
+      "created_at",
+      "total_amount",
+      "currency",
+      "order_date",
+      "total_cents"
+    ],
+    "mm_purchase_order_item": [
+      "tenant_id",
+      "po_item_id",
+      "mm_order",
+      "plant_id",
+      "mm_material",
+      "mm_qtt",
+      "unit_cost_cents",
+      "line_total_cents",
+      "notes",
+      "currency",
+      "quantity",
+      "material_id"
+    ],
+    "crm_customer": [
+      "tenant_id",
+      "customer_id",
+      "name",
+      "email",
+      "telefone",
+      "customer_type",
+      "status",
+      "created_date",
+      "customer_category",
+      "lead_classification",
+      "sales_channel",
+      "notes",
+      "preferred_payment_method",
+      "preferred_payment_terms",
+      "contact_email",
+      "contact_phone",
+      "phone_country",
+      "contact_name",
+      "document_id",
+      "addr_street",
+      "addr_number",
+      "addr_complement",
+      "addr_district",
+      "addr_city",
+      "addr_state",
+      "addr_zip",
+      "addr_country",
+      "is_active",
+      "updated_at"
+    ],
+    "mm_vendor": [
+      "tenant_id",
+      "vendor_id",
+      "vendor_name",
+      "email",
+      "telefone",
+      "cidade",
+      "estado",
+      "vendor_rating",
+      "created_at"
+    ],
+    "wh_warehouse": [
+      "tenant_id",
+      "plant_id",
+      "name",
+      "is_default",
+      "created_at"
+    ],
+    "wh_inventory_balance": [
+      "tenant_id",
+      "plant_id",
+      "mm_material",
+      "on_hand_qty",
+      "reserved_qty"
+    ],
+    "sd_sales_order": [
+      "tenant_id",
+      "so_id",
+      "customer_id",
+      "status",
+      "order_date",
+      "expected_ship",
+      "total_cents",
+      "created_at"
+    ],
+    "sd_sales_order_item": [
+      "tenant_id",
+      "so_id",
+      "sku",
+      "quantity",
+      "unit_price_cents",
+      "line_total_cents",
+      "row_no"
+    ],
+    "crm_lead": [
+      "tenant_id",
+      "lead_id",
+      "name",
+      "email",
+      "phone",
+      "source",
+      "status",
+      "score",
+      "owner_user",
+      "created_date"
+    ],
+    "crm_opportunity": [
+      "tenant_id",
+      "opp_id",
+      "lead_id",
+      "stage",
+      "est_value_cents",
+      "probability",
+      "next_action_at",
+      "status",
+      "created_date"
+    ],
+    "crm_interaction": [
+      "tenant_id",
+      "interaction_id",
+      "lead_id",
+      "channel",
+      "content",
+      "sentiment",
+      "created_date"
+    ],
+    "fi_account": [
+      "tenant_id",
+      "account_id",
+      "name",
+      "type",
+      "currency",
+      "is_active",
+      "created_at"
+    ],
+    "fi_invoice": [
+      "tenant_id",
+      "invoice_id",
+      "source_type",
+      "source_id",
+      "customer_id",
+      "vendor_id",
+      "amount_cents",
+      "due_date",
+      "status",
+      "created_date"
+    ],
+    "fi_payment": [
+      "tenant_id",
+      "payment_id",
+      "invoice_id",
+      "account_id",
+      "amount_cents",
+      "payment_date",
+      "method",
+      "status",
+      "created_at"
+    ],
+    "fi_transaction": [
+      "tenant_id",
+      "transaction_id",
+      "account_id",
+      "type",
+      "amount_cents",
+      "ref_type",
+      "ref_id",
+      "date",
+      "created_at"
+    ],
+    "co_cost_center": [
+      "tenant_id",
+      "cc_id",
+      "name",
+      "parent_cc_id",
+      "is_active",
+      "created_at"
+    ],
+    "co_fiscal_period": [
+      "tenant_id",
+      "period_id",
+      "start_date",
+      "end_date",
+      "status",
+      "created_at"
+    ],
+    "co_kpi_definition": [
+      "tenant_id",
+      "kpi_key",
+      "name",
+      "unit",
+      "description",
+      "created_at"
+    ],
+    "co_kpi_snapshot": [
+      "tenant_id",
+      "kpi_key",
+      "snapshot_at",
+      "value_number",
+      "meta_json"
+    ],
+    "co_dashboard_tile": [
+      "tenant_id",
+      "tile_id",
+      "kpi_key",
+      "title",
+      "subtitle",
+      "order_index",
+      "color",
+      "is_active",
+      "created_at"
+    ],
+    "user_profile": [
+      "tenant_id",
+      "user_id",
+      "name",
+      "email",
+      "role",
+      "is_active",
+      "created_at"
+    ],
+    "tenant": [
+      "tenant_id",
+      "display_name",
+      "locale",
+      "timezone",
+      "created_at"
+    ],
+    "app_setting": [
+      "tenant_id",
+      "key",
+      "value",
+      "updated_at"
+    ],
+    "audit_log": [
+      "audit_id",
+      "tenant_id",
+      "table_name",
+      "record_pk",
+      "action",
+      "diff_json",
+      "actor_user",
+      "created_at"
+    ],
+    "doc_numbering": [
+      "tenant_id",
+      "doc_type",
+      "prefix",
+      "format",
+      "next_seq",
+      "is_active"
+    ]
+  }
 }

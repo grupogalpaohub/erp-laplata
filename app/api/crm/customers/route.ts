@@ -1,12 +1,24 @@
-import { supabaseServer } from '@/utils/supabase/server'
-// app/api/crm/customers/route.ts
+import { createServerClient } from '@supabase/ssr'
+import { cookies } from 'next/headers'
 import { NextResponse } from "next/server";
 
 
 
 export async function GET(req: Request) {
   // ✅ GUARDRAIL COMPLIANCE: API usando @supabase/ssr e cookies()
-  const sb = supabaseServer()
+  const cookieStore = cookies()
+  const sb = createServerClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    {
+      cookies: {
+        get(name: string) {
+          return cookieStore.get(name)?.value
+        },
+      },
+    }
+  )
+  
   const url = new URL(req.url);
   const q = url.searchParams.get("q")?.trim() ?? "";
   const page = Number(url.searchParams.get("page") ?? 1);
@@ -27,23 +39,36 @@ export async function GET(req: Request) {
 export async function POST(req: Request) {
   const body = await req.json().catch(() => ({}));
   // ✅ GUARDRAIL COMPLIANCE: API usando @supabase/ssr e cookies()
-  const sb = supabaseServer()
+  const cookieStore = cookies()
+  const sb = createServerClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    {
+      cookies: {
+        get(name: string) {
+          return cookieStore.get(name)?.value
+        },
+      },
+    }
+  )
 
   const customer = {
     customer_id: body.customer_id,
     name: body.name,
     email: body.email ?? null,
-    contact_email: body.contact_email ?? body.email ?? null,
     telefone: body.telefone ?? null,
-    contact_phone: body.contact_phone ?? body.telefone ?? null,
     customer_type: body.customer_type ?? "PF",
     status: body.status ?? "active",
+    created_date: body.created_date ?? new Date().toISOString().split('T')[0],
     customer_category: body.customer_category ?? null,
     lead_classification: body.lead_classification ?? null,
     sales_channel: body.sales_channel ?? null,
     notes: body.notes ?? null,
     preferred_payment_method: body.preferred_payment_method ?? null,
     preferred_payment_terms: body.preferred_payment_terms ?? null,
+    contact_email: body.contact_email ?? body.email ?? null,
+    contact_phone: body.contact_phone ?? body.telefone ?? null,
+    phone_country: body.phone_country ?? "BR",
     contact_name: body.contact_name ?? null,
     document_id: body.document_id ?? null,
     addr_street: body.addr_street ?? null,
@@ -54,8 +79,8 @@ export async function POST(req: Request) {
     addr_state: body.addr_state ?? null,
     addr_zip: body.addr_zip ?? null,
     addr_country: body.addr_country ?? "BR",
-    phone_country: body.phone_country ?? "BR",
-    is_active: body.is_active ?? true
+    is_active: body.is_active ?? true,
+    updated_at: new Date().toISOString()
   };
 
   const { data, error } = await sb.from("crm_customer").insert(customer).select("*").single();

@@ -3,7 +3,6 @@
 import { useState, useEffect } from 'react'
 import { Plus, Edit, Eye } from 'lucide-react'
 import Link from 'next/link'
-import { createClient } from '@supabase/supabase-js'
 
 export function CustomersClient() {
   const [customers, setCustomers] = useState<any[]>([])
@@ -14,32 +13,19 @@ export function CustomersClient() {
     fetchCustomers()
   }, [])
 
-  const fetchCustomers = async () => {
+  async function fetchCustomers() {
     try {
       setLoading(true)
       setError('')
 
-      const supabase = createClient(
-        process.env.NEXT_PUBLIC_SUPABASE_URL!,
-        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-      )
-
-      // Tentar buscar dados sem filtro de tenant_id primeiro
-      const { data, error } = await supabase
-        .from('crm_customer')
-        .select('customer_id, name, email, telefone, contact_phone, customer_type, created_date')
-        .order('name')
-
-      if (error) {
-        console.error('Error fetching customers:', error)
-        setError('Erro ao carregar clientes: ' + error.message)
-      } else {
-        // Filtrar client-side por tenant_id se necessário
-        const filteredData = (data || []).filter(customer => 
-          customer.tenant_id === 'LaplataLunaria' || !customer.tenant_id
-        )
-        setCustomers(filteredData)
+      const res = await fetch('/api/crm/customers', { cache: 'no-store' })
+      if (!res.ok) {
+        const errorData = await res.json()
+        throw new Error(errorData.error || 'Erro ao carregar clientes')
       }
+      
+      const data = await res.json()
+      setCustomers(data || [])
     } catch (err: any) {
       console.error('Error in fetchCustomers:', err)
       setError('Erro ao carregar clientes: ' + err.message)

@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
-import { supabaseServer } from '@/utils/supabase/server';
+import { supabaseServer } from '@/lib/supabase/server';
 
 const ItemSchema = z.object({
   mm_order: z.string().min(1),

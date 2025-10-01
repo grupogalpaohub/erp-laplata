@@ -1,7 +1,7 @@
 // app/api/mm/purchase-orders/route.ts
 import { NextResponse } from "next/server";
 import { z } from "zod";
-import { supabaseServer } from '@/utils/supabase/server';
+import { supabaseServer } from '@/lib/supabase/server';
 
 const HeaderSchema = z.object({
   mm_order: z.string().min(1),

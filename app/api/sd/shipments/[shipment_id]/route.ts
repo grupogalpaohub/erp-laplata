@@ -1,6 +1,6 @@
 // app/api/sd/shipments/[shipment_id]/route.ts
 import { NextResponse } from "next/server";
-import { supabaseServer } from '@/utils/supabase/server';
+import { supabaseServer } from '@/lib/supabase/server';
 
 type Params = { shipment_id: string };
 

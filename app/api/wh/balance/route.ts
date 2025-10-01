@@ -1,6 +1,6 @@
 // app/api/wh/balance/route.ts
 import { NextResponse } from "next/server";
-import { supabaseServer } from '@/utils/supabase/server';
+import { supabaseServer } from '@/lib/supabase/server';
 
 export async function GET(req: Request) {
   const TENANT_ID = "LaplataLunaria";

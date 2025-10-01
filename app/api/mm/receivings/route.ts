@@ -1,6 +1,6 @@
 // app/api/mm/receivings/route.ts
 import { NextResponse } from "next/server";
-import { supabaseServer } from '@/utils/supabase/server';
+import { supabaseServer } from '@/lib/supabase/server';
 import { z } from "zod";
 
 const Body = z.object({

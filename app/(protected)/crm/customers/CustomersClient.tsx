@@ -5,11 +5,6 @@ import { Plus, Edit, Eye } from 'lucide-react'
 import Link from 'next/link'
 import { createClient } from '@supabase/supabase-js'
 
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-)
-
 export function CustomersClient() {
   const [customers, setCustomers] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
@@ -24,17 +19,26 @@ export function CustomersClient() {
       setLoading(true)
       setError('')
 
+      const supabase = createClient(
+        process.env.NEXT_PUBLIC_SUPABASE_URL!,
+        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+      )
+
+      // Tentar buscar dados sem filtro de tenant_id primeiro
       const { data, error } = await supabase
         .from('crm_customer')
         .select('customer_id, name, email, telefone, contact_phone, customer_type, created_date')
-        .eq('tenant_id', 'LaplataLunaria')
         .order('name')
 
       if (error) {
         console.error('Error fetching customers:', error)
         setError('Erro ao carregar clientes: ' + error.message)
       } else {
-        setCustomers(data || [])
+        // Filtrar client-side por tenant_id se necessário
+        const filteredData = (data || []).filter(customer => 
+          customer.tenant_id === 'LaplataLunaria' || !customer.tenant_id
+        )
+        setCustomers(filteredData)
       }
     } catch (err: any) {
       console.error('Error in fetchCustomers:', err)

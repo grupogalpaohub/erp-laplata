@@ -14,7 +14,7 @@ export default async function CustomersPage() {
 
     const { data, error } = await supabase
       .from('crm_customer')
-      .select('customer_id, name, email, phone, customer_type, created_at')
+      .select('customer_id, name, email, telefone, contact_phone, customer_type, created_at')
       .order('name')
 
     if (error) {
@@ -76,7 +76,7 @@ export default async function CustomersPage() {
                       <td className="font-mono text-sm">{customer.customer_id}</td>
                       <td className="font-medium">{customer.name}</td>
                       <td>{customer.email}</td>
-                      <td>{customer.phone || '-'}</td>
+                      <td>{customer.contact_phone || customer.telefone || '-'}</td>
                       <td>
                         <span className={`px-2 py-1 rounded-full text-xs ${
                           customer.customer_type === 'PF' 

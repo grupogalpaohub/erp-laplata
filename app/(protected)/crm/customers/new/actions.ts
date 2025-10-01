@@ -3,6 +3,7 @@
 
 import { revalidatePath } from "next/cache";
 import { supabaseServer } from '@/lib/supabase/server'
+import { requireSession } from "@/lib/auth/requireSession";
 import { BASE_COLUMNS, OPTIONAL_COLUMNS, CRM_CUSTOMER_TABLE } from "@/lib/crm/columns";
 
 type FormState =
@@ -47,6 +48,14 @@ function stripUnknownFromError(payload: Record<string, any>, errMsg: string) {
 export async function createCustomerAction(prev: FormState, formData: FormData): Promise<FormState> {
   try {
     console.log('createCustomerAction called with formData:', Object.fromEntries(formData.entries()))
+    
+    try {
+      await requireSession();
+      console.log('requireSession passed')
+    } catch (sessionError) {
+      console.error('requireSession failed:', sessionError)
+      return { ok: false, error: 'Sessão inválida. Faça login novamente.' }
+    }
     
     const supabase = supabaseServer()
     console.log('Supabase client created')

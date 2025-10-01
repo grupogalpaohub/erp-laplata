@@ -47,6 +47,8 @@ export default function NewCustomerForm() {
       })
 
       console.log('Calling createCustomerAction...')
+      console.log('FormData entries:', Array.from(formDataObj.entries()))
+      
       const result = await createCustomerAction({ ok: false, error: '' }, formDataObj)
       console.log('createCustomerAction result:', result)
 

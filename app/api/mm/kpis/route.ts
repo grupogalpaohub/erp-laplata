@@ -37,8 +37,8 @@ export async function GET() {
     const { data: monthPurchases, error: monthError } = await supabase
       .from('mm_purchase_order')
       .select('total_cents')
-      .gte('order_date', firstDayOfMonth.toISOString().split('T')[0])
-      .lte('order_date', lastDayOfMonth.toISOString().split('T')[0]);
+      .gte('po_date', firstDayOfMonth.toISOString().split('T')[0])
+      .lte('po_date', lastDayOfMonth.toISOString().split('T')[0]);
 
     if (monthError) {
       return NextResponse.json({ 

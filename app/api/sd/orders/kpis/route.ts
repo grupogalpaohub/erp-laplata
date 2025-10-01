@@ -33,7 +33,8 @@ export async function GET() {
     // Buscar todos os pedidos para calcular ticket médio
     const { data: allOrders, error: allOrdersError } = await supabase
       .from('sd_sales_order')
-      .select('total_cents');
+      .select('total_cents')
+      .not('total_cents', 'is', null);
 
     if (allOrdersError) {
       return NextResponse.json({ 

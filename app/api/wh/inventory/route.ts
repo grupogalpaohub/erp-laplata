@@ -31,7 +31,7 @@ export async function GET() {
     const { data: lastPrices, error: pricesError } = await supabase
       .from('mm_purchase_order_item')
       .select('mm_material, unit_cost_cents')
-      .order('created_at', { ascending: false });
+      .order('po_item_id', { ascending: false });
 
     if (pricesError) {
       return NextResponse.json({ 

@@ -3,6 +3,48 @@ import { supabaseServer } from '@/utils/supabase/server'
 
 const TENANT = 'LaplataLunaria'
 
+export async function GET(req: Request) {
+  try {
+    const supabase = supabaseServer()
+    const { data: auth } = await supabase.auth.getUser()
+    if (!auth?.user) return NextResponse.json({ ok: false, error: 'UNAUTHENTICATED' }, { status: 401 })
+
+    const url = new URL(req.url)
+    const q = url.searchParams.get('q')?.trim() ?? ''
+    const page = Number(url.searchParams.get('page') ?? 1)
+    const pageSize = Math.min(Number(url.searchParams.get('pageSize') ?? 50), 200)
+    
+    const from = (page - 1) * pageSize
+    const to = from + pageSize - 1
+
+    let query = supabase
+      .from('mm_material')
+      .select('mm_material, mm_desc, commercial_name, mm_price_cents, mm_purchase_price_cents, unit_of_measure, status', { count: 'exact' })
+      .eq('tenant_id', TENANT)
+      .eq('status', 'active')
+      .order('mm_material')
+
+    if (q) {
+      query = query.or(`mm_material.ilike.%${q}%,mm_desc.ilike.%${q}%,commercial_name.ilike.%${q}%`)
+    }
+
+    const { data, count, error } = await query.range(from, to)
+
+    if (error) return NextResponse.json({ ok: false, error: error.message }, { status: 400 })
+
+    return NextResponse.json({ 
+      ok: true, 
+      materials: data || [], 
+      total: count || 0, 
+      page, 
+      pageSize 
+    })
+  } catch (error) {
+    console.error('Erro ao buscar materiais:', error)
+    return NextResponse.json({ ok: false, error: 'Erro inesperado ao buscar materiais.' }, { status: 500 })
+  }
+}
+
 export async function POST(req: Request) {
   try {
     const supabase = supabaseServer()

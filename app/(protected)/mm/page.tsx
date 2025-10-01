@@ -1,7 +1,7 @@
 import Link from 'next/link'
 import { ArrowLeft } from 'lucide-react'
 import { requireSession } from '@/lib/auth/requireSession'
-import { getServerSupabase } from '@/utils/supabase/server'
+import { supabaseServer } from '@/utils/supabase/server'
 import { formatBRL } from '@/lib/money'
 
 export const dynamic = 'force-dynamic'
@@ -19,8 +19,14 @@ export default async function MMIndex() {
   let monthlyValue = 0
 
   try {
-    await requireSession() // Verificar se está autenticado
-    const supabase = getServerSupabase()
+    const user = await requireSession() // Verificar se está autenticado
+    console.log('MM Page - User authenticated:', user.email)
+    
+    const supabase = supabaseServer()
+    
+    // Verificar se o Supabase tem sessão
+    const { data: sessionData } = await supabase.auth.getSession()
+    console.log('MM Page - Supabase session:', { hasSession: !!sessionData.session, userEmail: sessionData.session?.user?.email })
 
     // Buscar dados para KPIs (RLS filtra automaticamente por tenant)
     const [materialsResult, vendorsResult, ordersResult, monthlyOrdersResult] = await Promise.allSettled([
@@ -39,6 +45,13 @@ export default async function MMIndex() {
         .gte('po_date', new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString().split('T')[0])
         .lte('po_date', new Date(new Date().getFullYear(), new Date().getMonth() + 1, 0).toISOString().split('T')[0])
     ])
+    
+    console.log('MM Page - Query results:', {
+      materials: materialsResult.status,
+      vendors: vendorsResult.status,
+      orders: ordersResult.status,
+      monthlyOrders: monthlyOrdersResult.status
+    })
 
     materials = materialsResult.status === 'fulfilled' ? (materialsResult.value.data || []) : []
     vendors = vendorsResult.status === 'fulfilled' ? (vendorsResult.value.data || []) : []

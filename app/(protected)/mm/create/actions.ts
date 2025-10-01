@@ -1,6 +1,5 @@
 'use server'
-import { cookies } from 'next/headers'
-import { createServerClient } from '@supabase/ssr'
+import { supabaseServer } from '@/utils/supabase/server'
 
 function toIntOrNull(v: FormDataEntryValue | null) {
   if (v === null) return null
@@ -11,17 +10,7 @@ function toIntOrNull(v: FormDataEntryValue | null) {
 }
 
 export async function createMaterial(prevState: { ok: boolean; error?: string }, formData: FormData) {
-  const cookieStore = cookies()
-  const supabase = createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    {
-      cookies: {
-        getAll: () => cookieStore.getAll(),
-        setAll: () => {},
-      },
-    }
-  )
+  const supabase = supabaseServer()
 
   const payload = {
     mm_material: String(formData.get('mm_material') ?? '').trim(),

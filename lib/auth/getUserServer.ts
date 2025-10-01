@@ -9,6 +9,7 @@ export async function getUserServer() {
       user_metadata: { name: 'Dev User', role: 'ADMIN' },
     };
   }
+  
   const supabase = supabaseServer();
   const { data: { user } } = await supabase.auth.getUser();
   return user ?? null;

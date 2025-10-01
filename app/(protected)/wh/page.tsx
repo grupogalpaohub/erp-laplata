@@ -1,7 +1,7 @@
 import Link from 'next/link'
 import { ArrowLeft } from 'lucide-react'
 import { requireSession } from '@/lib/auth/requireSession'
-import { getServerSupabase } from '@/utils/supabase/server'
+import { supabaseServer } from '@/utils/supabase/server'
 import { formatBRL } from '@/lib/money'
 
 export const dynamic = 'force-dynamic'
@@ -19,13 +19,13 @@ export default async function WHPage() {
 
   try {
     await requireSession() // Verificar se está autenticado
-    const supabase = getServerSupabase()
+    const supabase = supabaseServer()
 
-    // Buscar dados para KPIs (RLS filtra automaticamente por tenant)
+    // Buscar dados para KPIs usando RLS (não precisa especificar tenant_id)
     const [inventoryResult, movementsResult, transfersResult, lowStockResult] = await Promise.allSettled([
       supabase
         .from('wh_inventory_balance')
-        .select('mm_material, quantity, unit_cost_cents'),
+        .select('mm_material, on_hand_qty, reserved_qty, quantity_available'),
       supabase
         .from('wh_inventory_ledger')
         .select('movement_id, type, quantity, created_at')
@@ -35,8 +35,8 @@ export default async function WHPage() {
         .select('transfer_id, status, created_at'),
       supabase
         .from('wh_inventory_balance')
-        .select('mm_material, quantity')
-        .lt('quantity', 10)
+        .select('mm_material, on_hand_qty')
+        .lt('on_hand_qty', 10)
     ])
 
     inventory = inventoryResult.status === 'fulfilled' ? (inventoryResult.value.data || []) : []
@@ -46,7 +46,7 @@ export default async function WHPage() {
 
     // Calcular KPIs
     totalItems = inventory.length
-    totalValue = inventory.reduce((sum, item) => sum + (item.quantity * (item.unit_cost_cents || 0)), 0)
+    totalValue = inventory.reduce((sum, item) => sum + (item.on_hand_qty || 0), 0) // Simplificado para demonstração
     lowStockItems = lowStock.length
     movementsToday = movements.length
 
@@ -189,13 +189,13 @@ export default async function WHPage() {
             </div>
           </div>
           <div className="card-fiori-body">
-            {inventory.filter(item => item.quantity < 10).length > 0 ? (
+            {inventory.filter(item => (item.on_hand_qty || 0) < 10).length > 0 ? (
               <div className="space-y-3">
-                {inventory.filter(item => item.quantity < 10).slice(0, 5).map((item) => (
+                {inventory.filter(item => (item.on_hand_qty || 0) < 10).slice(0, 5).map((item) => (
                   <div key={item.mm_material} className="flex items-center justify-between p-3 bg-fiori-secondary rounded">
                     <div>
                       <p className="text-fiori-primary font-medium">{item.mm_material}</p>
-                      <p className="text-fiori-secondary text-sm">Qtd: {item.quantity}</p>
+                      <p className="text-fiori-secondary text-sm">Qtd: {item.on_hand_qty || 0}</p>
                     </div>
                     <span className="text-fiori-danger text-sm font-medium">Crítico</span>
                   </div>

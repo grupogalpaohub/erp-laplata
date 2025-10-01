@@ -3,7 +3,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { supabaseBrowser } from "@/lib/supabase/client";
+import { supabaseBrowser } from "@/utils/supabase/browser";
 
 export default function LoginClient() {
   const router = useRouter();

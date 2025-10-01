@@ -1,183 +1,88 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextResponse } from "next/server";
+import { z } from "zod";
 import { supabaseServer } from '@/utils/supabase/server';
-import { z } from 'zod';
 
-// Schema baseado no Inventário 360° real
-const CreatePOItemBody = z.object({
+const ItemSchema = z.object({
   mm_order: z.string().min(1),
   mm_material: z.string().min(1),
-  mm_qtt: z.number().positive(),
-  unit_cost_cents: z.number().int().positive(),
+  plant_id: z.string().min(1),
+  mm_qtt: z.union([z.number(), z.string()]),
+  unit_cost_cents: z.union([z.number(), z.string()]).optional(),
+  unit_price_brl: z.union([z.number(), z.string()]).optional(),
+  notes: z.string().optional(),
 });
 
-export async function POST(req: NextRequest) {
-  try {
-    const supabase = supabaseServer();
-
-    const body = await req.json();
-    
-    // GUARDRAIL: Bloquear tenant_id do payload
-    if ('tenant_id' in body) {
-      return NextResponse.json({
-        ok: false,
-        error: { code: 'TENANT_FORBIDDEN', message: 'tenant_id não pode vir do payload' }
-      }, { status: 400 });
-    }
-
-    const parse = CreatePOItemBody.safeParse(body);
-    if (!parse.success) {
-      return NextResponse.json({
-        ok: false,
-        error: { code: 'MM_MISSING_FIELDS', message: parse.error.message }
-      }, { status: 400 });
-    }
-
-    const dto = parse.data;
-    
-    // GUARDRAIL: Derivar tenant_id da sessão
-    const { data: session } = await supabase.auth.getSession();
-    if (!session?.session?.user) {
-      return NextResponse.json({
-        ok: false,
-        error: { code: 'UNAUTHORIZED', message: 'Usuário não autenticado' }
-      }, { status: 401 });
-    }
-    
-    const tenant_id = session.session.user.user_metadata?.tenant_id || 'LaplataLunaria';
-
-    // Validar FK mm_order
-    const { data: po, error: poError } = await supabase
-      .from('mm_purchase_order')
-      .select('mm_order')
-      .eq('tenant_id', tenant_id)
-      .eq('mm_order', dto.mm_order)
-      .single();
-
-    if (poError || !po) {
-      return NextResponse.json({
-        ok: false,
-        error: { code: 'FK_NOT_FOUND', message: 'mm_order inexistente' }
-      }, { status: 400 });
-    }
-
-    // Validar FK mm_material
-    const { data: material, error: materialError } = await supabase
-      .from('mm_material')
-      .select('mm_material')
-      .eq('tenant_id', tenant_id)
-      .eq('mm_material', dto.mm_material)
-      .single();
-
-    if (materialError || !material) {
-      return NextResponse.json({
-        ok: false,
-        error: { code: 'FK_NOT_FOUND', message: 'mm_material inexistente' }
-      }, { status: 400 });
-    }
-
-    // Calcular line_total_cents
-    const line_total_cents = dto.mm_qtt * dto.unit_cost_cents;
-
-    // Obter próximo row_no para o item
-    const { data: lastItem } = await supabase
-      .from('mm_purchase_order_item')
-      .select('row_no')
-      .eq('tenant_id', tenant_id)
-      .eq('mm_order', dto.mm_order)
-      .order('row_no', { ascending: false })
-      .limit(1)
-      .single();
-
-    const row_no = (lastItem?.row_no || 0) + 1;
-
-    const { data, error } = await supabase
-      .from('mm_purchase_order_item')
-      .insert({
-        tenant_id,
-        mm_order: dto.mm_order,
-        plant_id: 'PLANT_001', // Default plant
-        mm_material: dto.mm_material,
-        mm_qtt: dto.mm_qtt,
-        unit_cost_cents: dto.unit_cost_cents,
-        line_total_cents,
-        row_no,
-      })
-      .select(`
-        *,
-        material:mm_material(mm_material, mm_desc, commercial_name)
-      `)
-      .single();
-
-    if (error) {
-      return NextResponse.json({
-        ok: false,
-        error: { code: 'DB_ERROR', message: error.message }
-      }, { status: 500 });
-    }
-
-    return NextResponse.json({ ok: true, data });
-
-  } catch (error) {
-    return NextResponse.json({
-      ok: false,
-      error: { code: 'DB_ERROR', message: 'Erro interno do servidor' }
-    }, { status: 500 });
+function toNumber(input: unknown, def = 0) {
+  if (typeof input === "string") {
+    const n = Number(input.replace(/[^\d,.-]/g, "").replace(/\./g, "").replace(",", "."));
+    return Number.isFinite(n) ? n : def;
   }
+  const n = Number(input);
+  return Number.isFinite(n) ? n : def;
+}
+function brlToCents(v: unknown) {
+  const n = toNumber(v, 0);
+  return Math.round(n * 100);
 }
 
-export async function GET(req: NextRequest) {
+export async function POST(req: Request) {
   try {
+    const TENANT_ID = "LaplataLunaria";
+    const body = await req.json();
+    const parsed = ItemSchema.safeParse(body);
+    if (!parsed.success) {
+      return NextResponse.json({ zod: parsed.error.issues }, { status: 400 });
+    }
+    const p = parsed.data;
+
     const supabase = supabaseServer();
 
-    const { searchParams } = new URL(req.url);
-    const mm_order = searchParams.get('mm_order');
-    const page = Math.max(1, Number(searchParams.get('page') || 1));
-    const pageSize = Math.min(100, Math.max(1, Number(searchParams.get('pageSize') || 20)));
-    const from = (page - 1) * pageSize;
-    const to = from + pageSize - 1;
+    // FK: header deve existir
+    const { data: po, error: poErr } = await supabase
+      .from("mm_purchase_order")
+      .select("mm_order")
+      .eq("tenant_id", TENANT_ID)
+      .eq("mm_order", p.mm_order)
+      .single();
 
-    // GUARDRAIL: Derivar tenant_id da sessão
-    const { data: session } = await supabase.auth.getSession();
-    if (!session?.session?.user) {
-      return NextResponse.json({
-        ok: false,
-        error: { code: 'UNAUTHORIZED', message: 'Usuário não autenticado' }
-      }, { status: 401 });
-    }
-    
-    const tenant_id = session.session.user.user_metadata?.tenant_id || 'LaplataLunaria';
-
-    let query = supabase
-      .from('mm_purchase_order_item')
-      .select('*', { count: 'exact' })
-      .eq('tenant_id', tenant_id)
-      .range(from, to);
-
-    if (mm_order) {
-      query = query.eq('mm_order', mm_order);
+    if (poErr || !po) {
+      return NextResponse.json({ error: "Header mm_purchase_order não encontrado." }, { status: 400 });
     }
 
-    const { data, count, error } = await query;
+    const qty = toNumber(p.mm_qtt, 0);
+    const cents = p.unit_cost_cents !== undefined
+      ? Math.trunc(toNumber(p.unit_cost_cents, 0))
+      : brlToCents(p.unit_price_brl);
+
+    const payload = {
+      tenant_id: TENANT_ID,
+      mm_order: p.mm_order,
+      mm_material: p.mm_material,
+      plant_id: p.plant_id,
+      mm_qtt: qty,
+      unit_cost_cents: cents,
+      // line_total_cents será calculado no BEFORE trigger
+      notes: p.notes ?? "",
+    };
+
+    const { error } = await supabase
+      .from("mm_purchase_order_item")
+      .insert([payload]);
 
     if (error) {
-      return NextResponse.json({
-        ok: false,
-        error: { code: 'DB_ERROR', message: error.message }
-      }, { status: 500 });
+      return NextResponse.json({ supabase: error }, { status: 500 });
     }
 
-    return NextResponse.json({
-      ok: true,
-      data: data || [],
-      total: count || 0,
-      page,
-      pageSize
-    });
+    // devolver header com total para já atualizar a UI
+    const { data: header } = await supabase
+      .from("mm_purchase_order")
+      .select("total_cents")
+      .eq("tenant_id", TENANT_ID)
+      .eq("mm_order", p.mm_order)
+      .single();
 
-  } catch (error) {
-    return NextResponse.json({
-      ok: false,
-      error: { code: 'DB_ERROR', message: 'Erro interno do servidor' }
-    }, { status: 500 });
+    return NextResponse.json({ ok: true, total_cents: header?.total_cents ?? null }, { status: 201 });
+  } catch (e: any) {
+    return NextResponse.json({ exception: String(e?.message ?? e) }, { status: 500 });
   }
 }

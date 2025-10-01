@@ -1,13 +1,16 @@
 import { NextResponse } from 'next/server'
 import { supabaseServer } from '@/utils/supabase/server'
 
-export async function POST() {
+export async function GET() {
   const supabase = supabaseServer()
-  // força getSession() para repassar cookies httpOnly do SSR
-  const { data, error } = await supabase.auth.getSession()
+  const { data, error } = await supabase
+    .from('mm_purchase_order')
+    .select('*')
+    .order('created_at', { ascending: false })
+    .limit(50)
+
   if (error) {
     return NextResponse.json({ ok: false, error: error.message }, { status: 400 })
   }
-  return NextResponse.json({ ok: true, session: data.session ?? null })
+  return NextResponse.json({ ok: true, data })
 }
-

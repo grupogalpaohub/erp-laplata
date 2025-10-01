@@ -1,9 +1,10 @@
-import { createMaterial, getVendors } from '../../_actions'
+import { createMaterial, getVendors, getCustomizingData } from '../../_actions'
 import MaterialTypeSelect from '@/components/MaterialTypeSelect'
 import MaterialClassSelect from '@/components/MaterialClassSelect'
 
 export default async function NewMaterialPage() {
   const vendors = await getVendors()
+  const { types, classifications } = await getCustomizingData()
 
   return (
     <div className="space-y-8">
@@ -32,17 +33,6 @@ export default async function NewMaterialPage() {
                 />
               </div>
               
-              <div>
-                <label htmlFor="commercial_name" className="label-fiori">Nome Comercial (Alternativo)</label>
-                <input
-                  type="text"
-                  name="commercial_name"
-                  id="commercial_name"
-                  className="input-fiori"
-                  placeholder="Nome alternativo do produto"
-                />
-              </div>
-              
               <div className="md:col-span-2">
                 <label htmlFor="mm_desc" className="label-fiori">Descrição *</label>
                 <textarea
@@ -59,7 +49,9 @@ export default async function NewMaterialPage() {
                 <label htmlFor="mm_mat_type" className="label-fiori">Tipo de Material</label>
                 <MaterialTypeSelect
                   name="mm_mat_type"
+                  id="mm_mat_type"
                   className="input-fiori"
+                  options={types}
                 />
               </div>
               
@@ -67,7 +59,9 @@ export default async function NewMaterialPage() {
                 <label htmlFor="mm_mat_class" className="label-fiori">Classe do Material</label>
                 <MaterialClassSelect
                   name="mm_mat_class"
+                  id="mm_mat_class"
                   className="input-fiori"
+                  options={classifications}
                 />
               </div>
             </div>
@@ -169,35 +163,15 @@ export default async function NewMaterialPage() {
           {/* Informações Adicionais */}
           <div>
             <h2 className="text-xl font-semibold mb-4 text-fiori-primary">Informações Adicionais</h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div>
-                <label htmlFor="mm_pur_link" className="label-fiori">Link de Compra</label>
-                <input
-                  type="url"
-                  name="mm_pur_link"
-                  id="mm_pur_link"
-                  className="input-fiori"
-                  placeholder="https://exemplo.com/produto"
-                />
-              </div>
-              
-              <div>
-                <label htmlFor="unit_of_measure" className="label-fiori">Unidade de Medida</label>
-                <select
-                  name="unit_of_measure"
-                  id="unit_of_measure"
-                  className="input-fiori"
-                  defaultValue="unidade"
-                >
-                  <option value="unidade">Unidade</option>
-                  <option value="kg">Quilograma</option>
-                  <option value="g">Grama</option>
-                  <option value="m">Metro</option>
-                  <option value="cm">Centímetro</option>
-                  <option value="litro">Litro</option>
-                  <option value="ml">Mililitro</option>
-                </select>
-              </div>
+            <div>
+              <label htmlFor="mm_pur_link" className="label-fiori">Link de Compra</label>
+              <input
+                type="url"
+                name="mm_pur_link"
+                id="mm_pur_link"
+                className="input-fiori"
+                placeholder="https://exemplo.com/produto"
+              />
             </div>
           </div>
 

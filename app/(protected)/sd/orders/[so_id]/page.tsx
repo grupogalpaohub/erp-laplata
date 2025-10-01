@@ -3,6 +3,7 @@ import { supabaseServer } from '@/utils/supabase/server'
 import { requireSession } from '@/lib/auth/requireSession'
 import { formatBRL } from '@/lib/money'
 import { ArrowLeft, Edit, CheckCircle, XCircle, DollarSign, Percent } from 'lucide-react'
+import ExpeditionButton from './ExpeditionButton'
 
 export const dynamic = 'force-dynamic'
 export const revalidate = 0
@@ -180,6 +181,9 @@ export default async function SalesOrderDetailPage({ params }: { params: { so_id
               <Edit className="w-4 h-4 mr-2" />
               Editar
             </Link>
+          )}
+          {order.status === 'confirmed' && (
+            <ExpeditionButton so_id={so_id} />
           )}
         </div>
       </div>

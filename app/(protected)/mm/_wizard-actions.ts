@@ -4,26 +4,14 @@
 
 "use server"
 
-import { createServerClient } from '@supabase/ssr'
-import { cookies } from 'next/headers'
+import { supabaseServer } from '@/utils/supabase/server'
 import { requireSession } from "@/lib/auth/requireSession"
 import { revalidatePath } from "next/cache"
 import { MM_PurchaseOrder, MM_PurchaseOrderItem } from '@/src/types/db'
 
 // Helper function para criar cliente Supabase com guardrails compliance
 function getSupabaseClient() {
-  const cookieStore = cookies()
-  return createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    {
-      cookies: {
-        get(name: string) {
-          return cookieStore.get(name)?.value
-        },
-      },
-    }
-  )
+  return supabaseServer()
 }
 
 export interface WizardPOData {

@@ -1,127 +1,47 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextResponse } from "next/server";
 import { supabaseServer } from '@/utils/supabase/server';
 
-export async function GET(
-  req: NextRequest,
-  { params }: { params: { mm_order: string } }
-) {
-  try {
-    const supabase = supabaseServer();
+type Params = { mm_order: string };
 
-    // GUARDRAIL: Derivar tenant_id da sessão
-    const { data: session } = await supabase.auth.getSession();
-    if (!session?.session?.user) {
-      return NextResponse.json({
-        ok: false,
-        error: { code: 'UNAUTHORIZED', message: 'Usuário não autenticado' }
-      }, { status: 401 });
-    }
-    
-    const tenant_id = session.session.user.user_metadata?.tenant_id || 'LaplataLunaria';
+export async function GET(_req: Request, { params }: { params: Params }) {
+  const orderId = params?.mm_order ?? "";
 
-    // Buscar PO com JOIN de itens + materiais em uma única query
-    const { data, error } = await supabase
-      .from('mm_purchase_order')
-      .select(`
-        tenant_id,
-        mm_order,
-        vendor_id,
-        order_date,
-        expected_delivery,
-        total_cents,
-        status,
-        notes,
-        vendor:mm_vendor(vendor_id, vendor_name, email),
-        items:mm_purchase_order_item (
-          row_no,
-          mm_material,
-          mm_qtt,
-          unit_cost_cents,
-          line_total_cents,
-          material:mm_material (
-            mm_desc,
-            commercial_name
-          )
-        )
-      `)
-      .eq('tenant_id', tenant_id)
-      .eq('mm_order', params.mm_order)
-      .single();
-
-    if (error || !data) {
-      return NextResponse.json({
-        ok: false,
-        error: { code: 'PO_NOT_FOUND', message: 'Pedido de compra não encontrado' }
-      }, { status: 404 });
-    }
-
-    return NextResponse.json({
-      ok: true,
-      data
-    });
-
-  } catch (error) {
-    return NextResponse.json({
-      ok: false,
-      error: { code: 'DB_ERROR', message: 'Erro interno do servidor' }
-    }, { status: 500 });
+  if (!orderId) {
+    return NextResponse.json({ error: "missing order id" }, { status: 400 });
   }
-}
 
-export async function PUT(
-  req: NextRequest,
-  { params }: { params: { mm_order: string } }
-) {
-  try {
-    const supabase = supabaseServer();
+  // Em dev, tenant fixo no servidor (NUNCA do client)
+  const TENANT_ID = "LaplataLunaria";
 
-    const body = await req.json();
-    
-    // GUARDRAIL: Bloquear tenant_id do payload
-    if ('tenant_id' in body) {
-      return NextResponse.json({
-        ok: false,
-        error: { code: 'TENANT_FORBIDDEN', message: 'tenant_id não pode vir do payload' }
-      }, { status: 400 });
+  const supabase = supabaseServer();
+
+  // Header
+  const { data: header, error: headerError } = await supabase
+    .from("mm_purchase_order")
+    .select("*")
+    .eq("tenant_id", TENANT_ID)
+    .eq("mm_order", orderId)
+    .single();
+
+  if (headerError) {
+    // PGRST116 = row not found
+    if ((headerError as any).code === "PGRST116") {
+      return NextResponse.json({ error: "purchase order not found" }, { status: 404 });
     }
-
-    // GUARDRAIL: Derivar tenant_id da sessão
-    const { data: session } = await supabase.auth.getSession();
-    if (!session?.session?.user) {
-      return NextResponse.json({
-        ok: false,
-        error: { code: 'UNAUTHORIZED', message: 'Usuário não autenticado' }
-      }, { status: 401 });
-    }
-    
-    const tenant_id = session.session.user.user_metadata?.tenant_id || 'LaplataLunaria';
-
-    // Atualizar PO
-    const { data, error } = await supabase
-      .from('mm_purchase_order')
-      .update({
-        expected_delivery: body.expected_delivery,
-        notes: body.notes,
-        status: body.status,
-      })
-      .eq('tenant_id', tenant_id)
-      .eq('mm_order', params.mm_order)
-      .select()
-      .single();
-
-    if (error) {
-      return NextResponse.json({
-        ok: false,
-        error: { code: 'DB_ERROR', message: error.message }
-      }, { status: 500 });
-    }
-
-    return NextResponse.json({ ok: true, data });
-
-  } catch (error) {
-    return NextResponse.json({
-      ok: false,
-      error: { code: 'DB_ERROR', message: 'Erro interno do servidor' }
-    }, { status: 500 });
+    return NextResponse.json({ error: headerError.message, code: (headerError as any).code }, { status: 500 });
   }
+
+  // Itens
+  const { data: items, error: itemsError } = await supabase
+    .from("mm_purchase_order_item")
+    .select("*")
+    .eq("tenant_id", TENANT_ID)
+    .eq("mm_order", orderId)
+    .order("po_item_id", { ascending: true });
+
+  if (itemsError) {
+    return NextResponse.json({ error: itemsError.message, code: (itemsError as any).code }, { status: 500 });
+  }
+
+  return NextResponse.json({ header, items: items ?? [] }, { status: 200 });
 }

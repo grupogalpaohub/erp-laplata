@@ -14,9 +14,17 @@ function pickKnownColumns(
   allowed: readonly string[]
 ) {
   const out: Record<string, any> = {};
+  console.log('pickKnownColumns - payload:', payload)
+  console.log('pickKnownColumns - allowed:', allowed)
+  
   for (const k of allowed) {
-    if (payload[k] !== undefined && payload[k] !== "") out[k] = payload[k];
+    if (payload[k] !== undefined && payload[k] !== "") {
+      out[k] = payload[k];
+      console.log(`pickKnownColumns - added ${k}:`, payload[k])
+    }
   }
+  
+  console.log('pickKnownColumns - result:', out)
   return out;
 }
 
@@ -80,6 +88,12 @@ export async function createCustomerAction(prev: FormState, formData: FormData):
     console.log('Payload candidate:', candidate)
     console.log('BASE_COLUMNS:', BASE_COLUMNS)
     console.log('OPTIONAL_COLUMNS:', OPTIONAL_COLUMNS)
+
+    // Verificar se o payload está vazio
+    if (Object.keys(candidate).length === 0) {
+      console.error('Payload candidate is empty!')
+      return { ok: false, error: 'Dados do formulário inválidos' }
+    }
 
     let { data, error } = await supabase
       .from(CRM_CUSTOMER_TABLE)

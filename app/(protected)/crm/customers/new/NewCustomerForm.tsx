@@ -36,6 +36,7 @@ export default function NewCustomerForm() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+    console.log('Form submitted with data:', formData)
     setIsLoading(true)
     setError('')
 
@@ -45,7 +46,9 @@ export default function NewCustomerForm() {
         formDataObj.append(key, value)
       })
 
+      console.log('Calling createCustomerAction...')
       const result = await createCustomerAction({ ok: false, error: '' }, formDataObj)
+      console.log('createCustomerAction result:', result)
 
       if (result.ok) {
         // Mostrar popup de sucesso

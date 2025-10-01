@@ -2,9 +2,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { createServerClient } from '@supabase/ssr'
-import { cookies } from 'next/headers'
-import { requireSession } from "@/lib/auth/requireSession";
+import { supabaseServer } from '@/lib/supabase/server'
 import { BASE_COLUMNS, OPTIONAL_COLUMNS, CRM_CUSTOMER_TABLE } from "@/lib/crm/columns";
 
 type FormState =
@@ -40,19 +38,10 @@ function stripUnknownFromError(payload: Record<string, any>, errMsg: string) {
 
 export async function createCustomerAction(prev: FormState, formData: FormData): Promise<FormState> {
   try {
-    await requireSession(); // GUARDRAIL: Server Actions com requireSession()
-    const cookieStore = cookies()
-    const supabase = createServerClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-      {
-        cookies: {
-          get(name: string) {
-            return cookieStore.get(name)?.value
-          },
-        },
-      }
-    )
+    console.log('createCustomerAction called with formData:', Object.fromEntries(formData.entries()))
+    
+    const supabase = supabaseServer()
+    console.log('Supabase client created')
 
     // Monta payload a partir do form (usando campos corretos da tabela)
     const payloadRaw: Record<string, any> = {
@@ -88,11 +77,17 @@ export async function createCustomerAction(prev: FormState, formData: FormData):
       ...pickKnownColumns(payloadRaw, OPTIONAL_COLUMNS),
     };
 
+    console.log('Payload candidate:', candidate)
+    console.log('BASE_COLUMNS:', BASE_COLUMNS)
+    console.log('OPTIONAL_COLUMNS:', OPTIONAL_COLUMNS)
+
     let { data, error } = await supabase
       .from(CRM_CUSTOMER_TABLE)
       .insert(candidate)
       .select("customer_id")
       .single();
+
+    console.log('Supabase insert result:', { data, error })
 
     // Se acusar coluna inexistente, removemos e tentamos de novo (máximo 3 vezes)
     let tries = 0;

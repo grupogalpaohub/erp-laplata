@@ -1,5 +1,6 @@
 import { supabaseServer } from '@/utils/supabase/server'
 import { requireSession } from '@/lib/auth/requireSession'
+import { formatBRL } from '@/lib/money'
 import Link from 'next/link'
 import { Package, Eye, TrendingUp, AlertTriangle } from 'lucide-react'
 
@@ -26,16 +27,19 @@ export default async function InventoryPage() {
 
   // Buscar posição de estoque
   const { data: inventoryData, error } = await supabase
-    .from('v_wh_stock')
+    .from('wh_inventory_balance')
     .select(`
-      *,
+      plant_id,
+      mm_material,
+      on_hand_qty,
+      reserved_qty,
+      quantity_available,
       mm_material_data:mm_material(
         mm_comercial,
         mm_desc,
         mm_purchase_price_cents
       )
     `)
-    
     .order('mm_material')
 
   if (error) {
@@ -45,9 +49,12 @@ export default async function InventoryPage() {
   const inventory: InventoryItem[] = inventoryData || []
 
   // Calcular estatísticas
-  const totalValue = inventory.reduce((total, item) => {
-    const price = item.mm_material_data?.mm_purchase_price_cents || 0
-    return total + Math.round((item.on_hand_qty || 0) * price)
+  const totalItems = (inventory ?? []).length
+
+  const totalValueCents = (inventory ?? []).reduce((sum, item) => {
+    const qty = Number(item.on_hand_qty ?? 0)
+    const unitCents = Number(item.mm_material_data?.mm_purchase_price_cents ?? 0)
+    return sum + Math.round(qty * unitCents)
   }, 0)
 
   const lowStockItems = inventory.filter(item => item.on_hand_qty < 10).length
@@ -78,7 +85,7 @@ export default async function InventoryPage() {
               <div>
                 <p className="tile-fiori-subtitle">Valor Total</p>
                 <p className="tile-fiori-metric">
-                  R$ {(totalValue / 100).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                  {formatBRL(totalValueCents)}
                 </p>
               </div>
               <Package className="tile-fiori-icon" />
@@ -89,7 +96,7 @@ export default async function InventoryPage() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="tile-fiori-subtitle">Total de Itens</p>
-                <p className="tile-fiori-metric">{inventory.length}</p>
+                <p className="tile-fiori-metric">{totalItems}</p>
               </div>
               <TrendingUp className="tile-fiori-icon" />
             </div>
@@ -139,8 +146,12 @@ export default async function InventoryPage() {
                 </thead>
                 <tbody>
                   {inventory.map((item) => {
-                    const unitPrice = item.mm_material_data?.mm_purchase_price_cents || 0
-                    const totalValue = Math.round((item.on_hand_qty || 0) * unitPrice)
+                    // Valor unitário (centavos)
+                    const unitPriceCents = Number(item.mm_material_data?.mm_purchase_price_cents ?? 0)
+                    
+                    // Valor total (centavos)
+                    const lineTotalCents = Math.round(Number(item.on_hand_qty ?? 0) * unitPriceCents)
+                    
                     const isLowStock = item.on_hand_qty < 10
                     const isZeroStock = item.on_hand_qty === 0
 
@@ -175,10 +186,10 @@ export default async function InventoryPage() {
                           </span>
                         </td>
                         <td className="text-right">
-                          R$ {(unitPrice / 100).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                          {formatBRL(unitPriceCents)}
                         </td>
                         <td className="text-right font-medium">
-                          R$ {(totalValue / 100).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                          {formatBRL(lineTotalCents)}
                         </td>
                         <td>
                           {isZeroStock ? (

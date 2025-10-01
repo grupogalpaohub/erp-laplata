@@ -1,7 +1,7 @@
 import Link from 'next/link'
 import { ArrowLeft } from 'lucide-react'
 import { requireSession } from '@/lib/auth/requireSession'
-import { getServerSupabase } from '@/utils/supabase/server'
+import { supabaseServer } from '@/utils/supabase/server'
 import { formatBRL } from '@/lib/money'
 
 export const dynamic = 'force-dynamic'
@@ -20,7 +20,7 @@ export default async function FIPage() {
 
   try {
     await requireSession() // Verificar se está autenticado
-    const supabase = getServerSupabase()
+    const supabase = supabaseServer()
 
     // Buscar dados para KPIs (RLS filtra automaticamente por tenant)
     const [accountsResult, entriesResult, payablesResult, receivablesResult] = await Promise.allSettled([

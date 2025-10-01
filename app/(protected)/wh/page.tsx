@@ -24,7 +24,7 @@ export default async function WHPage() {
     // Buscar dados para KPIs usando RLS (não precisa especificar tenant_id)
     const [inventoryResult, movementsResult, transfersResult, lowStockResult] = await Promise.allSettled([
       supabase
-        .from('v_wh_stock')
+        .from('wh_inventory_balance')
         .select(`
           mm_material,
           on_hand_qty,
@@ -50,10 +50,12 @@ export default async function WHPage() {
 
     // Calcular KPIs
     totalItems = inventory.length
-    totalValue = (inventory || []).reduce((sum, item) => {
-      const unit = item.mm_material_data?.mm_purchase_price_cents ?? 0
-      return sum + Math.round((item.on_hand_qty || 0) * unit)
+    const totalValueCents = (inventory || []).reduce((sum, item) => {
+      const qty = Number(item.on_hand_qty ?? 0)
+      const unitCents = Number(item.mm_material_data?.mm_purchase_price_cents ?? 0)
+      return sum + Math.round(qty * unitCents)
     }, 0)
+    totalValue = totalValueCents
     lowStockItems = lowStock.length
     movementsToday = movements.length
 

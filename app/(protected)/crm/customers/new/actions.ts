@@ -58,24 +58,28 @@ export async function createCustomerAction(prev: FormState, formData: FormData):
     const payloadRaw: Record<string, any> = {
       name: formData.get("name"),
       customer_type: formData.get("customer_type"), // "PF" | "PJ"
-      contact_email: formData.get("email"),
-      document_no: formData.get("tax_id"),
-      contact_phone: formData.get("phone"),
-      address: formData.get("address"),
-      city: formData.get("city"),
-      state: formData.get("state"),
-      country: formData.get("country"),
-      zip_code: formData.get("zip_code"),
-      status: "active", // campo correto para ativo/inativo
+      email: formData.get("contact_email"),
+      contact_email: formData.get("contact_email"),
+      document_id: formData.get("document_id"),
+      telefone: formData.get("contact_phone"),
+      contact_phone: formData.get("contact_phone"),
+      phone_country: "BR",
+      contact_name: formData.get("name"),
+      addr_street: formData.get("address"),
+      addr_city: formData.get("city"),
+      addr_state: formData.get("state"),
+      addr_country: formData.get("country"),
+      addr_zip: formData.get("zip_code"),
+      is_active: true,
+      status: "active",
+      created_date: new Date().toISOString().split('T')[0] // yyyy-mm-dd
 
       // opcionais (se existirem):
-      sales_channel: formData.get("sales_channel"),
-      payment_method_pref: formData.get("payment_method_pref"),
-      payment_terms: formData.get("payment_terms"),
-      customer_category: formData.get("customer_category"),
-      state_registration: formData.get("state_registration"),
-      municipal_registration: formData.get("municipal_registration"),
-      notes: formData.get("notes")
+      // sales_channel: formData.get("sales_channel"),
+      // preferred_payment_method: formData.get("payment_method_pref"),
+      // preferred_payment_terms: formData.get("payment_terms"),
+      // customer_category: formData.get("customer_category"),
+      // notes: formData.get("notes")
     };
 
     // 1ª tentativa: base + opcionais (se existirem)

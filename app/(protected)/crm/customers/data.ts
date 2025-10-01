@@ -4,7 +4,7 @@ export async function fetchCustomers(limit=100) {
   const { data, error } = await supabase
     .from("crm_customer")
     .select("*")
-    .order("created_at", { ascending: false })
+    .order("created_date", { ascending: false })
     .limit(limit);
   if (error) throw new Error(error.message);
   return data ?? [];

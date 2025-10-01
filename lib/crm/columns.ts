@@ -8,15 +8,23 @@ export const CRM_CUSTOMER_TABLE = "crm_customer";
 export const BASE_COLUMNS: readonly string[] = [
   "name",            // Nome/Razão Social
   "customer_type",   // "PF" | "PJ"
-  "contact_email",   // email
-  "document_no",     // cpf/cnpj
-  "contact_phone",   // telefone
-  "address",
-  "city",
-  "state",
-  "country",
-  "zip_code",
-  "status"           // ativo/inativo
+  "email",           // email principal
+  "contact_email",   // email de contato
+  "document_id",     // cpf/cnpj
+  "telefone",        // telefone principal
+  "contact_phone",   // telefone de contato
+  "phone_country",   // país do telefone
+  "contact_name",    // nome do contato
+  "addr_street",     // rua
+  "addr_number",     // número
+  "addr_complement", // complemento
+  "addr_district",   // bairro
+  "addr_city",       // cidade
+  "addr_state",      // estado
+  "addr_zip",        // CEP
+  "addr_country",    // país
+  "is_active",       // ativo/inativo
+  "status"           // status
 ] as const;
 
 /**

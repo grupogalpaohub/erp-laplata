@@ -16,7 +16,7 @@ interface InventoryItem {
   mm_material_data?: {
     mm_comercial: string
     mm_desc: string
-    mm_price_cents: number
+    mm_purchase_price_cents: number
   }
 }
 
@@ -32,7 +32,7 @@ export default async function InventoryPage() {
       mm_material_data:mm_material(
         mm_comercial,
         mm_desc,
-        mm_price_cents
+        mm_purchase_price_cents
       )
     `)
     
@@ -46,8 +46,8 @@ export default async function InventoryPage() {
 
   // Calcular estatísticas
   const totalValue = inventory.reduce((total, item) => {
-    const price = item.mm_material_data?.mm_price_cents || 0
-    return total + (item.on_hand_qty * price)
+    const price = item.mm_material_data?.mm_purchase_price_cents || 0
+    return total + Math.round((item.on_hand_qty || 0) * price)
   }, 0)
 
   const lowStockItems = inventory.filter(item => item.on_hand_qty < 10).length
@@ -139,8 +139,8 @@ export default async function InventoryPage() {
                 </thead>
                 <tbody>
                   {inventory.map((item) => {
-                    const unitPrice = item.mm_material_data?.mm_price_cents || 0
-                    const totalValue = item.on_hand_qty * unitPrice
+                    const unitPrice = item.mm_material_data?.mm_purchase_price_cents || 0
+                    const totalValue = Math.round((item.on_hand_qty || 0) * unitPrice)
                     const isLowStock = item.on_hand_qty < 10
                     const isZeroStock = item.on_hand_qty === 0
 

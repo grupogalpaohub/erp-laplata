@@ -38,12 +38,12 @@ export default async function MMIndex() {
         .select('vendor_id, vendor_name, status'),
       supabase
         .from('mm_purchase_order')
-        .select('mm_order, total_cents, status, po_date'),
+        .select('mm_order, total_cents, status, order_date'),
       supabase
         .from('mm_purchase_order')
-        .select('mm_order, total_cents, status, po_date')
-        .gte('po_date', new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString().split('T')[0])
-        .lte('po_date', new Date(new Date().getFullYear(), new Date().getMonth() + 1, 0).toISOString().split('T')[0])
+        .select('mm_order, total_cents, status, order_date')
+        .gte('order_date', new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString().split('T')[0])
+        .lte('order_date', new Date(new Date().getFullYear(), new Date().getMonth() + 1, 0).toISOString().split('T')[0])
     ])
     
     console.log('MM Page - Query results:', {

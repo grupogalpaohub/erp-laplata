@@ -4,17 +4,13 @@ import { supabaseServer } from '@/lib/supabase/server';
 export async function GET() {
   const supabase = supabaseServer();
 
-  // Se quiser filtrar por tenant, ajuste aqui
-  const tenant = 'LaplataLunaria';
-
   const { data, error } = await supabase
     .from('crm_customer')
     .select('customer_id, name, email, telefone, contact_phone, customer_type, created_date')
-    .eq('tenant_id', tenant)
     .order('name', { ascending: true });
 
   if (error) {
-    return NextResponse.json({ error: error.message, code: error.code }, { status: 500 });
+    return NextResponse.json({ ok: false, error: { code: error.code, message: error.message } }, { status: 500 });
   }
-  return NextResponse.json(data ?? [], { status: 200 });
+  return NextResponse.json({ ok: true, data: data ?? [] }, { status: 200 });
 }

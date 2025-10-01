@@ -5,20 +5,10 @@ export async function GET() {
   const supabase = supabaseServer();
 
   try {
-    // Buscar inventário com dados do material
+    // Buscar dados do inventário
     const { data: inventory, error: inventoryError } = await supabase
       .from('wh_inventory_balance')
-      .select(`
-        mm_material,
-        plant_id,
-        on_hand_qty,
-        reserved_qty,
-        mm_material_data:mm_material(
-          mm_comercial,
-          mm_desc
-        )
-      `)
-      .order('mm_material');
+      .select('mm_material, on_hand_qty, reserved_qty');
 
     if (inventoryError) {
       return NextResponse.json({ 
@@ -48,25 +38,36 @@ export async function GET() {
       }
     });
 
-    // Processar dados do inventário
-    const processedInventory = inventory?.map(item => {
+    // Calcular KPIs
+    let totalItems = 0;
+    let totalValue = 0;
+    let lowStock = 0;
+    let outOfStock = 0;
+
+    inventory?.forEach(item => {
       const availableQty = (item.on_hand_qty || 0) - (item.reserved_qty || 0);
-      const unitCostCents = priceMap.get(item.mm_material) || 0;
-      const totalCents = availableQty * unitCostCents;
+      const unitCost = priceMap.get(item.mm_material) || 0;
+      
+      if (availableQty > 0) {
+        totalItems++;
+        totalValue += availableQty * unitCost;
+      }
+      
+      if (availableQty <= 0) {
+        outOfStock++;
+      } else if (availableQty <= 10) { // threshold de baixo estoque
+        lowStock++;
+      }
+    });
 
-      return {
-        mm_material: item.mm_material,
-        plant_id: item.plant_id,
-        on_hand_qty: item.on_hand_qty || 0,
-        reserved_qty: item.reserved_qty || 0,
-        available_qty: availableQty,
-        unit_cost_cents: unitCostCents,
-        total_cents: totalCents,
-        material_info: item.mm_material_data
-      };
-    }) || [];
+    const summary = {
+      total_items: totalItems,
+      total_value_cents: totalValue,
+      low_stock: lowStock,
+      out_of_stock: outOfStock
+    };
 
-    return NextResponse.json({ ok: true, data: processedInventory }, { status: 200 });
+    return NextResponse.json({ ok: true, data: summary }, { status: 200 });
 
   } catch (error: any) {
     return NextResponse.json({ 

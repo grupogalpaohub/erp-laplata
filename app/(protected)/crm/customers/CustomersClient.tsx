@@ -19,13 +19,11 @@ export function CustomersClient() {
       setError('')
 
       const res = await fetch('/api/crm/customers', { cache: 'no-store' })
-      if (!res.ok) {
-        const errorData = await res.json()
-        throw new Error(errorData.error || 'Erro ao carregar clientes')
+      const json = await res.json()
+      if (!json.ok) {
+        throw new Error(json.error?.message || 'Erro ao carregar clientes')
       }
-      
-      const data = await res.json()
-      setCustomers(data || [])
+      setCustomers(json.data || [])
     } catch (err: any) {
       console.error('Error in fetchCustomers:', err)
       setError('Erro ao carregar clientes: ' + err.message)

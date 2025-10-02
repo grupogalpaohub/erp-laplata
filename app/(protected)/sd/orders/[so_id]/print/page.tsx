@@ -1,4 +1,4 @@
-import { supabaseServer } from '@/utils/supabase/server'
+import { supabaseServer } from '@/lib/supabase/server'
 import { requireSession } from '@/lib/auth/requireSession'
 import { formatBRL } from '@/lib/money'
 import { notFound } from 'next/navigation'
@@ -33,7 +33,7 @@ async function getSalesOrder(soId: string) {
       .from('sd_sales_order_item')
       .select(`
         sku,
-        mm_qtt,
+        quantity,
         unit_price_cents,
         line_total_cents,
         row_no
@@ -60,7 +60,7 @@ async function getSalesOrder(soId: string) {
       items: items || [],
       customer: customer || { name: order.customer_id, email: '', telefone: '' }
     } as typeof order & { 
-      items: Array<{ sku: string; mm_qtt: number; unit_price_cents: number; line_total_cents: number; row_no: number }>
+      items: Array<{ sku: string; quantity: number; unit_price_cents: number; line_total_cents: number; row_no: number }>
       customer: { name: string; email: string; telefone: string }
     }
   } catch (error) {
@@ -144,7 +144,7 @@ export default async function PrintSalesOrderPage({ params }: { params: { so_id:
                       {item.sku}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 text-right">
-                      {item.mm_qtt}
+                      {item.quantity}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 text-right">
                       {formatBRL(item.unit_price_cents)}

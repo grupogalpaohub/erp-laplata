@@ -10,7 +10,7 @@ import { createSalesOrder } from '@/app/(protected)/sd/_actions'
 interface OrderItem {
   temp_id: string
   mm_material: string
-  mm_qtt: number
+  quantity: number
   unit_price_cents: number
   line_total_cents: number
 }
@@ -40,7 +40,7 @@ export default function NewSalesOrderForm({ customers, materials, selectedCustom
     const newItem: OrderItem = {
       temp_id: `item_${Date.now()}`,
       mm_material: '',
-      mm_qtt: 1,
+      quantity: 1,
       unit_price_cents: 0,
       line_total_cents: 0
     }
@@ -65,8 +65,8 @@ export default function NewSalesOrderForm({ customers, materials, selectedCustom
         }
         
         // Recalcular total da linha se quantidade ou preço mudaram
-        if (field === 'mm_qtt' || field === 'unit_price_cents' || field === 'mm_material') {
-          updatedItem.line_total_cents = updatedItem.mm_qtt * updatedItem.unit_price_cents
+        if (field === 'quantity' || field === 'unit_price_cents' || field === 'mm_material') {
+          updatedItem.line_total_cents = updatedItem.quantity * updatedItem.unit_price_cents
         }
         
         return updatedItem
@@ -76,7 +76,7 @@ export default function NewSalesOrderForm({ customers, materials, selectedCustom
   }
 
   const isValid = () => {
-    return selectedCustomer && items.length > 0 && items.every(item => item.mm_material && item.mm_qtt > 0)
+    return selectedCustomer && items.length > 0 && items.every(item => item.mm_material && item.quantity > 0)
   }
 
   const validateAndShowErrors = () => {
@@ -88,7 +88,7 @@ export default function NewSalesOrderForm({ customers, materials, selectedCustom
       alert('Adicione pelo menos um item')
       return false
     }
-    return items.every(item => item.mm_material && item.mm_qtt > 0)
+    return items.every(item => item.mm_material && item.quantity > 0)
   }
 
   // Cálculo de totais
@@ -139,7 +139,7 @@ export default function NewSalesOrderForm({ customers, materials, selectedCustom
       items.forEach(item => {
         formData.append('items[]', JSON.stringify({
           mm_material: item.mm_material,
-          mm_qtt: item.mm_qtt,
+          quantity: item.quantity,
           unit_price: (item.unit_price_cents / 100).toString()
         }))
       })
@@ -358,8 +358,8 @@ export default function NewSalesOrderForm({ customers, materials, selectedCustom
                         type="number"
                         min="0.01"
                         step="0.01"
-                        value={item.mm_qtt}
-                        onChange={(e) => updateItem(item.temp_id, 'mm_qtt', parseFloat(e.target.value) || 0)}
+                        value={item.quantity}
+                        onChange={(e) => updateItem(item.temp_id, 'quantity', parseFloat(e.target.value) || 0)}
                         className="input-fiori w-24 text-right"
                       />
                     </td>

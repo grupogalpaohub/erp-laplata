@@ -71,7 +71,7 @@ export default function EditSalesOrderForm({ order, customers, materials }: Edit
         const orderItems = result.items.map((item: any, index: number) => ({
           temp_id: `item_${Date.now()}_${index}`,
           mm_material: item.mm_material || item.sku,
-          quantity: item.quantity,
+          quantity: item.quantity, // ✅ CORRETO: usar 'quantity' conforme db_contract.json
           unit_price_cents: item.unit_price_cents,
           line_total_cents: item.line_total_cents
         }))

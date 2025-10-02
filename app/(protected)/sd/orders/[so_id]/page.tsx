@@ -31,7 +31,7 @@ interface SalesOrder {
 interface OrderItem {
   so_id: string
   sku: string
-  mm_qtt: number
+  quantity: number
   unit_price_cents: number
   line_total_cents: number
   row_no: number
@@ -86,7 +86,7 @@ export default async function SalesOrderDetailPage({ params }: { params: { so_id
         .select(`
           so_id,
           sku,
-          mm_qtt,
+          quantity,
           unit_price_cents,
           line_total_cents,
           row_no,
@@ -262,7 +262,7 @@ export default async function SalesOrderDetailPage({ params }: { params: { so_id
                             </div>
                           </div>
                         </td>
-                        <td className="text-right">{item.mm_qtt}</td>
+                        <td className="text-right">{item.quantity}</td>
                         <td className="text-right">
                           {formatBRL(item.unit_price_cents)}
                         </td>

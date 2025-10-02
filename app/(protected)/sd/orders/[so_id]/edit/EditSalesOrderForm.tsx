@@ -207,7 +207,11 @@ export default function EditSalesOrderForm({ order, customers, materials }: Edit
           router.push(`/sd/orders/${order.so_id}`)
         }, 1000)
       } else {
-        setError(result.error || 'Erro ao atualizar pedido')
+        // ✅ CORRIGIDO: Tratar error como string ou objeto
+        const errorMessage = typeof result.error === 'string' 
+          ? result.error 
+          : result.error?.message || 'Erro ao atualizar pedido'
+        setError(errorMessage)
         setSuccessMessage('')
       }
     } catch (error) {

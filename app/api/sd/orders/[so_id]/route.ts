@@ -180,7 +180,7 @@ export async function PUT(req: Request, { params }: { params: Params }) {
 
     return NextResponse.json({ 
       ok: true, 
-      data: order 
+      data 
     }, { status: 200 })
 
   } catch (error) {

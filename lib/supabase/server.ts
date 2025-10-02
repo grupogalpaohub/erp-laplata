@@ -12,7 +12,24 @@ export function supabaseServer() {
       {
         cookies: {
           get(name: string) {
-            return cookieStore.get(name)?.value
+            const cookie = cookieStore.get(name)
+            if (!cookie) return undefined
+            
+            // Se for o cookie de auth, precisa extrair o valor correto
+            if (name === 'supabase-auth-token' && cookie.value) {
+              try {
+                // O cookie está em formato JSON stringificado
+                const parsed = JSON.parse(cookie.value)
+                if (Array.isArray(parsed) && parsed[0]) {
+                  return parsed[0]
+                }
+                return cookie.value
+              } catch {
+                return cookie.value
+              }
+            }
+            
+            return cookie.value
           },
           set(name: string, value: string, options: any) {
             // No-op para server components

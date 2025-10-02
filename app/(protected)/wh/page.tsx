@@ -8,6 +8,13 @@ export const dynamic = 'force-dynamic'
 export const revalidate = 0
 export const fetchCache = 'force-no-store'
 
+async function loadWhKpis() {
+  const res = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}/api/wh/kpis`, { cache: 'no-store' })
+  const json = await res.json()
+  if (!json?.ok) throw new Error(json?.error?.message ?? 'erro kpis')
+  return json.data as { total_items: number; low_stock: number; today_moves: number; total_value_cents: number }
+}
+
 export default async function WHPage() {
   let inventory: any[] = []
   let movements: any[] = []
@@ -19,10 +26,18 @@ export default async function WHPage() {
 
   try {
     await requireSession() // Verificar se está autenticado
+    
+    // Carregar KPIs via API
+    const kpis = await loadWhKpis()
+    totalItems = kpis.total_items
+    totalValue = kpis.total_value_cents
+    lowStockItems = kpis.low_stock
+    movementsToday = kpis.today_moves
+
     const supabase = supabaseServer()
 
-    // Buscar dados para KPIs usando RLS (não precisa especificar tenant_id)
-    const [inventoryResult, movementsResult, transfersResult, lowStockResult] = await Promise.allSettled([
+    // Buscar dados para listagens usando RLS (não precisa especificar tenant_id)
+    const [inventoryResult, movementsResult, transfersResult] = await Promise.allSettled([
       supabase
         .from('wh_inventory_balance')
         .select(`
@@ -36,28 +51,12 @@ export default async function WHPage() {
         .gte('created_at', new Date().toISOString().split('T')[0]),
       supabase
         .from('wh_transfer')
-        .select('transfer_id, status, created_at'),
-      supabase
-        .from('wh_inventory_balance')
-        .select('mm_material, on_hand_qty')
-        .lt('on_hand_qty', 10)
+        .select('transfer_id, status, created_at')
     ])
 
     inventory = inventoryResult.status === 'fulfilled' ? (inventoryResult.value.data || []) : []
     movements = movementsResult.status === 'fulfilled' ? (movementsResult.value.data || []) : []
     transfers = transfersResult.status === 'fulfilled' ? (transfersResult.value.data || []) : []
-    const lowStock = lowStockResult.status === 'fulfilled' ? (lowStockResult.value.data || []) : []
-
-    // Calcular KPIs
-    totalItems = inventory.length
-    const totalValueCents = (inventory || []).reduce((sum, item) => {
-      const qty = Number(item.on_hand_qty ?? 0)
-      const unitCents = Number(item.mm_material_data?.mm_purchase_price_cents ?? 0)
-      return sum + Math.round(qty * unitCents)
-    }, 0)
-    totalValue = totalValueCents
-    lowStockItems = lowStock.length
-    movementsToday = movements.length
 
   } catch (error) {
     console.error('Error loading WH data:', error)

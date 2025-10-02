@@ -92,13 +92,12 @@ export async function POST(req: Request) {
     // Converter tipos numéricos se necessário
     const mm_qtt = typeof body.mm_qtt === 'string' ? parseFloat(body.mm_qtt) : body.mm_qtt
     const unit_cost_cents = typeof body.unit_cost_cents === 'string' ? parseInt(body.unit_cost_cents) : body.unit_cost_cents
-    const quantity = typeof body.quantity === 'string' ? parseFloat(body.quantity) : (body.quantity || mm_qtt)
     
     // Calcular line_total_cents
     const line_total_cents = Math.round(mm_qtt * unit_cost_cents)
     
     // Preparar dados para inserção - ✅ GUARDRAIL COMPLIANCE: Campos conforme db_contract.json
-    const itemData = {
+    const itemData: any = {
       tenant_id: TENANT_ID,
       mm_order: body.mm_order,
       plant_id: body.plant_id, // Obrigatório - sempre enviar (WH-001 ou selecionado)
@@ -108,9 +107,13 @@ export async function POST(req: Request) {
       line_total_cents: line_total_cents,
       notes: body.notes || null,
       currency: body.currency || 'BRL',
-      quantity: quantity,
       freeze_item_price: body.freeze_item_price || false,
       // po_item_id será gerado automaticamente pelo serial
+    }
+    
+    // Só incluir quantity se for fornecido explicitamente
+    if (body.quantity !== undefined && body.quantity !== null) {
+      itemData.quantity = typeof body.quantity === 'string' ? parseFloat(body.quantity) : body.quantity
     }
     
     const { data, error } = await supabase

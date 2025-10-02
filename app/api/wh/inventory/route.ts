@@ -1,96 +1,52 @@
 import { NextResponse } from 'next/server'
 import { supabaseServer } from '@/lib/supabase/server'
 
-export async function GET(req: Request) {
-  try {
-    // ✅ GUARDRAIL COMPLIANCE: API usando supabaseServer() helper
-    const supabase = supabaseServer()
-    
-    // Tenant fixo conforme guardrails
-    const TENANT_ID = "LaplataLunaria"
-    
-    // Buscar parâmetros de query
-    const { searchParams } = new URL(req.url)
-    const page = parseInt(searchParams.get('page') || '1')
-    const pageSize = parseInt(searchParams.get('pageSize') || '50')
-    const warehouse_id = searchParams.get('warehouse_id')
-    const mm_material = searchParams.get('mm_material')
-    
-    // Construir query base
-    let query = supabase
-      .from('wh_inventory')
-      .select(`
-        mm_material,
-        warehouse_id,
-        on_hand_qty,
-        reserved_qty,
-        ultimo_unit_cost_cents_por_material,
-        last_updated
-      `, { count: 'exact' })
-      .eq('tenant_id', TENANT_ID)
-      .gt('on_hand_qty', 0) // Apenas itens com estoque
-    
-    // Aplicar filtros
-    if (warehouse_id) {
-      query = query.eq('warehouse_id', warehouse_id)
-    }
-    
-    if (mm_material) {
-      query = query.ilike('mm_material', `%${mm_material}%`)
-    }
-    
-    // Aplicar paginação
-    const from = (page - 1) * pageSize
-    const to = from + pageSize - 1
-    
-    query = query.range(from, to).order('mm_material', { ascending: true })
-    
-    const { data, error, count } = await query
-    
-    if (error) {
-      console.error('Erro ao buscar inventário:', error)
-      return NextResponse.json({ 
-        ok: false, 
-        error: { 
-          code: (error as any).code, 
-          message: error.message 
-        } 
-      }, { status: 500 })
-    }
-    
-    // Processar dados para incluir cálculos
-    const processedData = data?.map((item: any) => {
-      const available = (item.on_hand_qty || 0) - (item.reserved_qty || 0)
-      const unitCost = item.ultimo_unit_cost_cents_por_material || 0
-      const totalCents = available * unitCost
-      
-      return {
-        ...item,
-        available_qty: available,
-        total_cents: Math.round(totalCents),
-        total_brl: Math.round(totalCents / 100)
-      }
-    }) || []
-    
-    return NextResponse.json({ 
-      ok: true, 
-      data: processedData,
-      pagination: {
-        page,
-        pageSize,
-        total: count || 0,
-        totalPages: Math.ceil((count || 0) / pageSize)
-      }
-    })
-    
-  } catch (error) {
-    console.error('Erro inesperado na API wh/inventory:', error)
-    return NextResponse.json({ 
-      ok: false, 
-      error: { 
-        code: 'INTERNAL_ERROR', 
-        message: 'Erro interno do servidor' 
-      } 
-    }, { status: 500 })
+export async function GET() {
+  const s = supabaseServer()
+
+  const { data: balances, error } = await s
+    .from('wh_inventory_balance')
+    .select('mm_material, plant_id, on_hand_qty, reserved_qty, last_count_date, status')
+
+  if (error) {
+    return NextResponse.json({ ok: false, error: { code: error.code, message: error.message } }, { status: 500 })
   }
+
+  // cache de último custo por material
+  const unitCostCache = new Map<string, number>()
+  const getLastCost = async (mat: string) => {
+    if (unitCostCache.has(mat)) return unitCostCache.get(mat)!
+    const { data, error } = await s
+      .from('mm_purchase_order_item')
+      .select('unit_cost_cents')
+      .eq('mm_material', mat)
+      .order('po_item_id', { ascending: false })
+      .limit(1)
+    const cost = !error && data && data[0]?.unit_cost_cents ? Number(data[0].unit_cost_cents) : 0
+    unitCostCache.set(mat, cost)
+    return cost
+  }
+
+  const rows = []
+  for (const b of balances ?? []) {
+    const on = Number(b.on_hand_qty || 0)
+    const res = Number(b.reserved_qty || 0)
+    const avail = on - res
+    const cost = await getLastCost(b.mm_material as string)
+    const total = Math.max(avail, 0) * cost
+
+    rows.push({
+      mm_material: b.mm_material,
+      plant_id: b.plant_id,
+      on_hand_qty: on,
+      reserved_qty: res,
+      available_qty: avail,
+      unit_cost_cents: cost,
+      total_cents: Math.round(total),
+      last_count_date: b.last_count_date,
+      status: b.status
+    })
+  }
+
+  return NextResponse.json({ ok: true, data: rows }, { status: 200 })
 }

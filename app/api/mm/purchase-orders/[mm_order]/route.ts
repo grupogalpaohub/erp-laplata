@@ -1,47 +1,39 @@
-import { NextResponse } from "next/server";
-import { supabaseServer } from '@/lib/supabase/server';
+import { NextResponse } from 'next/server'
+import { supabaseServer } from '@/lib/supabase/server'
 
-type Params = { mm_order: string };
+type Params = { mm_order?: string; po_id?: string; id?: string }
 
 export async function GET(_req: Request, { params }: { params: Params }) {
-  const orderId = params?.mm_order ?? "";
-
+  const orderId = params?.mm_order ?? params?.po_id ?? params?.id ?? ''
   if (!orderId) {
-    return NextResponse.json({ ok: false, error: { code: 'MISSING_ORDER_ID', message: 'missing order id' } }, { status: 400 });
+    return NextResponse.json({ ok: false, error: { message: 'missing order id' } }, { status: 400 })
+  }
+  if (!orderId.startsWith('PO-')) {
+    return NextResponse.json({ ok: false, error: { message: 'invalid order id' } }, { status: 400 })
   }
 
-  // Em dev, tenant fixo no servidor (NUNCA do client)
-  const TENANT_ID = "LaplataLunaria";
+  const supabase = supabaseServer()
 
-  const supabase = supabaseServer();
-
-  // Header
   const { data: header, error: headerError } = await supabase
-    .from("mm_purchase_order")
-    .select("*")
-    .eq("tenant_id", TENANT_ID)
-    .eq("mm_order", orderId)
-    .single();
+    .from('mm_purchase_order')
+    .select('tenant_id, mm_order, vendor_id, order_date, expected_delivery, status, total_cents, created_at')
+    .eq('mm_order', orderId)
+    .single()
 
   if (headerError) {
-    // PGRST116 = row not found
-    if ((headerError as any).code === "PGRST116") {
-      return NextResponse.json({ ok: false, error: { code: 'ORDER_NOT_FOUND', message: 'purchase order not found' } }, { status: 404 });
-    }
-    return NextResponse.json({ ok: false, error: { code: (headerError as any).code, message: headerError.message } }, { status: 500 });
+    const status = headerError.code === 'PGRST116' ? 404 : 500
+    return NextResponse.json({ ok: false, error: { code: headerError.code, message: headerError.message } }, { status })
   }
 
-  // Itens - ✅ GUARDRAIL COMPLIANCE: Campos corretos conforme db_contract.json
   const { data: items, error: itemsError } = await supabase
-    .from("mm_purchase_order_item")
-    .select("po_item_id, mm_order, plant_id, mm_material, mm_qtt, unit_cost_cents, line_total_cents, notes, currency, quantity, freeze_item_price")
-    .eq("tenant_id", TENANT_ID)
-    .eq("mm_order", orderId)
-    .order("po_item_id", { ascending: true });
+    .from('mm_purchase_order_item')
+    .select('po_item_id, mm_order, plant_id, mm_material, mm_qtt, unit_cost_cents, line_total_cents, currency, notes')
+    .eq('mm_order', orderId)
+    .order('po_item_id', { ascending: true })
 
   if (itemsError) {
-    return NextResponse.json({ ok: false, error: { code: (itemsError as any).code, message: itemsError.message } }, { status: 500 });
+    return NextResponse.json({ ok: false, error: { code: itemsError.code, message: itemsError.message } }, { status: 500 })
   }
 
-  return NextResponse.json({ ok: true, data: { header, items: items ?? [] } }, { status: 200 });
+  return NextResponse.json({ ok: true, data: { header, items: items ?? [] } }, { status: 200 })
 }

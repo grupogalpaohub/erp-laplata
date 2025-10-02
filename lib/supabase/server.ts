@@ -1,7 +1,7 @@
 import { createServerClient } from '@supabase/ssr'
 import { cookies } from 'next/headers'
 
-let serverClient: ReturnType<typeof createServerClient> | undefined;
+let serverClient: ReturnType<typeof createServerClient> | undefined
 
 export function supabaseServer() {
   if (!serverClient) {
@@ -16,7 +16,7 @@ export function supabaseServer() {
           },
         },
       }
-    );
+    )
   }
-  return serverClient;
+  return serverClient
 }

@@ -8,6 +8,14 @@ export const dynamic = 'force-dynamic'
 export const revalidate = 0
 export const fetchCache = 'force-no-store'
 
+// Forçar atualização da página
+export async function generateMetadata() {
+  return {
+    title: 'Pedidos de Venda',
+    description: 'Lista de pedidos de venda'
+  }
+}
+
 interface SalesOrder {
   so_id: string
   doc_no?: string
@@ -37,6 +45,10 @@ export default async function SalesOrdersPage() {
     // Obter tenant_id da sessão
     const { data: { session } } = await supabase.auth.getSession()
     const tenant_id = session?.user?.user_metadata?.tenant_id || 'LaplataLunaria'
+    
+    // 🔍 DEBUG: Verificar sessão e tenant
+    console.log('🔍 [DEBUG] Session:', session)
+    console.log('🔍 [DEBUG] Tenant ID:', tenant_id)
 
     // Buscar pedidos com paginação
     const { data, count, error } = await supabase
@@ -65,6 +77,10 @@ export default async function SalesOrdersPage() {
     } else {
       orders = data || []
       totalCount = count || 0
+      
+      // 🔍 DEBUG: Verificar dados retornados
+      console.log('🔍 [DEBUG] Orders loaded from Supabase:', orders)
+      console.log('🔍 [DEBUG] Total count:', totalCount)
 
       // Buscar dados dos clientes separadamente
       if (orders.length > 0) {

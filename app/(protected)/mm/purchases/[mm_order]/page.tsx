@@ -28,6 +28,7 @@ export default function PurchaseOrderPage({ params }: { params: { mm_order: stri
           return
         }
         const data = await res.json()
+        console.log('Purchase order data received:', data)
         setS({ loading: false, error: null, data })
       } catch (e) {
         if (!alive) return
@@ -52,7 +53,9 @@ export default function PurchaseOrderPage({ params }: { params: { mm_order: stri
     )
   }
 
-  const { header, items } = s.data || {}
+  const { header, items } = s.data?.data || {}
+  console.log('Extracted header:', header)
+  console.log('Extracted items:', items)
   
   return (
     <div className="space-y-8">

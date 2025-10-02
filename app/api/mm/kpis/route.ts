@@ -30,8 +30,8 @@ export async function GET() {
     .select('total_cents')
   if (aoErr) return NextResponse.json({ ok: false, error: { code: aoErr.code, message: aoErr.message } }, { status: 500 })
 
-  const monthPurchases = (monthOrders ?? []).reduce((acc, r) => acc + Number(r.total_cents || 0), 0)
-  const totalPurchases = (allOrders ?? []).reduce((acc, r) => acc + Number(r.total_cents || 0), 0)
+  const monthPurchases = (monthOrders ?? []).reduce((acc: number, r: any) => acc + Number(r.total_cents || 0), 0)
+  const totalPurchases = (allOrders ?? []).reduce((acc: number, r: any) => acc + Number(r.total_cents || 0), 0)
 
   return NextResponse.json({
     ok: true,

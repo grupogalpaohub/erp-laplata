@@ -18,7 +18,7 @@ export async function GET() {
 
     const rows = data ?? []
 
-    const total_items = rows.filter(r => Number(r.on_hand_qty) > 0).length
+    const total_items = rows.filter((r: any) => Number(r.on_hand_qty) > 0).length
     // manter low_stock como 0 até plugarmos a regra real (não inventar)
     const low_stock = 0
     const today_moves = 0

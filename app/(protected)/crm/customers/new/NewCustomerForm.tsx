@@ -49,7 +49,7 @@ export default function NewCustomerForm() {
       console.log('Calling createCustomerAction...')
       console.log('FormData entries:', Array.from(formDataObj.entries()))
       
-      const result = await createCustomerAction({ ok: false, error: '' }, formDataObj)
+      const result = await createCustomerAction(formDataObj)
       console.log('createCustomerAction result:', result)
 
       if (result.ok) {
@@ -61,13 +61,13 @@ export default function NewCustomerForm() {
         
         if (shouldCreateOrder) {
           // Redirecionar para novo pedido com cliente selecionado
-          router.push(`/sd/orders/new?customerId=${result.id || ''}`)
+          router.push(`/sd/orders/new?customerId=${result.customer_id || ''}`)
         } else {
           // Redirecionar para lista de clientes
           router.push('/crm/customers')
         }
       } else {
-        setError(result.error || 'Erro ao criar cliente')
+        setError(result.error || result.exception || 'Erro ao criar cliente')
       }
     } catch (error) {
       console.error('Error creating customer:', error)

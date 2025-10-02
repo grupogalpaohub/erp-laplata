@@ -1,70 +1,60 @@
-// app/crm/customers/new/actions.ts
-"use server";
+'use server';
 
-import { revalidatePath } from "next/cache";
-import { requireSession } from "@/lib/auth/requireSession";
+import { cookies } from 'next/headers';
+import { createServerClient } from '@supabase/ssr';
+import { z } from 'zod';
 
-type FormState =
-  | { ok: true; id?: string }
-  | { ok: false; error: string };
+const CustomerSchema = z.object({
+  name: z.string().min(1, 'Nome é obrigatório'),
+  email: z.string().email().optional().or(z.literal('')),
+  telefone: z.string().optional().or(z.literal('')),
+  contact_name: z.string().optional().or(z.literal('')),
+  contact_email: z.string().email().optional().or(z.literal('')),
+  contact_phone: z.string().optional().or(z.literal('')),
+});
 
-export async function createCustomerAction(prev: FormState, formData: FormData): Promise<FormState> {
+export async function createCustomerAction(formData: FormData) {
   try {
-    console.log('createCustomerAction called with formData:', Object.fromEntries(formData.entries()))
-    
-    try {
-      await requireSession();
-      console.log('requireSession passed')
-    } catch (sessionError) {
-      console.error('requireSession failed:', sessionError)
-      return { ok: false, error: 'Sessão inválida. Faça login novamente.' }
+    // ✅ recebe FormData corretamente
+    const raw = Object.fromEntries(formData.entries());
+    const parsed = CustomerSchema.safeParse(raw);
+    if (!parsed.success) {
+      return { ok: false, zod: parsed.error.flatten() };
     }
+    const c = parsed.data;
 
-    // Monta payload a partir do form (usando campos corretos da tabela)
+    const cookieStore = cookies();
+    const supabase = createServerClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,         // lido do .env.local
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,    // chave anônima (guardrail ok)
+      { cookies: { get: (name) => cookieStore.get(name)?.value } }
+    );
+
+    // ✅ Gerar PK texto exigida pelo schema
+    const customer_id = `CUST-${Date.now()}`;
+
+    // ⚠️ Use EXATAMENTE os nomes REAIS das colunas do seu schema crm_customer
     const payload = {
-      name: formData.get("name"),
-      customer_type: formData.get("customer_type") || "PF",
-      contact_email: formData.get("contact_email"),
-      document_id: formData.get("document_id"),
-      contact_phone: formData.get("contact_phone"),
-      phone_country: "BR",
-      contact_name: formData.get("name"),
-      addr_street: formData.get("address"),
-      addr_city: formData.get("city"),
-      addr_state: formData.get("state"),
-      addr_country: formData.get("country") || "BR",
-      addr_zip: formData.get("zip_code"),
+      customer_id,
+      name: c.name,
+      status: 'active',
+      created_date: new Date().toISOString().slice(0, 10), // 'YYYY-MM-DD'
       is_active: true,
-      status: "active",
-      created_date: new Date().toISOString().split('T')[0], // yyyy-mm-dd
-      // opcionais
-      sales_channel: formData.get("sales_channel"),
-      customer_category: formData.get("customer_category"),
-      notes: formData.get("notes")
+      email: c.email || null,
+      telefone: c.telefone || null,
+      contact_name: c.contact_name || null,
+      contact_email: c.contact_email || null,
+      contact_phone: c.contact_phone || null,
     };
 
-    console.log('Payload to send to API:', payload)
-
-    // Chama a API em vez de usar Supabase diretamente
-    const response = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}/api/crm/customers`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(payload)
-    });
-
-    const result = await response.json();
-    console.log('API response:', result)
-
-    if (!result.ok) {
-      return { ok: false, error: result.error?.message || 'Erro ao criar cliente' };
+    const { error } = await supabase.from('crm_customer').insert([payload]);
+    if (error) {
+      // Devolve erro real para a UI exibir
+      return { ok: false, error: error.message };
     }
 
-    revalidatePath("/crm/customers");
-    return { ok: true, id: String(result.data?.customer_id ?? "") };
+    return { ok: true, customer_id };
   } catch (e: any) {
-    console.error('Error in createCustomerAction:', e)
-    return { ok: false, error: e?.message ?? "Erro inesperado" };
+    return { ok: false, exception: String(e?.message ?? e) };
   }
 }

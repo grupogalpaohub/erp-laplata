@@ -21,7 +21,7 @@ export async function GET() {
     .select('line_total_cents')
   if (iErr) return NextResponse.json({ ok: false, error: { code: iErr.code, message: iErr.message } }, { status: 500 })
 
-  const totalCents = (items ?? []).reduce((acc, r) => acc + Number(r.line_total_cents || 0), 0)
+  const totalCents = (items ?? []).reduce((acc: number, r: any) => acc + Number(r.line_total_cents || 0), 0)
   const avgTicket = (totalOrders && totalOrders > 0) ? Math.round(totalCents / totalOrders) : 0
 
   return NextResponse.json({

@@ -16,7 +16,7 @@ export async function GET(_req: Request, { params }: { params: Params }) {
 
   const { data: header, error: headerError } = await supabase
     .from('mm_purchase_order')
-    .select('tenant_id, mm_order, vendor_id, order_date, expected_delivery, status, total_cents, created_at')
+    .select('tenant_id, mm_order, vendor_id, order_date, expected_delivery, status, total_cents, created_at, notes')
     .eq('mm_order', orderId)
     .single()
 

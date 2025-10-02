@@ -91,6 +91,15 @@ export default function PurchaseOrderPage({ params }: { params: { mm_order: stri
       <div className="card-fiori">
         <div className="p-6">
           <h2 className="text-xl font-semibold mb-4 text-fiori-primary">Informações do Pedido</h2>
+          {/* Observações - Primeira linha */}
+          {header?.notes && (
+            <div className="mb-6">
+              <label className="text-sm font-medium text-fiori-text-secondary block mb-2">Observações</label>
+              <p className="text-fiori-text-primary bg-fiori-bg-tertiary p-3 rounded">{header.notes}</p>
+            </div>
+          )}
+
+          {/* Informações principais - Grid */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             <div>
               <label className="text-sm font-medium text-fiori-text-secondary block mb-2">Status</label>
@@ -125,13 +134,6 @@ export default function PurchaseOrderPage({ params }: { params: { mm_order: stri
               </p>
             </div>
           </div>
-          
-          {header?.notes && (
-            <div className="mt-6">
-              <label className="text-sm font-medium text-fiori-text-secondary block mb-2">Observações</label>
-              <p className="text-fiori-text-primary bg-fiori-bg-tertiary p-3 rounded">{header.notes}</p>
-            </div>
-          )}
         </div>
       </div>
 

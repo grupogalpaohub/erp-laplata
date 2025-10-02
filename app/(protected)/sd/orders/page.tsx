@@ -54,8 +54,7 @@ export default async function SalesOrdersPage() {
         payment_method,
         payment_term,
         notes,
-        created_at,
-        crm_customer(name)
+        created_at
       `, { count: 'exact' })
       .eq('tenant_id', tenant_id)
       .order('order_date', { ascending: false })
@@ -66,6 +65,31 @@ export default async function SalesOrdersPage() {
     } else {
       orders = data || []
       totalCount = count || 0
+
+      // Buscar dados dos clientes separadamente
+      if (orders.length > 0) {
+        const customerIds = orders.map(order => order.customer_id).filter(Boolean)
+        
+        if (customerIds.length > 0) {
+          const { data: customersData } = await supabase
+            .from('crm_customer')
+            .select('customer_id, name')
+            .eq('tenant_id', tenant_id)
+            .in('customer_id', customerIds)
+          
+          if (customersData) {
+            const customerMap = new Map(customersData.map(c => [c.customer_id, c.name]))
+            
+            // Associar nomes dos clientes aos pedidos
+            orders = orders.map(order => ({
+              ...order,
+              crm_customer: customerMap.has(order.customer_id) 
+                ? [{ name: customerMap.get(order.customer_id)! }]
+                : []
+            }))
+          }
+        }
+      }
     }
 
     // RLS decide acesso aos dados

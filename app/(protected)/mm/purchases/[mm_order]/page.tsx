@@ -53,7 +53,7 @@ export default function PurchaseOrderPage({ params }: { params: { mm_order: stri
     )
   }
 
-  const { header, items } = s.data?.data || {}
+  const { header, items } = s.data?.ok ? s.data.data : {}
   console.log('Extracted header:', header)
   console.log('Extracted items:', items)
   

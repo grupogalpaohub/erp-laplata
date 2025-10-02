@@ -23,42 +23,38 @@ interface Movement {
 }
 
 export default async function MovementsPage({ searchParams }: { searchParams: { material?: string } }) {
-  const supabase = supabaseServer()
+  const sb = supabaseServer()
   await requireSession()
 
-  // ✅ CORREÇÃO: Usar nomes reais das colunas do schema
-  let query = supabase
+  // ✅ CORREÇÃO: Usar colunas reais do ledger + 2 chamadas
+  const { data, error } = await sb
     .from('wh_inventory_ledger')
-    .select(`
-      ledger_id,
-      tenant_id,
-      plant_id,
-      mm_material,
-      movement,
-      qty,
-      ref_type,
-      ref_id,
-      created_at,
-      mm_material_data:mm_material(
-        mm_comercial,
-        mm_desc
-      )
-    `)
-    
+    .select('ledger_id,plant_id,mm_material,movement,qty,ref_type,ref_id,created_at')
     .order('created_at', { ascending: false })
     .limit(200)
-
-  if (searchParams.material) {
-    query = query.eq('mm_material', searchParams.material)
-  }
-
-  const { data: movementsData, error } = await query
 
   if (error) {
     console.error('Error fetching movements:', error)
   }
 
-  const movements: Movement[] = movementsData || []
+  const movementsData = data || []
+
+  // Buscar dados dos materiais separadamente
+  const materialIds = [...new Set(movementsData.map(m => m.mm_material))]
+  const { data: materialsData, error: materialsError } = materialIds.length
+    ? await sb.from('mm_material').select('mm_material,mm_comercial,mm_desc').in('mm_material', materialIds)
+    : { data: [], error: null }
+
+  if (materialsError) {
+    console.error('Error fetching materials:', materialsError)
+  }
+
+  // Join em memória
+  const materialMap = new Map((materialsData || []).map(m => [m.mm_material, m]))
+  const movements: Movement[] = movementsData.map(movement => ({
+    ...movement,
+    mm_material_data: materialMap.get(movement.mm_material)
+  }))
 
   // ✅ CORREÇÃO: Calcular estatísticas com nomes reais das colunas
   const totalMovements = movements.length

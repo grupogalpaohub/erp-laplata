@@ -8,13 +8,6 @@ export const dynamic = 'force-dynamic'
 export const revalidate = 0
 export const fetchCache = 'force-no-store'
 
-async function loadWhKpis() {
-  const res = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}/api/wh/kpis`, { cache: 'no-store' })
-  const json = await res.json()
-  if (!json?.ok) throw new Error(json?.error?.message ?? 'erro kpis')
-  return json.data as { total_items: number; low_stock: number; today_moves: number; total_value_cents: number }
-}
-
 export default async function WHPage() {
   let inventory: any[] = []
   let movements: any[] = []
@@ -27,33 +20,72 @@ export default async function WHPage() {
   try {
     await requireSession() // Verificar se está autenticado
     
-    // Carregar KPIs via API
-    const kpis = await loadWhKpis()
-    totalItems = kpis.total_items
-    totalValue = kpis.total_value_cents
-    lowStockItems = kpis.low_stock
-    movementsToday = kpis.today_moves
+    const sb = supabaseServer()
 
-    const supabase = supabaseServer()
+    // ✅ CORREÇÃO: 2 chamadas separadas + join em memória
+    // 1) Buscar inventário
+    const { data: inv, error: e1 } = await sb
+      .from('wh_inventory_balance')
+      .select('mm_material,on_hand_qty,reserved_qty,status')
+      .order('mm_material', { ascending: true })
 
-    // Buscar dados para listagens usando RLS (não precisa especificar tenant_id)
-    // ✅ CORREÇÃO: Usar nomes reais das colunas do schema
-    const [inventoryResult, movementsResult, transfersResult] = await Promise.allSettled([
-      supabase
-        .from('wh_inventory_balance')
-        .select('mm_material, on_hand_qty, reserved_qty, status'),
-      supabase
-        .from('wh_inventory_ledger')
-        .select('ledger_id, plant_id, mm_material, movement, qty, ref_type, ref_id, created_at')
-        .gte('created_at', new Date().toISOString().split('T')[0]),
-      supabase
-        .from('wh_transfer')
-        .select('transfer_id, status, created_at')
-    ])
+    if (e1) {
+      console.error('Error loading inventory:', e1)
+    }
 
-    inventory = inventoryResult.status === 'fulfilled' ? (inventoryResult.value.data || []) : []
-    movements = movementsResult.status === 'fulfilled' ? (movementsResult.value.data || []) : []
-    transfers = transfersResult.status === 'fulfilled' ? (transfersResult.value.data || []) : []
+    // 2) Buscar materiais
+    const ids = [...new Set((inv ?? []).map(r => r.mm_material))]
+    const { data: mats, error: e2 } = ids.length
+      ? await sb.from('mm_material').select('mm_material,mm_desc,mm_purchase_price_cents').in('mm_material', ids)
+      : { data: [], error: null }
+
+    if (e2) {
+      console.error('Error loading materials:', e2)
+    }
+
+    // Join em memória + KPIs
+    const materialMap = new Map((mats || []).map(m => [m.mm_material, m]))
+    inventory = (inv || []).map(item => ({
+      ...item,
+      mm_material_data: materialMap.get(item.mm_material)
+    }))
+
+    // Calcular KPIs
+    totalItems = inventory.filter(r => Number(r.on_hand_qty) > 0).length
+    totalValue = inventory.reduce((acc, inv) => {
+      const price = inv.mm_material_data?.mm_purchase_price_cents || 0
+      return acc + (Number(inv.on_hand_qty) * Number(price))
+    }, 0)
+    lowStockItems = inventory.filter(r => Number(r.on_hand_qty) < 10).length
+
+    // Buscar movimentações de hoje
+    const today = new Date().toISOString().split('T')[0]
+    const { data: todayMovements, error: moveError } = await sb
+      .from('wh_inventory_ledger')
+      .select('ledger_id,plant_id,mm_material,movement,qty,ref_type,ref_id,created_at')
+      .gte('created_at', today)
+      .order('created_at', { ascending: false })
+      .limit(10)
+
+    if (moveError) {
+      console.error('Error loading movements:', moveError)
+    }
+
+    movements = todayMovements || []
+    movementsToday = movements.length
+
+    // Buscar transferências
+    const { data: transfersData, error: transferError } = await sb
+      .from('wh_transfer')
+      .select('transfer_id, status, created_at')
+      .order('created_at', { ascending: false })
+      .limit(10)
+
+    if (transferError) {
+      console.error('Error loading transfers:', transferError)
+    }
+
+    transfers = transfersData || []
 
   } catch (error) {
     console.error('Error loading WH data:', error)

@@ -22,31 +22,39 @@ interface InventoryItem {
 }
 
 export default async function InventoryPage() {
-  const supabase = supabaseServer()
+  const sb = supabaseServer()
   await requireSession()
 
-  // Buscar posição de estoque
-  const { data: inventoryData, error } = await supabase
+  // ✅ CORREÇÃO: 2 chamadas separadas + join em memória
+  // 1) Buscar inventário
+  const { data: inventoryData, error } = await sb
     .from('wh_inventory_balance')
-    .select(`
-      plant_id,
-      mm_material,
-      on_hand_qty,
-      reserved_qty,
-      quantity_available,
-      mm_material_data:mm_material(
-        mm_comercial,
-        mm_desc,
-        mm_purchase_price_cents
-      )
-    `)
+    .select('plant_id,mm_material,on_hand_qty,reserved_qty,status')
     .order('mm_material')
 
   if (error) {
     console.error('Error fetching inventory:', error)
   }
 
-  const inventory: InventoryItem[] = inventoryData || []
+  const inventoryRows = inventoryData || []
+
+  // 2) Buscar materiais
+  const materialIds = [...new Set(inventoryRows.map(r => r.mm_material))]
+  const { data: materialsData, error: materialsError } = materialIds.length
+    ? await sb.from('mm_material').select('mm_material,mm_comercial,mm_desc,mm_purchase_price_cents').in('mm_material', materialIds)
+    : { data: [], error: null }
+
+  if (materialsError) {
+    console.error('Error fetching materials:', materialsError)
+  }
+
+  // Join em memória
+  const materialMap = new Map((materialsData || []).map(m => [m.mm_material, m]))
+  const inventory: InventoryItem[] = inventoryRows.map(item => ({
+    ...item,
+    available_qty: Number(item.on_hand_qty) - Number(item.reserved_qty),
+    mm_material_data: materialMap.get(item.mm_material)
+  }))
 
   // Calcular estatísticas
   const totalItems = (inventory ?? []).length

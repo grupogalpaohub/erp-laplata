@@ -1,45 +1,40 @@
+import { NextResponse } from 'next/server'
 import { supabaseServer } from '@/lib/supabase/server'
-import { NextResponse } from "next/server";
 
-export async function GET(req: Request) {
-  // ✅ GUARDRAIL COMPLIANCE: API usando @supabase/ssr e cookies()
-  const sb = supabaseServer()
-  const url = new URL(req.url);
-  const q = url.searchParams.get("q")?.trim() ?? "";
-  const page = Number(url.searchParams.get("page") ?? 1);
-  const pageSize = Math.min(Number(url.searchParams.get("pageSize") ?? 50), 200);
-  let query = sb.from("wh_warehouse").select("*", { count: "exact" }).order("name");
-  if (q) query = query.ilike("name", `%${q}%`).or(`plant_id.ilike.%${q}%,city.ilike.%${q}%`);
+export async function GET() {
+  try {
+    const supabase = supabaseServer()
+    
+    // Obter tenant_id da sessão
+    const { data: { session } } = await supabase.auth.getSession()
+    const tenant_id = session?.user?.user_metadata?.tenant_id || 'LaplataLunaria'
 
-  const from = (page - 1) * pageSize;
-  const to = from + pageSize - 1;
+    // Buscar warehouses ativos
+    const { data: warehouses, error } = await supabase
+      .from('wh_warehouse')
+      .select('warehouse_id, warehouse_name, location, status')
+      .eq('tenant_id', tenant_id)
+      .eq('status', 'active')
+      .order('warehouse_name')
 
-  const { data, count, error } = await query.range(from, to);
-  if (error) return NextResponse.json({ ok:false, error: error.message }, { status: 400 });
+    if (error) {
+      console.error('Error loading warehouses:', error)
+      return NextResponse.json({
+        ok: false,
+        error: { code: error.code, message: error.message }
+      }, { status: 500 })
+    }
 
-  return NextResponse.json({ ok:true, items: data, total: count ?? 0, page, pageSize });
-}
+    return NextResponse.json({
+      ok: true,
+      data: warehouses || []
+    })
 
-export async function POST(req: Request) {
-  const body = await req.json().catch(() => ({}));
-  // ✅ GUARDRAIL COMPLIANCE: API usando @supabase/ssr e cookies()
-  const sb = supabaseServer()
-
-  const warehouse = {
-    plant_id: body.plant_id,
-    name: body.name,
-    is_default: body.is_default ?? false,
-    address: body.address ?? null,
-    city: body.city ?? null,
-    state: body.state ?? null,
-    zip_code: body.zip_code ?? null,
-    country: body.country ?? "Brasil",
-    contact_person: body.contact_person ?? null,
-    phone: body.phone ?? null,
-    email: body.email ?? null
-  };
-
-  const { data, error } = await sb.from("wh_warehouse").insert(warehouse).select("*").single();
-  if (error) return NextResponse.json({ ok:false, error: error.message }, { status: 400 });
-  return NextResponse.json({ ok:true, warehouse: data }, { status: 201 });
+  } catch (error: any) {
+    console.error('Error loading warehouses:', error)
+    return NextResponse.json({
+      ok: false,
+      error: { message: String(error?.message ?? error) }
+    }, { status: 500 })
+  }
 }

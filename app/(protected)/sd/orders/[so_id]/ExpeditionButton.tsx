@@ -16,25 +16,31 @@ export default function ExpeditionButton({ so_id }: ExpeditionButtonProps) {
 
     setIsLoading(true)
     try {
-      const response = await fetch('/api/sd/shipments', {
+      // Buscar shipment existente para este pedido
+      const shipmentResponse = await fetch(`/api/sd/orders/${so_id}/shipment`)
+      const shipmentData = await shipmentResponse.json()
+      
+      if (!shipmentData.ok || !shipmentData.data) {
+        throw new Error('Shipment não encontrado. Confirme o pedido primeiro.')
+      }
+
+      const shipment = shipmentData.data
+      
+      // Atualizar status do shipment para shipped
+      const response = await fetch(`/api/sd/shipments/${shipment.shipment_id}/ship`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          so_id: so_id,
-          warehouse_id: 'WH-001', // Usar warehouse_id correto
-          notes: 'Expedição via sistema'
-        })
+        headers: { 'Content-Type': 'application/json' }
       })
 
       if (!response.ok) {
         const result = await response.json()
-        throw new Error(result.error || 'Erro na expedição')
+        throw new Error(result.error?.message || 'Erro na expedição')
       }
 
       const result = await response.json()
       if (result.ok) {
         setIsShipped(true)
-        alert('Pedido expedido com sucesso!')
+        alert('Pedido enviado com sucesso!')
         // Recarregar a página para mostrar o novo status
         window.location.reload()
       }

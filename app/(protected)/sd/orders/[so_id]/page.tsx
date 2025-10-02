@@ -4,6 +4,7 @@ import { requireSession } from '@/lib/auth/requireSession'
 import { formatBRL } from '@/lib/money'
 import { ArrowLeft, Edit, CheckCircle, XCircle, DollarSign, Percent } from 'lucide-react'
 import ExpeditionButton from './ExpeditionButton'
+import ConfirmOrderButton from './ConfirmOrderButton'
 
 export const dynamic = 'force-dynamic'
 export const revalidate = 0
@@ -190,12 +191,19 @@ export default async function SalesOrderDetailPage({ params }: { params: { so_id
           {getStatusIcon(order.status)}
           <span className="font-medium">{getStatusText(order.status)}</span>
           {order.status === 'draft' && (
-            <Link href={`/sd/orders/${so_id}/edit`} className="btn-fiori-outline">
-              <Edit className="w-4 h-4 mr-2" />
-              Editar
-            </Link>
+            <>
+              <Link href={`/sd/orders/${so_id}/edit`} className="btn-fiori-outline">
+                <Edit className="w-4 h-4 mr-2" />
+                Editar
+              </Link>
+              <ConfirmOrderButton 
+                soId={so_id} 
+                currentStatus={order.status}
+                onConfirm={() => window.location.reload()}
+              />
+            </>
           )}
-          {order.status === 'confirmed' && (
+          {order.status === 'approved' && (
             <ExpeditionButton so_id={so_id} />
           )}
         </div>

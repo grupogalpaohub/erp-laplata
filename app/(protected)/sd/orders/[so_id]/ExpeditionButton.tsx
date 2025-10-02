@@ -26,7 +26,7 @@ export default function ExpeditionButton({ so_id }: ExpeditionButtonProps) {
 
       const shipment = shipmentData.data
       
-      // Atualizar status do shipment para shipped
+      // Atualizar status do shipment para shipped (trigger fará a baixa/ledger)
       const response = await fetch(`/api/sd/shipments/${shipment.shipment_id}/ship`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' }
@@ -40,7 +40,7 @@ export default function ExpeditionButton({ so_id }: ExpeditionButtonProps) {
       const result = await response.json()
       if (result.ok) {
         setIsShipped(true)
-        alert('Pedido enviado com sucesso!')
+        alert('Pedido enviado com sucesso! Estoque foi baixado automaticamente.')
         // Recarregar a página para mostrar o novo status
         window.location.reload()
       }

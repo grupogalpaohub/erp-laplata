@@ -222,7 +222,7 @@ export default async function MovementsPage({ searchParams }: { searchParams: { 
                         <span className={`font-medium ${
                           movement.movement === 'IN' ? 'text-fiori-success' : 'text-fiori-danger'
                         }`}>
-                          {movement.movement === 'IN' ? '+' : ''}{movement.qty.toLocaleString()}
+                          {movement.movement === 'IN' ? '+' : ''}{Math.abs(Number(movement.qty)).toLocaleString()}
                         </span>
                       </td>
                       <td>

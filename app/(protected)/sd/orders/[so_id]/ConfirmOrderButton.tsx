@@ -42,28 +42,28 @@ export default function ConfirmOrderButton({ soId, currentStatus, onConfirm }: C
 
     startTransition(async () => {
       try {
-        const response = await fetch(`/api/sd/orders/${soId}/confirm`, {
+        // Criar shipment (trigger fará a reserva/ledger e atualizará status do pedido)
+        const shipmentResponse = await fetch('/api/sd/shipments', {
           method: 'POST',
-          headers: {
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({
-            warehouse_id: selectedWarehouse
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ 
+            so_id: soId, 
+            warehouse_id: selectedWarehouse 
           })
         })
 
-        const result = await response.json()
-        
-        if (result.ok) {
-          onConfirm()
-          setIsOpen(false)
-          setSelectedWarehouse('')
-        } else {
-          alert(`Erro: ${result.error?.message || 'Falha ao confirmar pedido'}`)
+        if (!shipmentResponse.ok) {
+          const shipmentResult = await shipmentResponse.json()
+          throw new Error(shipmentResult.error?.message || 'Erro ao criar shipment')
         }
+
+        alert('Pedido confirmado e reservado com sucesso!')
+        onConfirm()
+        setIsOpen(false)
+        setSelectedWarehouse('')
       } catch (error) {
         console.error('Error confirming order:', error)
-        alert('Erro ao confirmar pedido')
+        alert('Erro ao confirmar pedido: ' + (error instanceof Error ? error.message : 'Erro desconhecido'))
       }
     })
   }

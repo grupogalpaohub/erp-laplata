@@ -68,8 +68,7 @@ export default async function SalesOrderDetailPage({ params }: { params: { so_id
         payment_method,
         payment_term,
         notes,
-        created_at,
-        crm_customer(name)
+        created_at
       `)
       .eq('tenant_id', tenant_id)
       .eq('so_id', so_id)
@@ -79,6 +78,20 @@ export default async function SalesOrderDetailPage({ params }: { params: { so_id
       error = orderError.message
     } else {
       order = orderData
+
+      // Buscar dados do cliente separadamente
+      if (order.customer_id) {
+        const { data: customerData } = await supabase
+          .from('crm_customer')
+          .select('name')
+          .eq('tenant_id', tenant_id)
+          .eq('customer_id', order.customer_id)
+          .single()
+        
+        if (customerData) {
+          order.crm_customer = [{ name: customerData.name }]
+        }
+      }
 
       // Buscar itens do pedido
       const { data: itemsData, error: itemsError } = await supabase

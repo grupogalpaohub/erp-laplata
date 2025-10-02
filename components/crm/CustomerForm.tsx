@@ -54,22 +54,20 @@ export default function CustomerForm({ onSubmit, defaultValues = {} }: Props) {
               </select>
             </div>
             <div>
-              <label className="label-fiori">CPF / CNPJ *</label>
+              <label className="label-fiori">CPF / CNPJ</label>
               <input 
-                name="tax_id" 
-                required 
-                defaultValue={defaultValues.tax_id ?? ""} 
+                name="document_id" 
+                defaultValue={defaultValues.document_id ?? ""} 
                 className="input-fiori" 
                 placeholder="000.000.000-00 ou 00.000.000/0000-00" 
               />
             </div>
             <div>
-              <label className="label-fiori">E-mail *</label>
+              <label className="label-fiori">E-mail</label>
               <input 
-                name="email" 
+                name="contact_email" 
                 type="email" 
-                required 
-                defaultValue={defaultValues.email ?? ""} 
+                defaultValue={defaultValues.contact_email ?? ""} 
                 className="input-fiori" 
                 placeholder="email@exemplo.com"
               />
@@ -77,8 +75,8 @@ export default function CustomerForm({ onSubmit, defaultValues = {} }: Props) {
             <div>
               <label className="label-fiori">Telefone</label>
               <input 
-                name="phone" 
-                defaultValue={defaultValues.phone ?? ""} 
+                name="contact_phone" 
+                defaultValue={defaultValues.contact_phone ?? ""} 
                 className="input-fiori" 
                 placeholder="(11) 99999-9999" 
               />
@@ -138,48 +136,19 @@ export default function CustomerForm({ onSubmit, defaultValues = {} }: Props) {
         <div className="card-fiori-content">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
-              <label className="label-fiori">Canal/Origem</label>
+              <label className="label-fiori">Canal/Origem *</label>
               <select 
                 name="sales_channel" 
+                required
                 defaultValue={defaultValues.sales_channel ?? ""} 
                 className="select-fiori"
               >
                 <option value="">Selecione...</option>
-                <option value="WHATSAPP">WhatsApp</option>
-                <option value="INSTAGRAM">Instagram</option>
-                <option value="SITE">Site</option>
-                <option value="FEIRA">Feira</option>
-                <option value="INDICACAO">Indicação</option>
-              </select>
-            </div>
-            <div>
-              <label className="label-fiori">Método de Pagamento (padrão)</label>
-              <select 
-                name="payment_method_pref" 
-                defaultValue={defaultValues.payment_method_pref ?? ""} 
-                className="select-fiori"
-              >
-                <option value="">Selecione...</option>
-                <option value="PIX">PIX</option>
-                <option value="BOLETO">Boleto</option>
-                <option value="CARTAO">Cartão</option>
-                <option value="DINHEIRO">Dinheiro</option>
-                <option value="TRANSFERENCIA">Transferência</option>
-              </select>
-            </div>
-            <div>
-              <label className="label-fiori">Condição de Pagamento (padrão)</label>
-              <select 
-                name="payment_terms" 
-                defaultValue={defaultValues.payment_terms ?? ""} 
-                className="select-fiori"
-              >
-                <option value="">Selecione...</option>
-                <option value="AVISTA">À vista</option>
-                <option value="7">7 dias</option>
-                <option value="14">14 dias</option>
-                <option value="30">30 dias</option>
-                <option value="30/60">30/60</option>
+                <option value="whatsapp">WhatsApp</option>
+                <option value="instagram">Instagram</option>
+                <option value="site">Site</option>
+                <option value="feira">Feira</option>
+                <option value="indicacao">Indicação</option>
               </select>
             </div>
             <div>
@@ -195,22 +164,6 @@ export default function CustomerForm({ onSubmit, defaultValues = {} }: Props) {
                 <option value="VIP">VIP</option>
                 <option value="REGULAR">Regular</option>
               </select>
-            </div>
-            <div>
-              <label className="label-fiori">Inscrição Estadual (IE)</label>
-              <input 
-                name="state_registration" 
-                defaultValue={defaultValues.state_registration ?? ""} 
-                className="input-fiori" 
-              />
-            </div>
-            <div>
-              <label className="label-fiori">Inscrição Municipal (IM)</label>
-              <input 
-                name="municipal_registration" 
-                defaultValue={defaultValues.municipal_registration ?? ""} 
-                className="input-fiori" 
-              />
             </div>
             <div className="md:col-span-2">
               <label className="label-fiori">Observações / Notas Internas</label>

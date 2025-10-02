@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import { supabaseServer } from '@/lib/supabase/server'
 import { requireSession } from '@/lib/auth/requireSession'
+import { formatBRL } from '@/lib/money'
 import { ArrowLeft, Edit, Mail, Phone, MapPin, CreditCard, Calendar, User, Star, Target, ShoppingCart, Tag } from 'lucide-react'
 import { notFound } from 'next/navigation'
 
@@ -66,10 +67,33 @@ export default async function CustomerDetailPage({ params }: PageProps) {
 
     customer = customerData
 
-    // Buscar pedidos de venda do cliente (quando módulo SD estiver implementado)
-    // Por enquanto, deixar vazio
-    salesOrders = []
-    totalSalesValue = 0
+    // Buscar pedidos de venda do cliente
+    const { data: ordersData, error: ordersError } = await supabase
+      .from('sd_sales_order')
+      .select(`
+        so_id,
+        doc_no,
+        status,
+        order_date,
+        total_cents,
+        total_final_cents,
+        total_negotiated_cents,
+        payment_method,
+        payment_term,
+        created_at
+      `)
+      .eq('customer_id', params.customer_id)
+      .order('order_date', { ascending: false })
+      .limit(10)
+
+    if (ordersError) {
+      console.error('Error loading customer orders:', ordersError)
+      salesOrders = []
+      totalSalesValue = 0
+    } else {
+      salesOrders = ordersData || []
+      totalSalesValue = salesOrders.reduce((sum, order) => sum + (order.total_cents || 0), 0)
+    }
 
   } catch (error) {
     console.error('Error loading customer details:', error)
@@ -226,7 +250,7 @@ export default async function CustomerDetailPage({ params }: PageProps) {
             </div>
             <h3 className="font-semibold text-fiori-primary">Valor Total</h3>
             <p className="text-fiori-secondary mt-1">
-              R$ {totalSalesValue.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+              {formatBRL(totalSalesValue)}
             </p>
           </div>
         </div>
@@ -406,7 +430,56 @@ export default async function CustomerDetailPage({ params }: PageProps) {
         <div className="card-fiori-content">
           {salesOrders.length > 0 ? (
             <div className="space-y-4">
-              {/* Implementar quando módulo SD estiver pronto */}
+              {salesOrders.map((order) => (
+                <div key={order.so_id} className="border border-fiori-border rounded-lg p-4 hover:bg-fiori-surface transition-colors">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-4">
+                      <div className="w-10 h-10 bg-fiori-primary/10 rounded-full flex items-center justify-center">
+                        <ShoppingCart className="w-5 h-5 text-fiori-primary" />
+                      </div>
+                      <div>
+                        <h4 className="font-semibold text-fiori-primary">
+                          {order.doc_no || order.so_id}
+                        </h4>
+                        <p className="text-sm text-fiori-muted">
+                          {new Date(order.order_date).toLocaleDateString('pt-BR')}
+                        </p>
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <p className="font-semibold text-fiori-primary">
+                        {formatBRL(order.total_cents || 0)}
+                      </p>
+                      <p className="text-sm text-fiori-muted">
+                        {order.status === 'draft' ? 'Rascunho' : 
+                         order.status === 'approved' ? 'Aprovado' :
+                         order.status === 'invoiced' ? 'Faturado' :
+                         order.status === 'cancelled' ? 'Cancelado' : order.status}
+                      </p>
+                    </div>
+                  </div>
+                  <div className="mt-3 flex items-center gap-4 text-sm text-fiori-muted">
+                    <span>Pagamento: {order.payment_method || order.payment_term || 'N/A'}</span>
+                    {order.total_negotiated_cents && order.total_negotiated_cents !== order.total_cents && (
+                      <span>Negociado: {formatBRL(order.total_negotiated_cents)}</span>
+                    )}
+                  </div>
+                  <div className="mt-3 flex gap-2">
+                    <Link
+                      href={`/sd/orders/${order.so_id}`}
+                      className="btn-fiori-outline text-xs"
+                    >
+                      Ver Detalhes
+                    </Link>
+                    <Link
+                      href={`/sd/orders/${order.so_id}/edit`}
+                      className="btn-fiori-outline text-xs"
+                    >
+                      Editar
+                    </Link>
+                  </div>
+                </div>
+              ))}
             </div>
           ) : (
             <div className="text-center py-8">
@@ -415,7 +488,7 @@ export default async function CustomerDetailPage({ params }: PageProps) {
               </svg>
               <p className="text-fiori-muted">Nenhum pedido encontrado</p>
               <p className="text-sm text-fiori-muted mt-1">
-                Os pedidos aparecerão aqui quando o módulo de vendas estiver ativo
+                Este cliente ainda não possui pedidos de venda
               </p>
             </div>
           )}

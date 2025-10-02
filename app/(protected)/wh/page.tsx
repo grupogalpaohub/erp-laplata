@@ -40,11 +40,7 @@ export default async function WHPage() {
     const [inventoryResult, movementsResult, transfersResult] = await Promise.allSettled([
       supabase
         .from('wh_inventory_balance')
-        .select(`
-          mm_material,
-          on_hand_qty,
-          mm_material_data:mm_material(mm_purchase_price_cents)
-        `),
+        .select('mm_material, on_hand_qty, reserved_qty, status'),
       supabase
         .from('wh_inventory_ledger')
         .select('movement_id, type, quantity, created_at')

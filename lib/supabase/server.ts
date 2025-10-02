@@ -14,6 +14,14 @@ export function supabaseServer() {
           get(name: string) {
             return cookieStore.get(name)?.value
           },
+          set(name: string, value: string, options: any) {
+            // No-op para server components
+            // Cookies são gerenciados pelo cliente
+          },
+          remove(name: string, options: any) {
+            // No-op para server components
+            // Cookies são gerenciados pelo cliente
+          },
         },
       }
     )

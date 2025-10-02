@@ -6,7 +6,7 @@ import { cookies } from 'next/headers'
 
 async function testCreateMaterial() {
   console.log('🧪 MM-01: Criar Material (ID auto)')
-  console.log('=' * 50)
+  console.log('='.repeat(50))
   
   try {
     const cookieStore = cookies()
@@ -47,8 +47,8 @@ async function testCreateMaterial() {
       .single()
     
     if (error) {
-      console.log('❌ Erro ao criar material:', error.message)
-      return false
+      console.log('❌ Erro ao criar material:', error instanceof Error ? error.message : String(error))
+      return { success: false, error: 'Erro na validação' }
     }
     
     console.log('✅ Material criado com sucesso!')
@@ -57,7 +57,7 @@ async function testCreateMaterial() {
     // Verificar se mm_material foi gerado automaticamente
     if (!data.mm_material) {
       console.log('❌ ERRO: mm_material não foi gerado automaticamente!')
-      return false
+      return { success: false, error: 'Erro na validação' }
     }
     
     console.log(`🎯 mm_material gerado: ${data.mm_material}`)
@@ -73,8 +73,8 @@ async function testCreateMaterial() {
       .single()
     
     if (listError) {
-      console.log('❌ Erro ao buscar material na listagem:', listError.message)
-      return false
+      console.log('❌ Erro ao buscar material na listagem:', listError instanceof Error ? listError.message : String(listError))
+      return { success: false, error: 'Erro na validação' }
     }
     
     console.log('✅ Material encontrado na listagem!')
@@ -83,7 +83,7 @@ async function testCreateMaterial() {
     // Verificar se a primeira coluna exibe mm_material
     if (materials.mm_material !== data.mm_material) {
       console.log('❌ ERRO: Primeira coluna não exibe mm_material corretamente!')
-      return false
+      return { success: false, error: 'Erro na validação' }
     }
     
     console.log('✅ Primeira coluna exibe mm_material corretamente!')
@@ -109,7 +109,7 @@ LIMIT 1;
     
   } catch (error) {
     console.log('❌ ERRO NO TESTE:', error)
-    return { success: false, error: error.message }
+    return { success: false, error: error instanceof Error ? error instanceof Error ? error.message : String(error) : String(error) }
   }
 }
 
@@ -122,3 +122,4 @@ testCreateMaterial().then(result => {
   }
   process.exit(result.success ? 0 : 1)
 })
+

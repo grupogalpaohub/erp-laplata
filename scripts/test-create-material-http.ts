@@ -1,7 +1,8 @@
 #!/usr/bin/env tsx
 // Teste funcional real via HTTP para criação de material
 
-const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'
+{
+  const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'
 
 async function testCreateMaterialHTTP() {
   console.log('🧪 Teste funcional via HTTP - Criação de material...\n')
@@ -128,3 +129,4 @@ testCreateMaterialHTTP().then(success => {
   }
   process.exit(success ? 0 : 1)
 })
+}

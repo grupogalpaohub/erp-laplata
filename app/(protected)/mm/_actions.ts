@@ -1,6 +1,6 @@
 "use server"
 
-import { supabaseServer } from '@/utils/supabase/server'
+import { supabaseServer } from '@/lib/supabase/server'
 import { requireSession } from "@/lib/auth/requireSession"
 import { toCents } from "@/lib/money"
 import { revalidatePath } from "next/cache"
@@ -70,7 +70,8 @@ export async function createMaterial(formData: FormData) {
   revalidatePath("/mm/catalog")
   revalidatePath("/mm/materials")
   
-  return { success: true, mm_material: data.mm_material }
+  // ✅ GUARDRAIL COMPLIANCE: Server Action para formulário não retorna valor
+  // O redirecionamento será feito no cliente
 }
 
 export async function updateMaterial(mm_material: string, formData: FormData) {
@@ -227,8 +228,8 @@ export async function getCustomizingData() {
   }
 
   // Extrair valores únicos
-  const uniqueTypes = types?.map(t => t.category).filter(Boolean) || []
-  const uniqueClassifications = classifications?.map(c => c.classification).filter(Boolean) || []
+  const uniqueTypes = types?.map((t: any) => t.category).filter(Boolean) || []
+  const uniqueClassifications = classifications?.map((c: any) => c.classification).filter(Boolean) || []
 
   return {
     types: uniqueTypes.length > 0 ? uniqueTypes : ['Brinco', 'Choker', 'Kit', 'Gargantilha', 'Pulseira'],

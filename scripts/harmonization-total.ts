@@ -179,7 +179,7 @@ export async function POST(req: NextRequest) {
     if (!parse.success) {
       return NextResponse.json({
         ok: false,
-        error: { code: 'VALIDATION_ERROR', message: parse.error.message }
+        error: { code: 'VALIDATION_ERROR', message: parse.error instanceof Error ? error.message : String(error) }
       }, { status: 400 });
     }
 
@@ -239,7 +239,7 @@ export async function POST(req: NextRequest) {
     if (error) {
       return NextResponse.json({
         ok: false,
-        error: { code: 'INSERT_FAILED', message: error.message }
+        error: { code: 'INSERT_FAILED', message: error instanceof Error ? error.message : String(error) }
       }, { status: 500 });
     }
 
@@ -286,7 +286,7 @@ export async function GET(req: NextRequest) {
     if (error) {
       return NextResponse.json({
         ok: false,
-        error: { code: 'QUERY_FAILED', message: error.message }
+        error: { code: 'QUERY_FAILED', message: error instanceof Error ? error.message : String(error) }
       }, { status: 500 });
     }
 
@@ -321,7 +321,7 @@ export async function getNextDocNumber(tenant_id: string, doc_type: string): Pro
   const result = await response.json();
   
   if (!result.ok) {
-    throw new Error(\`Erro ao gerar número do documento: \${result.error.message}\`);
+    throw new Error(\`Erro ao gerar número do documento: \${result.error instanceof Error ? error.message : String(error)}\`);
   }
   
   return result.data.next_number;
@@ -533,3 +533,4 @@ console.log('✅ Todas as correções aplicadas com base nos dados reais do banc
 console.log('🔒 Guardrails aplicados em todas as APIs');
 console.log('📝 Documentação atualizada');
 console.log('🧪 Scripts de teste criados');
+

@@ -1,11 +1,12 @@
 #!/usr/bin/env tsx
 // Teste funcional - Criar Material
 
-const BASE_URL = 'http://localhost:3000'
+{
+  const BASE_URL = 'http://localhost:3000'
 
 async function testMaterialCreation() {
   console.log('🧪 TESTE FUNCIONAL - CRIAR MATERIAL')
-  console.log('=' * 50)
+  console.log('='.repeat(50))
   
   try {
     // 1. Testar GET (deve funcionar)
@@ -105,3 +106,5 @@ async function testMaterialCreation() {
 }
 
 testMaterialCreation()
+}
+

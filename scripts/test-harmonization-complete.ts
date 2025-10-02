@@ -1,24 +1,25 @@
 #!/usr/bin/env tsx
 // Teste de harmonização completa - MM & SD
 
-const BASE_URL = 'http://localhost:3000'
+{
+  const BASE_URL = 'http://localhost:3000'
 
 async function testHarmonizationComplete() {
   console.log('🧪 TESTE DE HARMONIZAÇÃO COMPLETA - MM & SD')
-  console.log('=' * 60)
+  console.log('='.repeat(60))
   
   const results = {
-    mm_material: null,
-    vendor_id: null,
-    mm_order: null,
-    customer_id: null,
-    so_id: null
+    mm_material: null as string | null,
+    vendor_id: null as string | null,
+    mm_order: null as string | null,
+    customer_id: null as string | null,
+    so_id: null as string | null
   }
   
   try {
     // 1. Criar Material (sem mm_material no payload)
     console.log('\n1️⃣ TESTE: Criar Material (ID auto)')
-    console.log('-' * 40)
+    console.log('-'.repeat(40))
     
     const materialPayload = {
       mm_desc: 'Material Harmonização Test',
@@ -53,7 +54,7 @@ async function testHarmonizationComplete() {
     
     // 2. Criar Vendor
     console.log('\n2️⃣ TESTE: Criar Vendor')
-    console.log('-' * 40)
+    console.log('-'.repeat(40))
     
     const vendorPayload = {
       vendor_id: 'VENDOR_HARMONIZATION',
@@ -84,7 +85,7 @@ async function testHarmonizationComplete() {
     
     // 3. Criar PO (sem mm_order no payload)
     console.log('\n3️⃣ TESTE: Criar PO (ID auto)')
-    console.log('-' * 40)
+    console.log('-'.repeat(40))
     
     const poPayload = {
       vendor_id: results.vendor_id,
@@ -115,7 +116,7 @@ async function testHarmonizationComplete() {
     
     // 4. Adicionar Item ao PO
     console.log('\n4️⃣ TESTE: Adicionar Item ao PO')
-    console.log('-' * 40)
+    console.log('-'.repeat(40))
     
     const poItemPayload = {
       mm_order: results.mm_order,
@@ -145,7 +146,7 @@ async function testHarmonizationComplete() {
     
     // 5. Criar Customer
     console.log('\n5️⃣ TESTE: Criar Customer')
-    console.log('-' * 40)
+    console.log('-'.repeat(40))
     
     const customerPayload = {
       customer_id: 'CUSTOMER_HARMONIZATION',
@@ -177,7 +178,7 @@ async function testHarmonizationComplete() {
     
     // 6. Criar SO (sem so_id no payload)
     console.log('\n6️⃣ TESTE: Criar SO (ID auto)')
-    console.log('-' * 40)
+    console.log('-'.repeat(40))
     
     const soPayload = {
       customer_id: results.customer_id,
@@ -209,7 +210,7 @@ async function testHarmonizationComplete() {
     
     // 7. Adicionar Item ao SO
     console.log('\n7️⃣ TESTE: Adicionar Item ao SO')
-    console.log('-' * 40)
+    console.log('-'.repeat(40))
     
     const soItemPayload = {
       so_id: results.so_id,
@@ -239,7 +240,7 @@ async function testHarmonizationComplete() {
     
     // Relatório final
     console.log('\n🎉 HARMONIZAÇÃO COMPLETA - SUCESSO!')
-    console.log('=' * 60)
+    console.log('='.repeat(60))
     console.log('✅ Todos os testes passaram:')
     console.log(`   • Material criado: ${results.mm_material}`)
     console.log(`   • Vendor criado: ${results.vendor_id}`)
@@ -252,7 +253,7 @@ async function testHarmonizationComplete() {
     
   } catch (error) {
     console.log('❌ ERRO NO TESTE:', error)
-    return { success: false, error: error.message }
+    return { success: false, error: error instanceof Error ? error instanceof Error ? error.message : String(error) : String(error) }
   }
 }
 
@@ -265,3 +266,5 @@ testHarmonizationComplete().then(result => {
   }
   process.exit(result.success ? 0 : 1)
 })
+}
+

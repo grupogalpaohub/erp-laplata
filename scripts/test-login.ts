@@ -67,7 +67,7 @@ async function testLogin() {
     } else {
       const error = await response.json()
       console.log('   ❌ FALHOU: Erro no login')
-      console.log(`   Erro: ${error.error_description || error.message}`)
+      console.log(`   Erro: ${error.error_description || error instanceof Error ? error.message : String(error)}`)
     }
   } catch (error) {
     console.log('   ❌ ERRO:', error)
@@ -105,3 +105,4 @@ async function testLogin() {
 }
 
 testLogin().catch(console.error)
+

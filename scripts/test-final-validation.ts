@@ -1,11 +1,12 @@
 #!/usr/bin/env tsx
 // Teste final de validação - Verificar se todas as correções estão funcionando
 
-const BASE_URL = 'http://localhost:3000'
+{
+  const BASE_URL = 'http://localhost:3000'
 
 async function testFinalValidation() {
   console.log('🧪 TESTE FINAL DE VALIDAÇÃO - MM & SD')
-  console.log('=' * 60)
+  console.log('='.repeat(60))
   
   const results = {
     apis_working: 0,
@@ -17,7 +18,7 @@ async function testFinalValidation() {
   try {
     // 1. Testar APIs principais
     console.log('\n1️⃣ TESTANDO APIs PRINCIPAIS')
-    console.log('-' * 40)
+    console.log('-'.repeat(40))
     
     const apis = [
       { name: 'Materials GET', url: '/api/mm/materials', method: 'GET' },
@@ -73,13 +74,13 @@ async function testFinalValidation() {
         results.guardrails_total++
         
       } catch (error) {
-        console.log(`   ❌ Erro: ${error.message}`)
+        console.log(`   ❌ Erro: ${error instanceof Error ? error instanceof Error ? error.message : String(error) : String(error)}`)
       }
     }
     
     // 2. Testar validação de schemas
     console.log('\n2️⃣ TESTANDO VALIDAÇÃO DE SCHEMAS')
-    console.log('-' * 40)
+    console.log('-'.repeat(40))
     
     // Testar PO sem mm_order
     console.log('\n📡 Testando PO sem mm_order...')
@@ -123,7 +124,7 @@ async function testFinalValidation() {
     
     // 3. Relatório final
     console.log('\n📊 RELATÓRIO FINAL')
-    console.log('=' * 60)
+    console.log('='.repeat(60))
     console.log(`✅ APIs funcionando: ${results.apis_working}/${results.apis_total}`)
     console.log(`✅ Guardrails OK: ${results.guardrails_ok}/${results.guardrails_total}`)
     console.log(`📈 Taxa de sucesso: ${Math.round((results.apis_working / results.apis_total) * 100)}%`)
@@ -141,7 +142,7 @@ async function testFinalValidation() {
     
   } catch (error) {
     console.log('❌ ERRO NO TESTE:', error)
-    return { success: false, error: error.message }
+    return { success: false, error: error instanceof Error ? error instanceof Error ? error.message : String(error) : String(error) }
   }
 }
 
@@ -154,3 +155,5 @@ testFinalValidation().then(result => {
   }
   process.exit(result.success ? 0 : 1)
 })
+}
+

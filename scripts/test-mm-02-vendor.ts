@@ -1,11 +1,12 @@
 #!/usr/bin/env tsx
 // MM-02: Criar Vendor e vincular no Material
 
-const BASE_URL = 'http://localhost:3000'
+{
+  const BASE_URL = 'http://localhost:3000'
 
 async function testCreateVendor() {
   console.log('🧪 MM-02: Criar Vendor e vincular no Material')
-  console.log('=' * 50)
+  console.log('='.repeat(50))
   
   try {
     // 1. Criar vendor via API
@@ -122,7 +123,7 @@ SELECT mm_vendor_id FROM public.mm_material WHERE tenant_id='LaplataLunaria' AND
     
   } catch (error) {
     console.log('❌ ERRO NO TESTE:', error)
-    return { success: false, error: error.message }
+    return { success: false, error: error instanceof Error ? error instanceof Error ? error.message : String(error) : String(error) }
   }
 }
 
@@ -135,3 +136,7 @@ testCreateVendor().then(result => {
   }
   process.exit(result.success ? 0 : 1)
 })
+}
+
+
+

@@ -62,8 +62,8 @@ export default async function MMIndex() {
     totalMaterials = materials.length
     totalVendors = vendors.filter(v => v.status === 'active').length
     totalOrders = purchaseOrders.length
-    totalValue = purchaseOrders.reduce((sum, order) => sum + (order.total_cents || 0), 0)
-    monthlyValue = monthlyOrders.reduce((sum, order) => sum + (order.total_cents || 0), 0)
+    totalValue = purchaseOrders.reduce((sum: number, order: any) => sum + (order.total_cents || 0), 0)
+    monthlyValue = monthlyOrders.reduce((sum: number, order: any) => sum + (order.total_cents || 0), 0)
 
   } catch (error) {
     console.error('Error loading MM data:', error)

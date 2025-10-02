@@ -18,8 +18,3 @@ export async function fetchWithAuth(url: string, options: RequestInit = {}) {
     credentials: 'include'
   })
 }
-    ...options,
-    headers,
-    credentials: 'include'
-  })
-}

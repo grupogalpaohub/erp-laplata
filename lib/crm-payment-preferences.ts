@@ -1,4 +1,4 @@
-import { getSupabaseServerClient } from '@/utils/supabase/server';
+import { supabaseServer } from '@/lib/supabase/server';
 
 /**
  * Atualiza as preferências de pagamento de um cliente baseado no histórico de pagamentos
@@ -7,7 +7,7 @@ import { getSupabaseServerClient } from '@/utils/supabase/server';
  */
 export async function updateCustomerPaymentPreferences(tenantId: string, customerId: string) {
   try {
-    const supabase = getSupabaseServerClient();
+    const supabase = supabaseServer();
     
     console.log(`[CRM] Atualizando preferências de pagamento para cliente ${customerId}`);
     
@@ -41,7 +41,7 @@ export async function updateCustomerPaymentPreferences(tenantId: string, custome
     const methodCounts = new Map<string, number>();
     const methodDates = new Map<string, string>();
     
-    payments.forEach(payment => {
+    payments.forEach((payment: any) => {
       if (payment.payment_method) {
         const count = methodCounts.get(payment.payment_method) || 0;
         methodCounts.set(payment.payment_method, count + 1);
@@ -71,7 +71,7 @@ export async function updateCustomerPaymentPreferences(tenantId: string, custome
     const termsCounts = new Map<string, number>();
     const termsDates = new Map<string, string>();
     
-    payments.forEach(payment => {
+    payments.forEach((payment: any) => {
       if (payment.payment_terms) {
         const count = termsCounts.get(payment.payment_terms) || 0;
         termsCounts.set(payment.payment_terms, count + 1);
@@ -129,7 +129,7 @@ export async function updateCustomerPaymentPreferences(tenantId: string, custome
  */
 export async function backfillAllCustomerPaymentPreferences(tenantId: string) {
   try {
-    const supabase = getSupabaseServerClient();
+    const supabase = supabaseServer();
     
     console.log(`[CRM] Iniciando backfill de preferências de pagamento para tenant ${tenantId}`);
     

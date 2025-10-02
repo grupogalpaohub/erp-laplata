@@ -2,7 +2,7 @@
 
 import { useEffect } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
-import { createClient } from '@supabase/supabase-js'
+import { supabaseBrowser } from '@/lib/supabase/client'
 
 export default function AuthCallbackPage() {
   const router = useRouter()
@@ -12,11 +12,8 @@ export default function AuthCallbackPage() {
   useEffect(() => {
     const handleAuthCallback = async () => {
       try {
-        // Criar cliente Supabase para o lado do cliente
-        const supabase = createClient(
-          process.env.NEXT_PUBLIC_SUPABASE_URL!,
-          process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-        )
+        // ✅ GUARDRAIL COMPLIANCE: Usar supabaseBrowser() helper
+        const supabase = supabaseBrowser()
 
         // Trocar código por sessão
         const { data, error } = await supabase.auth.exchangeCodeForSession(

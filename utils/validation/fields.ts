@@ -28,9 +28,9 @@ export function validateRequiredFields(
 
 export function validateForbiddenFields(
   data: Record<string, any>, 
-  tableName: keyof typeof FORBIDDEN_FIELDS
+  tableName: keyof typeof REQUIRED_FIELDS
 ): ValidationResult {
-  const forbiddenFields = FORBIDDEN_FIELDS[tableName] || [];
+  const forbiddenFields = FORBIDDEN_FIELDS[tableName as keyof typeof FORBIDDEN_FIELDS] || [];
   const foundForbiddenFields = forbiddenFields.filter(field => 
     data[field] !== undefined
   );

@@ -31,10 +31,10 @@ export async function GET(_req: Request, { params }: { params: Params }) {
     return NextResponse.json({ ok: false, error: { code: (headerError as any).code, message: headerError.message } }, { status: 500 });
   }
 
-  // Itens
+  // Itens - ✅ GUARDRAIL COMPLIANCE: Campos corretos conforme db_contract.json
   const { data: items, error: itemsError } = await supabase
     .from("mm_purchase_order_item")
-    .select("po_item_id, mm_material, quantity, unit_cost_cents, line_total_cents")
+    .select("po_item_id, mm_order, plant_id, mm_material, mm_qtt, unit_cost_cents, line_total_cents, notes, currency, quantity, freeze_item_price")
     .eq("tenant_id", TENANT_ID)
     .eq("mm_order", orderId)
     .order("po_item_id", { ascending: true });

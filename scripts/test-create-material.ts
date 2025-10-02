@@ -49,7 +49,7 @@ async function testCreateMaterial() {
       .single()
     
     if (error) {
-      console.log('   ❌ Erro ao criar material:', error.message)
+      console.log('   ❌ Erro ao criar material:', error instanceof Error ? error.message : String(error))
       return false
     }
     
@@ -75,7 +75,7 @@ async function testCreateMaterial() {
       .single()
     
     if (listError) {
-      console.log('   ❌ Erro ao buscar material na lista:', listError.message)
+      console.log('   ❌ Erro ao buscar material na lista:', listError instanceof Error ? listError.message : String(listError))
       return false
     }
     
@@ -93,7 +93,7 @@ async function testCreateMaterial() {
       .limit(1)
     
     if (poError && poError.code !== 'PGRST116') { // PGRST116 = no rows found
-      console.log('   ❌ Erro ao testar uso em PO:', poError.message)
+      console.log('   ❌ Erro ao testar uso em PO:', poError instanceof Error ? poError.message : String(poError))
       return false
     }
     
@@ -109,7 +109,7 @@ async function testCreateMaterial() {
       .eq('mm_material', data.mm_material)
     
     if (deleteError) {
-      console.log('   ⚠️  Aviso: Não foi possível remover material de teste:', deleteError.message)
+      console.log('   ⚠️  Aviso: Não foi possível remover material de teste:', deleteError instanceof Error ? deleteError.message : String(deleteError))
     } else {
       console.log('   ✅ Material de teste removido!')
     }
@@ -138,3 +138,4 @@ testCreateMaterial().then(success => {
   }
   process.exit(success ? 0 : 1)
 })
+

@@ -27,10 +27,10 @@ async function auditPolicies() {
       .from('pg_proc')
       .select('proname')
       .eq('proname', 'current_tenant')
-      .eq('pronamespace', 'public'::regnamespace)
+      .eq('pronamespace', 'public')
 
     if (funcError) {
-      console.log('   ❌ Erro ao verificar funções:', funcError.message)
+      console.log('   ❌ Erro ao verificar funções:', funcError instanceof Error ? funcError.message : String(funcError))
     } else if (functions && functions.length > 0) {
       console.log('   ✅ Função current_tenant() existe')
     } else {
@@ -59,11 +59,11 @@ async function auditPolicies() {
         .from('pg_class')
         .select('relrowsecurity')
         .eq('relname', table)
-        .eq('relnamespace', 'public'::regnamespace)
+        .eq('relnamespace', 'public')
         .single()
 
       if (rlsError) {
-        console.log(`     ❌ Erro ao verificar RLS: ${rlsError.message}`)
+        console.log(`     ❌ Erro ao verificar RLS: ${rlsError instanceof Error ? rlsError.message : String(rlsError)}`)
         continue
       }
 
@@ -81,7 +81,7 @@ async function auditPolicies() {
         .eq('schemaname', 'public')
 
       if (policyError) {
-        console.log(`     ❌ Erro ao verificar policies: ${policyError.message}`)
+        console.log(`     ❌ Erro ao verificar policies: ${policyError instanceof Error ? policyError.message : String(policyError)}`)
         continue
       }
 
@@ -145,7 +145,7 @@ async function auditPolicies() {
         .rpc('current_tenant')
       
       if (tenantError) {
-        console.log('   ❌ Erro ao chamar current_tenant():', tenantError.message)
+        console.log('   ❌ Erro ao chamar current_tenant():', tenantError instanceof Error ? tenantError.message : String(tenantError))
       } else {
         console.log(`   🏢 Tenant atual: ${tenant}`)
       }
@@ -157,7 +157,7 @@ async function auditPolicies() {
         .limit(3)
 
       if (materialsError) {
-        console.log('   ❌ Erro ao acessar mm_material:', materialsError.message)
+        console.log('   ❌ Erro ao acessar mm_material:', materialsError instanceof Error ? materialsError.message : String(materialsError))
       } else {
         console.log(`   📦 Materiais acessíveis: ${materials?.length || 0}`)
         if (materials && materials.length > 0) {
@@ -180,3 +180,4 @@ async function auditPolicies() {
 }
 
 auditPolicies().catch(console.error)
+

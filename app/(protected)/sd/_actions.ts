@@ -168,7 +168,7 @@ export async function createSalesOrderItem(formData: FormData) {
       tenant_id,
       so_id,
       mm_material,                    // CORRETO - não material_id
-      quantity,                       // string (numeric)
+      quantity: Number(quantity),     // ✅ GUARDRAIL COMPLIANCE: Converter string para number
       unit_price_cents,
       line_total_cents,
       row_no,

@@ -44,7 +44,7 @@ export async function GET() {
     }
 
     // Calcular ticket médio
-    const totalValue = allOrders?.reduce((sum, order) => sum + (order.total_cents || 0), 0) || 0;
+    const totalValue = allOrders?.reduce((sum: number, order: any) => sum + (order.total_cents || 0), 0) || 0;
     const avgTicket = totalOrders > 0 ? Math.round(totalValue / totalOrders) : 0;
 
     const kpis = {

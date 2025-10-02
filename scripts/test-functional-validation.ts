@@ -18,14 +18,14 @@ function checkFile(filePath: string, content: string, shouldContain: boolean = t
 
 function main() {
   console.log('🧪 TESTE DE VALIDAÇÃO FUNCIONAL - MM & SD')
-  console.log('=' * 60)
+  console.log('='.repeat(60))
   
   let passed = 0
   let total = 0
   
   // MM-01: Verificar se API rejeita mm_material do payload
   console.log('\n🔧 MM-01: Criar Material (ID auto)')
-  console.log('-' * 40)
+  console.log('-'.repeat(40))
   total++
   if (checkFile('app/api/mm/materials/route.ts', "if ('mm_material' in body) delete body.mm_material", true)) passed++
   
@@ -46,7 +46,7 @@ function main() {
   
   // MM-02: Verificar se vendor pode ser vinculado
   console.log('\n🔧 MM-02: Criar Vendor e vincular no Material')
-  console.log('-' * 40)
+  console.log('-'.repeat(40))
   total++
   if (checkFile('app/api/mm/vendors/route.ts', 'getTenantFromSession', true)) passed++
   
@@ -55,7 +55,7 @@ function main() {
   
   // MM-03: Verificar se PO usa mm_order
   console.log('\n🔧 MM-03: Criar Pedido de Compras (PO)')
-  console.log('-' * 40)
+  console.log('-'.repeat(40))
   total++
   if (checkFile('app/api/mm/purchase-orders/route.ts', 'mm_order', true)) passed++
   
@@ -67,7 +67,7 @@ function main() {
   
   // MM-04: Verificar se PO items usam mm_material
   console.log('\n🔧 MM-04: Adicionar Itens ao PO')
-  console.log('-' * 40)
+  console.log('-'.repeat(40))
   total++
   if (checkFile('app/api/mm/purchase-order-items/route.ts', 'mm_material', true)) passed++
   
@@ -76,7 +76,7 @@ function main() {
   
   // SD-01: Verificar se customer pode ser criado
   console.log('\n🔧 SD-01: Criar Customer')
-  console.log('-' * 40)
+  console.log('-'.repeat(40))
   total++
   if (checkFile('app/api/crm/customers/route.ts', 'getTenantFromSession', true)) passed++
   
@@ -85,7 +85,7 @@ function main() {
   
   // SD-02: Verificar se SO usa so_id
   console.log('\n🔧 SD-02: Criar Sales Order (SO)')
-  console.log('-' * 40)
+  console.log('-'.repeat(40))
   total++
   if (checkFile('app/api/sd/sales-orders/route.ts', 'so_id', true)) passed++
   
@@ -94,7 +94,7 @@ function main() {
   
   // SD-03: Verificar se SO items usam mm_material
   console.log('\n🔧 SD-03: Adicionar Itens ao SO')
-  console.log('-' * 40)
+  console.log('-'.repeat(40))
   total++
   if (checkFile('app/api/sd/sales-order-items/route.ts', 'mm_material', true)) passed++
   
@@ -103,7 +103,7 @@ function main() {
   
   // Verificar guardrails gerais
   console.log('\n🔧 GUARDRAILS GERAIS')
-  console.log('-' * 40)
+  console.log('-'.repeat(40))
   total++
   if (checkFile('app/api/mm/materials/route.ts', 'createServerClient', true)) passed++
   
@@ -121,7 +121,7 @@ function main() {
   
   // Verificar proteção contra undefined
   console.log('\n🔧 PROTEÇÃO CONTRA UNDEFINED')
-  console.log('-' * 40)
+  console.log('-'.repeat(40))
   total++
   if (checkFile('app/(protected)/mm/catalog/page.tsx', '(materials || []).map', true)) passed++
   
@@ -133,7 +133,7 @@ function main() {
   
   // Relatório final
   console.log('\n📊 RELATÓRIO FINAL:')
-  console.log('=' * 60)
+  console.log('='.repeat(60))
   console.log(`✅ Testes aprovados: ${passed}`)
   console.log(`❌ Testes falharam: ${total - passed}`)
   console.log(`📈 Taxa de sucesso: ${Math.round((passed / total) * 100)}%`)

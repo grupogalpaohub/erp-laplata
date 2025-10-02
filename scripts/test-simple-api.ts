@@ -1,11 +1,12 @@
 #!/usr/bin/env tsx
 // Teste simples para diagnosticar APIs
 
-const BASE_URL = 'http://localhost:3000'
+{
+  const BASE_URL = 'http://localhost:3000'
 
 async function testSimpleAPI() {
   console.log('🧪 TESTE SIMPLES DE API')
-  console.log('=' * 40)
+  console.log('='.repeat(50))
   
   try {
     // Testar GET de materials
@@ -21,7 +22,7 @@ async function testSimpleAPI() {
         const getData = JSON.parse(getText)
         console.log('Parsed data:', JSON.stringify(getData, null, 2))
       } catch (e) {
-        console.log('❌ Erro ao fazer parse do JSON:', e.message)
+        console.log('❌ Erro ao fazer parse do JSON:', e instanceof Error ? e.message : String(e))
       }
     }
     
@@ -50,7 +51,7 @@ async function testSimpleAPI() {
         const postData = JSON.parse(postText)
         console.log('Parsed data:', JSON.stringify(postData, null, 2))
       } catch (e) {
-        console.log('❌ Erro ao fazer parse do JSON:', e.message)
+        console.log('❌ Erro ao fazer parse do JSON:', e instanceof Error ? e.message : String(e))
       }
     }
     
@@ -60,3 +61,5 @@ async function testSimpleAPI() {
 }
 
 testSimpleAPI()
+}
+

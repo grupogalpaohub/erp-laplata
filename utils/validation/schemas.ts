@@ -83,9 +83,7 @@ export const WH_InventoryBalanceSchema = z.object({
 export const FI_TransactionSchema = z.object({
   transaction_id: z.string().min(1, 'transaction_id é obrigatório'),
   account_id: z.string().min(1, 'account_id é obrigatório'),
-  type: z.enum(['debito', 'credito'], { 
-    errorMap: () => ({ message: 'type deve ser "debito" ou "credito"' })
-  }),
+  type: z.enum(['debito', 'credito']),
   amount_cents: z.number().int().min(0, 'amount_cents deve ser >= 0'),
   ref_type: z.string().optional().nullable(),
   ref_id: z.string().optional().nullable(),

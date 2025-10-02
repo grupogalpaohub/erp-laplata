@@ -1,11 +1,12 @@
 #!/usr/bin/env tsx
 // MM-01: Criar Material (ID auto) - Teste HTTP
 
-const BASE_URL = 'http://localhost:3000'
+{
+  const BASE_URL = 'http://localhost:3000'
 
 async function testCreateMaterialHTTP() {
   console.log('🧪 MM-01: Criar Material (ID auto) - Teste HTTP')
-  console.log('=' * 50)
+  console.log('='.repeat(50))
   
   try {
     // Payload de teste (sem mm_material - deve ser gerado automaticamente)
@@ -38,17 +39,17 @@ async function testCreateMaterialHTTP() {
     
     if (!response.ok) {
       console.log('❌ Erro na API:', result.error || 'Erro desconhecido')
-      return false
+      return { success: false, error: 'Erro na validação' }
     }
     
     if (!result.ok) {
       console.log('❌ API retornou erro:', result.error || 'Erro desconhecido')
-      return false
+      return { success: false, error: 'Erro na validação' }
     }
     
     if (!result.data || !result.data.mm_material) {
       console.log('❌ ERRO: mm_material não foi gerado automaticamente!')
-      return false
+      return { success: false, error: 'Erro na validação' }
     }
     
     console.log('✅ Material criado com sucesso!')
@@ -64,7 +65,7 @@ async function testCreateMaterialHTTP() {
     
     if (!listResponse.ok || !listResult.ok) {
       console.log('❌ Erro na listagem:', listResult.error || 'Erro desconhecido')
-      return false
+      return { success: false, error: 'Erro na validação' }
     }
     
     const materials = listResult.items || []
@@ -72,7 +73,7 @@ async function testCreateMaterialHTTP() {
     
     if (!createdMaterial) {
       console.log('❌ Material não encontrado na listagem!')
-      return false
+      return { success: false, error: 'Erro na validação' }
     }
     
     console.log('✅ Material encontrado na listagem!')
@@ -81,7 +82,7 @@ async function testCreateMaterialHTTP() {
     // Verificar se a primeira coluna exibe mm_material
     if (createdMaterial.mm_material !== result.data.mm_material) {
       console.log('❌ ERRO: Primeira coluna não exibe mm_material corretamente!')
-      return false
+      return { success: false, error: 'Erro na validação' }
     }
     
     console.log('✅ Primeira coluna exibe mm_material corretamente!')
@@ -107,7 +108,7 @@ LIMIT 1;
     
   } catch (error) {
     console.log('❌ ERRO NO TESTE:', error)
-    return { success: false, error: error.message }
+    return { success: false, error: error instanceof Error ? error instanceof Error ? error.message : String(error) : String(error) }
   }
 }
 
@@ -120,3 +121,6 @@ testCreateMaterialHTTP().then(result => {
   }
   process.exit(result.success ? 0 : 1)
 })
+}
+
+

@@ -147,7 +147,7 @@ export default function NewSalesOrderForm({ customers, materials, selectedCustom
       const result = await createSalesOrder(formData)
 
       if (result.success) {
-        setSuccessMessage(`Pedido criado com sucesso! Número: ${result.so_id || 'N/A'}`)
+        setSuccessMessage(`Pedido criado com sucesso! Número: ${result.data?.so_id || 'N/A'}`)
         setError('')
         // Limpar formulário
         setSelectedCustomer('')

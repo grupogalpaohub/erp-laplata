@@ -2,7 +2,7 @@
 
 import { useEffect, useRef } from 'react'
 import { usePathname, useSearchParams } from 'next/navigation'
-import { supabaseBrowser } from '@/utils/supabase/browser'
+import { supabaseBrowser } from '@/lib/supabase/client'
 
 async function syncOnce() {
   const sb = supabaseBrowser()

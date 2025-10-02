@@ -1,7 +1,15 @@
-import { supabaseServer } from '@/utils/supabase/server'
+import { supabaseServer } from '@/lib/supabase/server'
 import { requireSession } from '@/lib/auth/requireSession'
 import Link from 'next/link'
 import { DollarSign, AlertTriangle, CheckCircle, Clock, Eye } from 'lucide-react'
+
+// ✅ GUARDRAIL COMPLIANCE: Helper de formatação monetária
+function formatBRL(cents: number): string {
+  return new Intl.NumberFormat('pt-BR', {
+    style: 'currency',
+    currency: 'BRL'
+  }).format(cents / 100)
+}
 
 export const dynamic = 'force-dynamic'
 export const revalidate = 0

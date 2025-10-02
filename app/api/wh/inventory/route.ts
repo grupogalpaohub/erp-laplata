@@ -1,77 +1,96 @@
-import { NextResponse } from 'next/server';
-import { supabaseServer } from '@/lib/supabase/server';
+import { NextResponse } from 'next/server'
+import { supabaseServer } from '@/lib/supabase/server'
 
-export async function GET() {
-  const supabase = supabaseServer();
-
+export async function GET(req: Request) {
   try {
-    // Buscar inventário com dados do material
-    const { data: inventory, error: inventoryError } = await supabase
-      .from('wh_inventory_balance')
+    // ✅ GUARDRAIL COMPLIANCE: API usando supabaseServer() helper
+    const supabase = supabaseServer()
+    
+    // Tenant fixo conforme guardrails
+    const TENANT_ID = "LaplataLunaria"
+    
+    // Buscar parâmetros de query
+    const { searchParams } = new URL(req.url)
+    const page = parseInt(searchParams.get('page') || '1')
+    const pageSize = parseInt(searchParams.get('pageSize') || '50')
+    const warehouse_id = searchParams.get('warehouse_id')
+    const mm_material = searchParams.get('mm_material')
+    
+    // Construir query base
+    let query = supabase
+      .from('wh_inventory')
       .select(`
         mm_material,
-        plant_id,
+        warehouse_id,
         on_hand_qty,
         reserved_qty,
-        mm_material_data:mm_material(
-          mm_comercial,
-          mm_desc
-        )
-      `)
-      .order('mm_material');
-
-    if (inventoryError) {
+        ultimo_unit_cost_cents_por_material,
+        last_updated
+      `, { count: 'exact' })
+      .eq('tenant_id', TENANT_ID)
+      .gt('on_hand_qty', 0) // Apenas itens com estoque
+    
+    // Aplicar filtros
+    if (warehouse_id) {
+      query = query.eq('warehouse_id', warehouse_id)
+    }
+    
+    if (mm_material) {
+      query = query.ilike('mm_material', `%${mm_material}%`)
+    }
+    
+    // Aplicar paginação
+    const from = (page - 1) * pageSize
+    const to = from + pageSize - 1
+    
+    query = query.range(from, to).order('mm_material', { ascending: true })
+    
+    const { data, error, count } = await query
+    
+    if (error) {
+      console.error('Erro ao buscar inventário:', error)
       return NextResponse.json({ 
         ok: false, 
-        error: { code: inventoryError.code, message: inventoryError.message } 
-      }, { status: 500 });
+        error: { 
+          code: (error as any).code, 
+          message: error.message 
+        } 
+      }, { status: 500 })
     }
-
-    // Buscar último preço de compra de cada material
-    const { data: lastPrices, error: pricesError } = await supabase
-      .from('mm_purchase_order_item')
-      .select('mm_material, unit_cost_cents')
-      .order('po_item_id', { ascending: false });
-
-    if (pricesError) {
-      return NextResponse.json({ 
-        ok: false, 
-        error: { code: pricesError.code, message: pricesError.message } 
-      }, { status: 500 });
-    }
-
-    // Criar mapa de preços por material
-    const priceMap = new Map();
-    lastPrices?.forEach(item => {
-      if (!priceMap.has(item.mm_material)) {
-        priceMap.set(item.mm_material, item.unit_cost_cents);
-      }
-    });
-
-    // Processar dados do inventário
-    const processedInventory = inventory?.map(item => {
-      const availableQty = (item.on_hand_qty || 0) - (item.reserved_qty || 0);
-      const unitCostCents = priceMap.get(item.mm_material) || 0;
-      const totalCents = availableQty * unitCostCents;
-
+    
+    // Processar dados para incluir cálculos
+    const processedData = data?.map((item: any) => {
+      const available = (item.on_hand_qty || 0) - (item.reserved_qty || 0)
+      const unitCost = item.ultimo_unit_cost_cents_por_material || 0
+      const totalCents = available * unitCost
+      
       return {
-        mm_material: item.mm_material,
-        plant_id: item.plant_id,
-        on_hand_qty: item.on_hand_qty || 0,
-        reserved_qty: item.reserved_qty || 0,
-        available_qty: availableQty,
-        unit_cost_cents: unitCostCents,
-        total_cents: totalCents,
-        material_info: item.mm_material_data
-      };
-    }) || [];
-
-    return NextResponse.json({ ok: true, data: processedInventory }, { status: 200 });
-
-  } catch (error: any) {
+        ...item,
+        available_qty: available,
+        total_cents: Math.round(totalCents),
+        total_brl: Math.round(totalCents / 100)
+      }
+    }) || []
+    
+    return NextResponse.json({ 
+      ok: true, 
+      data: processedData,
+      pagination: {
+        page,
+        pageSize,
+        total: count || 0,
+        totalPages: Math.ceil((count || 0) / pageSize)
+      }
+    })
+    
+  } catch (error) {
+    console.error('Erro inesperado na API wh/inventory:', error)
     return NextResponse.json({ 
       ok: false, 
-      error: { code: 'INTERNAL_ERROR', message: error.message } 
-    }, { status: 500 });
+      error: { 
+        code: 'INTERNAL_ERROR', 
+        message: 'Erro interno do servidor' 
+      } 
+    }, { status: 500 })
   }
 }

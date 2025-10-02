@@ -209,7 +209,7 @@ async function getMaterial(material_id: string): Promise<Material | null> {
               <label htmlFor="mm_vendor_id" className="label-fiori">Fornecedor</label>
               <select name="mm_vendor_id" className="input-fiori">
                 <option value="">Selecione um fornecedor...</option>
-                {vendors.map((vendor) => (
+                {vendors.map((vendor: any) => (
                   <option 
                     key={vendor.vendor_id} 
                     value={vendor.vendor_id}

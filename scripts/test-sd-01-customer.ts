@@ -1,11 +1,12 @@
 #!/usr/bin/env tsx
 // SD-01: Criar Customer
 
-const BASE_URL = 'http://localhost:3000'
+{
+  const BASE_URL = 'http://localhost:3000'
 
 async function testCreateCustomer() {
   console.log('🧪 SD-01: Criar Customer')
-  console.log('=' * 50)
+  console.log('='.repeat(50))
   
   try {
     // 1. Criar customer via API
@@ -85,7 +86,7 @@ WHERE tenant_id='LaplataLunaria' AND customer_id='CUSTOMER_E2E_1';
     
   } catch (error) {
     console.log('❌ ERRO NO TESTE:', error)
-    return { success: false, error: error.message }
+    return { success: false, error: error instanceof Error ? error.message : String(error) }
   }
 }
 
@@ -98,3 +99,7 @@ testCreateCustomer().then(result => {
   }
   process.exit(result.success ? 0 : 1)
 })
+}
+
+
+

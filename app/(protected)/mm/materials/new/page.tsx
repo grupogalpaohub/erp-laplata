@@ -111,7 +111,7 @@ export default async function NewMaterialPage() {
                   className="input-fiori"
                 >
                   <option value="">Selecione um fornecedor</option>
-                  {vendors.map((vendor) => (
+                  {vendors.map((vendor: any) => (
                     <option key={vendor.vendor_id} value={vendor.vendor_id}>
                       {vendor.vendor_name}
                     </option>

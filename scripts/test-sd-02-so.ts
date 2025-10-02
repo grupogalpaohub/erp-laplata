@@ -1,11 +1,12 @@
 #!/usr/bin/env tsx
 // SD-02: Criar Sales Order (SO)
 
-const BASE_URL = 'http://localhost:3000'
+{
+  const BASE_URL = 'http://localhost:3000'
 
 async function testCreateSO() {
   console.log('🧪 SD-02: Criar Sales Order (SO)')
-  console.log('=' * 50)
+  console.log('='.repeat(50))
   
   try {
     // 1. Criar SO via API
@@ -91,7 +92,7 @@ ORDER BY created_at DESC LIMIT 1;
     
   } catch (error) {
     console.log('❌ ERRO NO TESTE:', error)
-    return { success: false, error: error.message }
+    return { success: false, error: error instanceof Error ? error.message : String(error) }
   }
 }
 
@@ -104,3 +105,4 @@ testCreateSO().then(result => {
   }
   process.exit(result.success ? 0 : 1)
 })
+}

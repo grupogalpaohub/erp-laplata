@@ -1,88 +1,148 @@
-import { NextResponse } from "next/server";
-import { z } from "zod";
-import { supabaseServer } from '@/lib/supabase/server';
+import { NextResponse } from 'next/server'
+import { supabaseServer } from '@/lib/supabase/server'
 
-const ItemSchema = z.object({
-  mm_order: z.string().min(1),
-  mm_material: z.string().min(1),
-  plant_id: z.string().min(1),
-  mm_qtt: z.union([z.number(), z.string()]),
-  unit_cost_cents: z.union([z.number(), z.string()]).optional(),
-  unit_price_brl: z.union([z.number(), z.string()]).optional(),
-  notes: z.string().optional(),
-});
-
-function toNumber(input: unknown, def = 0) {
-  if (typeof input === "string") {
-    const n = Number(input.replace(/[^\d,.-]/g, "").replace(/\./g, "").replace(",", "."));
-    return Number.isFinite(n) ? n : def;
+export async function GET(req: Request) {
+  try {
+    // ✅ GUARDRAIL COMPLIANCE: API usando supabaseServer() helper
+    const supabase = supabaseServer()
+    
+    // Tenant fixo conforme guardrails
+    const TENANT_ID = "LaplataLunaria"
+    
+    // Buscar parâmetros de query
+    const { searchParams } = new URL(req.url)
+    const mm_order = searchParams.get('mm_order')
+    const page = parseInt(searchParams.get('page') || '1')
+    const pageSize = parseInt(searchParams.get('pageSize') || '50')
+    
+    // Construir query base
+    let query = supabase
+      .from('mm_purchase_order_item')
+      .select('*', { count: 'exact' })
+      .eq('tenant_id', TENANT_ID)
+    
+    // Filtrar por order se fornecido
+    if (mm_order) {
+      query = query.eq('mm_order', mm_order)
+    }
+    
+    // Aplicar paginação
+    const from = (page - 1) * pageSize
+    const to = from + pageSize - 1
+    
+    query = query.range(from, to).order('po_item_id', { ascending: true })
+    
+    const { data, error, count } = await query
+    
+    if (error) {
+      console.error('Erro ao buscar purchase order items:', error)
+      return NextResponse.json({ 
+        ok: false, 
+        error: { 
+          code: (error as any).code, 
+          message: error.message 
+        } 
+      }, { status: 500 })
+    }
+    
+    return NextResponse.json({ 
+      ok: true, 
+      data: data || [], 
+      pagination: {
+        page,
+        pageSize,
+        total: count || 0,
+        totalPages: Math.ceil((count || 0) / pageSize)
+      }
+    })
+    
+  } catch (error) {
+    console.error('Erro inesperado na API purchase order items:', error)
+    return NextResponse.json({ 
+      ok: false, 
+      error: { 
+        code: 'INTERNAL_ERROR', 
+        message: 'Erro interno do servidor' 
+      } 
+    }, { status: 500 })
   }
-  const n = Number(input);
-  return Number.isFinite(n) ? n : def;
-}
-function brlToCents(v: unknown) {
-  const n = toNumber(v, 0);
-  return Math.round(n * 100);
 }
 
 export async function POST(req: Request) {
   try {
-    const TENANT_ID = "LaplataLunaria";
-    const body = await req.json();
-    const parsed = ItemSchema.safeParse(body);
-    if (!parsed.success) {
-      return NextResponse.json({ zod: parsed.error.issues }, { status: 400 });
+    // ✅ GUARDRAIL COMPLIANCE: API usando supabaseServer() helper
+    const supabase = supabaseServer()
+    
+    // Tenant fixo conforme guardrails
+    const TENANT_ID = "LaplataLunaria"
+    
+    const body = await req.json()
+    
+    // Validar campos obrigatórios conforme db_contract.json
+    if (!body.mm_order || !body.plant_id || !body.mm_material || !body.mm_qtt || !body.unit_cost_cents) {
+      return NextResponse.json({ 
+        ok: false, 
+        error: { 
+          code: 'MISSING_REQUIRED_FIELDS', 
+          message: 'mm_order, plant_id, mm_material, mm_qtt e unit_cost_cents são obrigatórios' 
+        } 
+      }, { status: 400 })
     }
-    const p = parsed.data;
-
-    const supabase = supabaseServer();
-
-    // FK: header deve existir
-    const { data: po, error: poErr } = await supabase
-      .from("mm_purchase_order")
-      .select("mm_order")
-      .eq("tenant_id", TENANT_ID)
-      .eq("mm_order", p.mm_order)
-      .single();
-
-    if (poErr || !po) {
-      return NextResponse.json({ error: "Header mm_purchase_order não encontrado." }, { status: 400 });
-    }
-
-    const qty = toNumber(p.mm_qtt, 0);
-    const cents = p.unit_cost_cents !== undefined
-      ? Math.trunc(toNumber(p.unit_cost_cents, 0))
-      : brlToCents(p.unit_price_brl);
-
-    const payload = {
+    
+    // Converter tipos numéricos se necessário
+    const mm_qtt = typeof body.mm_qtt === 'string' ? parseFloat(body.mm_qtt) : body.mm_qtt
+    const unit_cost_cents = typeof body.unit_cost_cents === 'string' ? parseInt(body.unit_cost_cents) : body.unit_cost_cents
+    const quantity = typeof body.quantity === 'string' ? parseFloat(body.quantity) : (body.quantity || mm_qtt)
+    
+    // Calcular line_total_cents
+    const line_total_cents = Math.round(mm_qtt * unit_cost_cents)
+    
+    // Preparar dados para inserção - ✅ GUARDRAIL COMPLIANCE: Campos conforme db_contract.json
+    const itemData = {
       tenant_id: TENANT_ID,
-      mm_order: p.mm_order,
-      mm_material: p.mm_material,
-      plant_id: p.plant_id,
-      mm_qtt: qty,
-      unit_cost_cents: cents,
-      // line_total_cents será calculado no BEFORE trigger
-      notes: p.notes ?? "",
-    };
-
-    const { error } = await supabase
-      .from("mm_purchase_order_item")
-      .insert([payload]);
-
-    if (error) {
-      return NextResponse.json({ supabase: error }, { status: 500 });
+      mm_order: body.mm_order,
+      plant_id: body.plant_id, // Obrigatório - sempre enviar (WH-001 ou selecionado)
+      mm_material: body.mm_material,
+      mm_qtt: mm_qtt,
+      unit_cost_cents: unit_cost_cents,
+      line_total_cents: line_total_cents,
+      notes: body.notes || null,
+      currency: body.currency || 'BRL',
+      quantity: quantity,
+      freeze_item_price: body.freeze_item_price || false,
+      // po_item_id será gerado automaticamente pelo serial
     }
-
-    // devolver header com total para já atualizar a UI
-    const { data: header } = await supabase
-      .from("mm_purchase_order")
-      .select("total_cents")
-      .eq("tenant_id", TENANT_ID)
-      .eq("mm_order", p.mm_order)
-      .single();
-
-    return NextResponse.json({ ok: true, total_cents: header?.total_cents ?? null }, { status: 201 });
-  } catch (e: any) {
-    return NextResponse.json({ exception: String(e?.message ?? e) }, { status: 500 });
+    
+    const { data, error } = await supabase
+      .from('mm_purchase_order_item')
+      .insert(itemData)
+      .select()
+      .single()
+    
+    if (error) {
+      console.error('Erro ao criar purchase order item:', error)
+      return NextResponse.json({ 
+        ok: false, 
+        error: { 
+          code: (error as any).code, 
+          message: error.message 
+        } 
+      }, { status: 500 })
+    }
+    
+    return NextResponse.json({ 
+      ok: true, 
+      data 
+    }, { status: 201 })
+    
+  } catch (error) {
+    console.error('Erro inesperado na API purchase order items POST:', error)
+    return NextResponse.json({ 
+      ok: false, 
+      error: { 
+        code: 'INTERNAL_ERROR', 
+        message: 'Erro interno do servidor' 
+      } 
+    }, { status: 500 })
   }
 }

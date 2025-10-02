@@ -1,4 +1,4 @@
-import { getSupabaseServerClient } from "@/utils/supabase/server";
+import { supabaseServer } from "@/lib/supabase/server";
 
 export type SalesOrderRow = {
   so_id?: string | null;
@@ -11,7 +11,7 @@ export type SalesOrderRow = {
 };
 
 export async function fetchSalesOrders(limit = 100): Promise<SalesOrderRow[]> {
-  const supabase = getSupabaseServerClient();
+  const supabase = supabaseServer();
   const { data, error } = await supabase
     .from("sd_sales_order")
     .select("so_id, status, customer_id, total_cents, order_total, total_value, created_at")

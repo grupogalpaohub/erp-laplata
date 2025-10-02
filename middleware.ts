@@ -8,9 +8,15 @@ export async function middleware(req: any) {
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY! ?? process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_DEFAULT_KEY!,
     {
       cookies: {
-        get: (n) => req.cookies.get(n)?.value,
-        set: (n, v, o) => res.cookies.set(n, v, o),
-        remove: (n, o) => res.cookies.set(n, "", o),
+        get(name: string) {
+          return req.cookies.get(name)?.value;
+        },
+        set(name: string, value: string, options: any) {
+          res.cookies.set(name, value, options);
+        },
+        remove(name: string, options: any) {
+          res.cookies.set(name, "", { ...options, maxAge: 0 });
+        },
       },
     }
   );

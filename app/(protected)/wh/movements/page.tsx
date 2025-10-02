@@ -7,18 +7,15 @@ export const dynamic = 'force-dynamic'
 export const revalidate = 0
 
 interface Movement {
-  movement_id: string
+  ledger_id: string
   tenant_id: string
   plant_id: string
   mm_material: string
-  qty_delta: number
-  unit_cost_cents: number
-  total_cost_cents: number
-  reason: string
-  ref_table: string
+  movement: string
+  qty: number
+  ref_type: string
   ref_id: string
   created_at: string
-  created_by: string
   mm_material_data?: {
     mm_comercial: string
     mm_desc: string
@@ -29,11 +26,19 @@ export default async function MovementsPage({ searchParams }: { searchParams: { 
   const supabase = supabaseServer()
   await requireSession()
 
-  // Buscar movimentações
+  // ✅ CORREÇÃO: Usar nomes reais das colunas do schema
   let query = supabase
     .from('wh_inventory_ledger')
     .select(`
-      *,
+      ledger_id,
+      tenant_id,
+      plant_id,
+      mm_material,
+      movement,
+      qty,
+      ref_type,
+      ref_id,
+      created_at,
       mm_material_data:mm_material(
         mm_comercial,
         mm_desc
@@ -41,7 +46,7 @@ export default async function MovementsPage({ searchParams }: { searchParams: { 
     `)
     
     .order('created_at', { ascending: false })
-    .limit(100)
+    .limit(200)
 
   if (searchParams.material) {
     query = query.eq('mm_material', searchParams.material)
@@ -55,42 +60,43 @@ export default async function MovementsPage({ searchParams }: { searchParams: { 
 
   const movements: Movement[] = movementsData || []
 
-  // Calcular estatísticas
+  // ✅ CORREÇÃO: Calcular estatísticas com nomes reais das colunas
   const totalMovements = movements.length
-  const totalInValue = movements
-    .filter(m => m.qty_delta > 0)
-    .reduce((total, m) => total + m.total_cost_cents, 0)
-  const totalOutValue = movements
-    .filter(m => m.qty_delta < 0)
-    .reduce((total, m) => total + Math.abs(m.total_cost_cents), 0)
+  const totalInMovements = movements.filter(m => m.movement === 'IN').length
+  const totalOutMovements = movements.filter(m => m.movement === 'OUT').length
 
-  const getMovementIcon = (reason: string) => {
-    switch (reason) {
-      case 'PO_RECEIPT':
+  // ✅ CORREÇÃO: Usar campo 'movement' em vez de 'reason'
+  const getMovementIcon = (movement: string) => {
+    switch (movement) {
+      case 'IN':
         return <ArrowDown className="w-4 h-4 text-fiori-success" />
-      case 'SO_SHIPMENT':
+      case 'OUT':
         return <ArrowUp className="w-4 h-4 text-fiori-danger" />
-      case 'ADJUSTMENT':
+      case 'ADJUST':
         return <ArrowUpDown className="w-4 h-4 text-fiori-warning" />
+      case 'RESERVE':
+        return <Package className="w-4 h-4 text-fiori-info" />
+      case 'RELEASE':
+        return <Package className="w-4 h-4 text-fiori-info" />
       default:
         return <Package className="w-4 h-4 text-fiori-info" />
     }
   }
 
-  const getMovementLabel = (reason: string) => {
-    switch (reason) {
-      case 'PO_RECEIPT':
-        return 'Recebimento de Compra'
-      case 'SO_SHIPMENT':
-        return 'Expedição de Venda'
-      case 'ADJUSTMENT':
-        return 'Ajuste de Estoque'
-      case 'TRANSFER_IN':
-        return 'Transferência Entrada'
-      case 'TRANSFER_OUT':
-        return 'Transferência Saída'
+  const getMovementLabel = (movement: string) => {
+    switch (movement) {
+      case 'IN':
+        return 'Entrada'
+      case 'OUT':
+        return 'Saída'
+      case 'ADJUST':
+        return 'Ajuste'
+      case 'RESERVE':
+        return 'Reserva'
+      case 'RELEASE':
+        return 'Liberação'
       default:
-        return reason
+        return movement
     }
   }
 
@@ -142,9 +148,9 @@ export default async function MovementsPage({ searchParams }: { searchParams: { 
           <div className="tile-fiori">
             <div className="flex items-center justify-between">
               <div>
-                <p className="tile-fiori-subtitle">Valor Entradas</p>
+                <p className="tile-fiori-subtitle">Entradas</p>
                 <p className="tile-fiori-metric text-fiori-success">
-                  R$ {(totalInValue / 100).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                  {totalInMovements}
                 </p>
               </div>
               <ArrowDown className="tile-fiori-icon text-fiori-success" />
@@ -154,9 +160,9 @@ export default async function MovementsPage({ searchParams }: { searchParams: { 
           <div className="tile-fiori">
             <div className="flex items-center justify-between">
               <div>
-                <p className="tile-fiori-subtitle">Valor Saídas</p>
+                <p className="tile-fiori-subtitle">Saídas</p>
                 <p className="tile-fiori-metric text-fiori-danger">
-                  R$ {(totalOutValue / 100).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                  {totalOutMovements}
                 </p>
               </div>
               <ArrowUp className="tile-fiori-icon text-fiori-danger" />
@@ -178,15 +184,13 @@ export default async function MovementsPage({ searchParams }: { searchParams: { 
                     <th>Material</th>
                     <th>Tipo</th>
                     <th className="text-right">Quantidade</th>
-                    <th className="text-right">Custo Unit.</th>
-                    <th className="text-right">Valor Total</th>
                     <th>Referência</th>
                     <th>Usuário</th>
                   </tr>
                 </thead>
                 <tbody>
                   {movements.map((movement) => (
-                    <tr key={movement.movement_id}>
+                    <tr key={movement.ledger_id}>
                       <td>
                         <div className="flex items-center gap-2">
                           <Calendar className="w-4 h-4 text-fiori-muted" />
@@ -212,29 +216,23 @@ export default async function MovementsPage({ searchParams }: { searchParams: { 
                       </td>
                       <td>
                         <div className="flex items-center gap-2">
-                          {getMovementIcon(movement.reason)}
+                          {getMovementIcon(movement.movement)}
                           <span className="text-sm">
-                            {getMovementLabel(movement.reason)}
+                            {getMovementLabel(movement.movement)}
                           </span>
                         </div>
                       </td>
                       <td className="text-right">
                         <span className={`font-medium ${
-                          movement.qty_delta > 0 ? 'text-fiori-success' : 'text-fiori-danger'
+                          movement.movement === 'IN' ? 'text-fiori-success' : 'text-fiori-danger'
                         }`}>
-                          {movement.qty_delta > 0 ? '+' : ''}{movement.qty_delta.toLocaleString()}
+                          {movement.movement === 'IN' ? '+' : ''}{movement.qty.toLocaleString()}
                         </span>
-                      </td>
-                      <td className="text-right">
-                        R$ {(movement.unit_cost_cents / 100).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
-                      </td>
-                      <td className="text-right font-medium">
-                        R$ {(movement.total_cost_cents / 100).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
                       </td>
                       <td>
                         <div className="text-sm">
                           <div className="font-mono text-xs text-fiori-muted">
-                            {movement.ref_table}
+                            {movement.ref_type}
                           </div>
                           <div className="text-fiori-primary">
                             {movement.ref_id}
@@ -243,7 +241,7 @@ export default async function MovementsPage({ searchParams }: { searchParams: { 
                       </td>
                       <td>
                         <span className="text-sm text-fiori-muted">
-                          {movement.created_by || 'Sistema'}
+                          Sistema
                         </span>
                       </td>
                     </tr>

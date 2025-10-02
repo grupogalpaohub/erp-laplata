@@ -37,13 +37,14 @@ export default async function WHPage() {
     const supabase = supabaseServer()
 
     // Buscar dados para listagens usando RLS (não precisa especificar tenant_id)
+    // ✅ CORREÇÃO: Usar nomes reais das colunas do schema
     const [inventoryResult, movementsResult, transfersResult] = await Promise.allSettled([
       supabase
         .from('wh_inventory_balance')
         .select('mm_material, on_hand_qty, reserved_qty, status'),
       supabase
         .from('wh_inventory_ledger')
-        .select('movement_id, type, quantity, created_at')
+        .select('ledger_id, plant_id, mm_material, movement, qty, ref_type, ref_id, created_at')
         .gte('created_at', new Date().toISOString().split('T')[0]),
       supabase
         .from('wh_transfer')
@@ -241,10 +242,10 @@ export default async function WHPage() {
             {movements.length > 0 ? (
               <div className="space-y-3">
                 {movements.slice(0, 5).map((movement) => (
-                  <div key={movement.movement_id} className="flex items-center justify-between p-3 bg-fiori-secondary rounded">
+                  <div key={movement.ledger_id} className="flex items-center justify-between p-3 bg-fiori-secondary rounded">
                     <div>
-                      <p className="text-fiori-primary font-medium capitalize">{movement.type}</p>
-                      <p className="text-fiori-secondary text-sm">Qtd: {movement.quantity}</p>
+                      <p className="text-fiori-primary font-medium capitalize">{movement.movement}</p>
+                      <p className="text-fiori-secondary text-sm">Qtd: {movement.qty}</p>
                     </div>
                     <span className="text-fiori-primary text-sm">
                       {new Date(movement.created_at).toLocaleTimeString()}

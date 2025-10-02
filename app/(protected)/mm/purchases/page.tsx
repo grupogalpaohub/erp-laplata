@@ -1,4 +1,4 @@
-import { supabaseServer } from '@/utils/supabase/server'
+import { supabaseServer } from '@/lib/supabase/server'
 import Link from 'next/link'
 import { Plus, Eye, Calendar, DollarSign, User } from 'lucide-react'
 

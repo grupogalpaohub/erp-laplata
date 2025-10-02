@@ -1,4 +1,4 @@
-import { supabaseServer } from '@/utils/supabase/server'
+import { supabaseServer } from '@/lib/supabase/server'
 // app/api/mm/vendors/[vendor_id]/route.ts
 import { NextResponse } from "next/server";
 

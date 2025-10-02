@@ -1,7 +1,7 @@
 import Link from 'next/link'
 import { ArrowLeft, Edit, Eye, Phone, Mail, MapPin, Building, Calendar } from 'lucide-react'
 import { requireSession } from '@/lib/auth/requireSession'
-import { supabaseServer } from '@/utils/supabase/server'
+import { supabaseServer } from '@/lib/supabase/server'
 
 export const dynamic = 'force-dynamic'
 export const revalidate = 0

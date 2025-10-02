@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server'
-import { supabaseServer } from '@/utils/supabase/server'
+import { supabaseServer } from '@/lib/supabase/server'
 
 const TENANT = 'LaplataLunaria'
 

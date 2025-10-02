@@ -1,4 +1,4 @@
-import { supabaseServer } from '@/utils/supabase/server'
+import { supabaseServer } from '@/lib/supabase/server'
 
 export async function ensureServerSession(req: Request) {
   const sb = supabaseServer()

@@ -1,5 +1,5 @@
 'use server'
-import { supabaseServer } from '@/utils/supabase/server'
+import { supabaseServer } from '@/lib/supabase/server'
 
 function toIntOrNull(v: FormDataEntryValue | null) {
   if (v === null) return null

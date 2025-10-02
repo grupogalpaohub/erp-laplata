@@ -1,7 +1,7 @@
 export const dynamic = 'force-dynamic'
 export const revalidate = 0
 export const runtime = 'nodejs'
-import { supabaseServer } from '@/utils/supabase/server'
+import { supabaseServer } from '@/lib/supabase/server'
 import { formatBRL } from '@/lib/money'
 
 export default async function MaterialLogsPage() {

@@ -1,6 +1,6 @@
 import Link from 'next/link'
 import { requireSession } from '@/lib/auth/requireSession'
-import { supabaseServer } from '@/utils/supabase/server'
+import { supabaseServer } from '@/lib/supabase/server'
 import { formatBRL } from '@/lib/money'
 
 export const runtime = 'nodejs';

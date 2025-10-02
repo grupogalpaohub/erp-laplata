@@ -12,10 +12,10 @@ async function fixImports() {
     try {
       const content = readFileSync(file, 'utf-8')
       
-      if (content.includes('@/utils/supabase/server')) {
+      if (content.includes('@/lib/supabase/server')) {
         const newContent = content.replace(
           /@\/lib\/supabase\/server/g, 
-          '@/utils/supabase/server'
+          '@/lib/supabase/server'
         )
         
         if (newContent !== content) {

@@ -4,7 +4,7 @@
 
 "use server"
 
-import { supabaseServer } from '@/utils/supabase/server'
+import { supabaseServer } from '@/lib/supabase/server'
 import { requireSession } from "@/lib/auth/requireSession"
 import { revalidatePath } from "next/cache"
 import { MM_PurchaseOrder, MM_PurchaseOrderItem } from '@/src/types/db'

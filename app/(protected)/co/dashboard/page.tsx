@@ -1,5 +1,5 @@
 import Link from 'next/link'
-import { supabaseServer } from '@/utils/supabase/server'
+import { supabaseServer } from '@/lib/supabase/server'
 import { requireSession } from '@/lib/auth/requireSession'
 import { ArrowLeft, TrendingUp, TrendingDown, DollarSign, BarChart3 } from 'lucide-react'
 
@@ -39,12 +39,12 @@ export default async function CODashboardPage() {
 
     if (revenueResult.status === 'fulfilled') {
       const revenue = revenueResult.value.data || []
-      totalRevenue = revenue.reduce((sum, order) => sum + (order.total_final_cents || 0), 0)
+      totalRevenue = revenue.reduce((sum: number, order: any) => sum + (order.total_final_cents || 0), 0)
     }
 
     if (costsResult.status === 'fulfilled') {
       const costs = costsResult.value.data || []
-      totalCosts = costs.reduce((sum, cost) => sum + (cost.total_costs_cents || 0), 0)
+      totalCosts = costs.reduce((sum: number, cost: any) => sum + (cost.total_costs_cents || 0), 0)
     }
 
     if (recentCostsResult.status === 'fulfilled') {

@@ -138,7 +138,7 @@ export default function NewSalesOrderForm({ customers, materials, selectedCustom
         formData.append('items[]', JSON.stringify({
           mm_material: item.mm_material,
           quantity: item.quantity,
-          unit_price: (item.unit_price_cents / 100).toString()
+          unit_price_cents: item.unit_price_cents
         }))
       })
 

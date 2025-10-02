@@ -131,10 +131,10 @@ export async function createSalesOrder(formData: FormData) {
         material_id: item.mm_material, // Campo obrigatório - usar mm_material como material_id
         mm_material: item.mm_material,
         quantity: Number(item.quantity),
-        unit_price_cents: toCents(item.unit_price),
-        line_total_cents: Math.round(toCents(item.unit_price) * Number(item.quantity)),
+        unit_price_cents: item.unit_price_cents,
+        line_total_cents: Math.round(item.unit_price_cents * Number(item.quantity)),
         row_no: index + 1,
-        unit_price_cents_at_order: toCents(item.unit_price),
+        unit_price_cents_at_order: item.unit_price_cents,
       }))
       
       console.log('🔍 [DEBUG] Order Items preparados:', orderItems)
@@ -485,10 +485,10 @@ export async function updateSalesOrder(formData: FormData) {
         material_id: item.mm_material, // Campo obrigatório - usar mm_material como material_id
         mm_material: item.mm_material,
         quantity: Number(item.quantity),
-        unit_price_cents: toCents(item.unit_price),
-        line_total_cents: Math.round(toCents(item.unit_price) * Number(item.quantity)),
+        unit_price_cents: item.unit_price_cents,
+        line_total_cents: Math.round(item.unit_price_cents * Number(item.quantity)),
         row_no: index + 1,
-        unit_price_cents_at_order: toCents(item.unit_price),
+        unit_price_cents_at_order: item.unit_price_cents,
       }))
       
       console.log('🔍 [DEBUG] Order Items preparados:', orderItems)

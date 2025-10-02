@@ -8,10 +8,9 @@ export const revalidate = 0
 
 interface Movement {
   ledger_id: string
-  tenant_id: string
   plant_id: string
   mm_material: string
-  movement: string
+  movement: 'IN' | 'OUT' | 'RESERVE' | 'RELEASE' | 'ADJUST'
   qty: number
   ref_type: string
   ref_id: string
@@ -26,7 +25,7 @@ export default async function MovementsPage({ searchParams }: { searchParams: { 
   const sb = supabaseServer()
   await requireSession()
 
-  // ✅ CORREÇÃO: Usar colunas reais do ledger + 2 chamadas
+  // ✅ CORREÇÃO: Usar colunas reais do ledger + RLS (sem tenant_id hardcoded)
   const { data, error } = await sb
     .from('wh_inventory_ledger')
     .select('ledger_id,plant_id,mm_material,movement,qty,ref_type,ref_id,created_at')
@@ -35,6 +34,25 @@ export default async function MovementsPage({ searchParams }: { searchParams: { 
 
   if (error) {
     console.error('Error fetching movements:', error)
+    return (
+      <div className="min-h-screen bg-fiori-background p-8">
+        <div className="max-w-7xl mx-auto">
+          <div className="card-fiori">
+            <div className="card-fiori-body text-center">
+              <div className="text-red-500 mb-4">
+                <Package className="w-16 h-16 mx-auto mb-4" />
+                <h2 className="text-2xl font-bold">Erro ao carregar movimentações</h2>
+                <p className="text-lg mt-2">Não foi possível carregar as movimentações de estoque.</p>
+                <p className="text-sm text-fiori-muted mt-2">Erro: {error.message}</p>
+              </div>
+              <Link href="/wh" className="btn-fiori-primary">
+                Voltar para WH
+              </Link>
+            </div>
+          </div>
+        </div>
+      </div>
+    )
   }
 
   const movementsData = data || []

@@ -74,18 +74,8 @@ export default async function WHPage() {
     movements = todayMovements || []
     movementsToday = movements.length
 
-    // Buscar transferências
-    const { data: transfersData, error: transferError } = await sb
-      .from('wh_transfer')
-      .select('transfer_id, status, created_at')
-      .order('created_at', { ascending: false })
-      .limit(10)
-
-    if (transferError) {
-      console.error('Error loading transfers:', transferError)
-    }
-
-    transfers = transfersData || []
+    // Transferências removidas - tabela wh_transfer não existe no schema
+    transfers = []
 
   } catch (error) {
     console.error('Error loading WH data:', error)

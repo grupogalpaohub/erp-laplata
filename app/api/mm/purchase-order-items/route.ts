@@ -149,3 +149,60 @@ export async function POST(req: Request) {
     }, { status: 500 })
   }
 }
+
+export async function DELETE(req: Request) {
+  try {
+    // ✅ GUARDRAIL COMPLIANCE: API usando supabaseServer() helper
+    const supabase = supabaseServer()
+    
+    // Tenant fixo conforme guardrails
+    const TENANT_ID = "LaplataLunaria"
+    
+    // Buscar parâmetros de query
+    const { searchParams } = new URL(req.url)
+    const mm_order = searchParams.get('mm_order')
+    
+    if (!mm_order) {
+      return NextResponse.json({ 
+        ok: false, 
+        error: { 
+          code: 'MISSING_MM_ORDER', 
+          message: 'mm_order é obrigatório' 
+        } 
+      }, { status: 400 })
+    }
+    
+    // Deletar todos os itens do pedido
+    const { error } = await supabase
+      .from('mm_purchase_order_item')
+      .delete()
+      .eq('tenant_id', TENANT_ID)
+      .eq('mm_order', mm_order)
+    
+    if (error) {
+      console.error('Erro ao deletar purchase order items:', error)
+      return NextResponse.json({ 
+        ok: false, 
+        error: { 
+          code: (error as any).code, 
+          message: error.message 
+        } 
+      }, { status: 500 })
+    }
+    
+    return NextResponse.json({ 
+      ok: true, 
+      data: { deleted: true }
+    }, { status: 200 })
+    
+  } catch (error) {
+    console.error('Erro inesperado na API purchase order items DELETE:', error)
+    return NextResponse.json({ 
+      ok: false, 
+      error: { 
+        code: 'INTERNAL_ERROR', 
+        message: 'Erro interno do servidor' 
+      } 
+    }, { status: 500 })
+  }
+}

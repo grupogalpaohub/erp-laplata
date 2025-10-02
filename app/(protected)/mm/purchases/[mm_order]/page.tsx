@@ -79,6 +79,14 @@ export default function PurchaseOrderPage({ params }: { params: { mm_order: stri
         >
           + Novo Pedido
         </button>
+        {header?.status !== 'received' && (
+          <button 
+            onClick={() => router.push(`/mm/purchases/${header?.mm_order}/edit`)} 
+            className="btn-fiori-warning"
+          >
+            ✏️ Editar Pedido
+          </button>
+        )}
         {header?.status === 'confirmed' && (
           <ReceivingButton 
             mmOrder={header.mm_order}

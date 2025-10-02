@@ -70,7 +70,26 @@ export async function PUT(req: Request, { params }: { params: Params }) {
 
   try {
     const supabase = supabaseServer()
-    const body = await req.json()
+    
+    // 🔍 DEBUG: Verificar o que está sendo enviado
+    const rawBody = await req.text()
+    console.log('🔍 [DEBUG] Raw body received:', rawBody)
+    
+    let body
+    try {
+      body = JSON.parse(rawBody)
+      console.log('🔍 [DEBUG] Parsed body:', body)
+    } catch (parseError) {
+      console.error('🔍 [DEBUG] JSON parse error:', parseError)
+      console.error('🔍 [DEBUG] Raw body that failed to parse:', rawBody)
+      return NextResponse.json({ 
+        ok: false, 
+        error: { 
+          code: 'INVALID_JSON', 
+          message: 'JSON inválido recebido' 
+        } 
+      }, { status: 400 })
+    }
 
     // Validar campos obrigatórios
     if (!body.selectedCustomer) {
@@ -106,6 +125,10 @@ export async function PUT(req: Request, { params }: { params: Params }) {
       total_negotiated_cents: body.totalNegotiatedCents || body.totalFinalCents || 0,
     }
 
+    // 🔍 DEBUG: Dados que serão atualizados
+    console.log('🔍 [DEBUG] Update data:', updateData)
+    console.log('🔍 [DEBUG] SO ID:', soId)
+
     // Atualizar pedido
     const { data, error } = await supabase
       .from('sd_sales_order')
@@ -129,7 +152,7 @@ export async function PUT(req: Request, { params }: { params: Params }) {
       .single()
 
     if (error) {
-      console.error('Error updating sales order:', error)
+      console.error('🔍 [DEBUG] Error updating sales order:', error)
       return NextResponse.json({ 
         ok: false, 
         error: { 
@@ -139,8 +162,12 @@ export async function PUT(req: Request, { params }: { params: Params }) {
       }, { status: 500 })
     }
 
+    console.log('🔍 [DEBUG] Update successful, data returned:', data)
+
     // Se há itens para atualizar, processar
     if (body.items && Array.isArray(body.items)) {
+      console.log('🔍 [DEBUG] Processing items:', body.items)
+      
       // Primeiro, remover itens existentes
       const { error: deleteError } = await supabase
         .from('sd_sales_order_item')
@@ -148,8 +175,10 @@ export async function PUT(req: Request, { params }: { params: Params }) {
         .eq('so_id', soId)
 
       if (deleteError) {
-        console.error('Error deleting existing items:', deleteError)
+        console.error('🔍 [DEBUG] Error deleting existing items:', deleteError)
         // Não falhar por causa dos itens, apenas logar
+      } else {
+        console.log('🔍 [DEBUG] Successfully deleted existing items')
       }
 
       // Inserir novos itens
@@ -157,22 +186,28 @@ export async function PUT(req: Request, { params }: { params: Params }) {
         const item = body.items[i]
         
         if (item.mm_material && item.quantity > 0) {
+          const itemData = {
+            so_id: soId,
+            sku: item.mm_material, // Usar mm_material como sku
+            mm_material: item.mm_material,
+            material_id: item.mm_material, // material_id deve ser igual a mm_material
+            quantity: Number(item.quantity),
+            unit_price_cents: item.unit_price_cents || 0,
+            line_total_cents: item.line_total_cents || 0,
+            row_no: i + 1
+          }
+          
+          console.log(`🔍 [DEBUG] Inserting item ${i + 1}:`, itemData)
+          
           const { error: itemError } = await supabase
             .from('sd_sales_order_item')
-            .insert({
-              so_id: soId,
-              sku: item.mm_material, // Usar mm_material como sku
-              mm_material: item.mm_material,
-              material_id: item.mm_material, // material_id deve ser igual a mm_material
-              quantity: Number(item.quantity),
-              unit_price_cents: item.unit_price_cents || 0,
-              line_total_cents: item.line_total_cents || 0,
-              row_no: i + 1
-            })
+            .insert(itemData)
 
           if (itemError) {
-            console.error(`Error inserting item ${i + 1}:`, itemError)
+            console.error(`🔍 [DEBUG] Error inserting item ${i + 1}:`, itemError)
             // Não falhar por causa dos itens, apenas logar
+          } else {
+            console.log(`🔍 [DEBUG] Successfully inserted item ${i + 1}`)
           }
         }
       }

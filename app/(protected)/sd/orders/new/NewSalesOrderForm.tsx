@@ -26,7 +26,6 @@ export default function NewSalesOrderForm({ customers, materials, selectedCustom
   
   const [selectedCustomer, setSelectedCustomer] = useState(selectedCustomerId || '')
   const [orderDate, setOrderDate] = useState(new Date().toISOString().split('T')[0])
-  const [paymentMethod, setPaymentMethod] = useState('')
   const [paymentTerm, setPaymentTerm] = useState('')
   const [notes, setNotes] = useState('')
   const [status, setStatus] = useState('draft')
@@ -128,7 +127,6 @@ export default function NewSalesOrderForm({ customers, materials, selectedCustom
       const formData = new FormData()
       formData.append('customer_id', selectedCustomer)
       formData.append('order_date', orderDate)
-      formData.append('payment_method', paymentMethod)
       formData.append('payment_term', paymentTerm)
       formData.append('notes', notes)
       formData.append('status', status)
@@ -253,27 +251,6 @@ export default function NewSalesOrderForm({ customers, materials, selectedCustom
             </div>
 
             <div>
-              <label htmlFor="payment_method" className="label-fiori">
-                Forma de Pagamento
-              </label>
-              <select
-                id="payment_method"
-                name="payment_method"
-                value={paymentMethod}
-                onChange={(e) => setPaymentMethod(e.target.value)}
-                className="select-fiori"
-              >
-                <option value="">Selecione uma forma</option>
-                <option value="PIX">PIX</option>
-                <option value="CARTAO_CREDITO">Cartão de Crédito</option>
-                <option value="CARTAO_DEBITO">Cartão de Débito</option>
-                <option value="BOLETO">Boleto</option>
-                <option value="DINHEIRO">Dinheiro</option>
-                <option value="TRANSFERENCIA">Transferência</option>
-              </select>
-            </div>
-
-            <div>
               <label htmlFor="payment_term" className="label-fiori">
                 Condição de Pagamento
               </label>
@@ -285,11 +262,10 @@ export default function NewSalesOrderForm({ customers, materials, selectedCustom
                 className="select-fiori"
               >
                 <option value="">Selecione uma condição</option>
-                <option value="A_VISTA">À Vista</option>
-                <option value="30_DIAS">30 dias</option>
-                <option value="60_DIAS">60 dias</option>
-                <option value="90_DIAS">90 dias</option>
-                <option value="PARCELADO">Parcelado</option>
+                <option value="PIX">PIX</option>
+                <option value="TRANSFERENCIA">Transferência</option>
+                <option value="BOLETO">Boleto</option>
+                <option value="CARTAO">Cartão</option>
               </select>
             </div>
 

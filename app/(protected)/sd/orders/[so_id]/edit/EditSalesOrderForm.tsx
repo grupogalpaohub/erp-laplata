@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { Save, X, Plus, Trash2 } from 'lucide-react'
-import { formatBRL, toCents } from '@/lib/money'
+import { formatBRL, toCents, parseBRLToCents } from '@/lib/money'
 import { updateOrderAction, addOrderItemAction, removeOrderItemAction } from '../../_actions'
 
 interface OrderItem {
@@ -42,13 +42,19 @@ export default function EditSalesOrderForm({ order, customers, materials }: Edit
   
   const [selectedCustomer, setSelectedCustomer] = useState(order.customer_id)
   const [orderDate, setOrderDate] = useState(order.order_date)
-  const [paymentMethod, setPaymentMethod] = useState(order.payment_method || '')
   const [paymentTerm, setPaymentTerm] = useState(order.payment_term || '')
   const [notes, setNotes] = useState(order.notes || '')
   const [status, setStatus] = useState(order.status || 'draft')
   const [totalNegotiatedReais, setTotalNegotiatedReais] = useState(
     order.total_negotiated_cents ? formatBRL(order.total_negotiated_cents) : ''
   )
+
+  // 🔍 DEBUG: Valores iniciais do pedido
+  console.log('🔍 [DEBUG] Order inicial:', {
+    so_id: order.so_id,
+    total_negotiated_cents: order.total_negotiated_cents,
+    total_negotiated_reais: order.total_negotiated_cents ? formatBRL(order.total_negotiated_cents) : 'N/A'
+  })
   const [items, setItems] = useState<OrderItem[]>([])
   const [isLoading, setIsLoading] = useState(false)
   const [isLoadingItems, setIsLoadingItems] = useState(true)
@@ -68,6 +74,7 @@ export default function EditSalesOrderForm({ order, customers, materials }: Edit
       
       
       if (response.ok) {
+        console.log('🔍 [DEBUG] Items recebidos do API:', result.items)
         const orderItems = result.items.map((item: any, index: number) => ({
           temp_id: `item_${Date.now()}_${index}`,
           mm_material: item.mm_material || item.sku,
@@ -75,6 +82,7 @@ export default function EditSalesOrderForm({ order, customers, materials }: Edit
           unit_price_cents: item.unit_price_cents,
           line_total_cents: item.line_total_cents
         }))
+        console.log('🔍 [DEBUG] Items processados:', orderItems)
         setItems(orderItems)
       } else {
         console.error('Error loading order items:', result.error)
@@ -116,9 +124,9 @@ export default function EditSalesOrderForm({ order, customers, materials }: Edit
           }
         }
         
-        // Recalcular total da linha se quantidade ou preço mudaram
+        // Recalcular total da linha se quantidade ou preço mudaram - ✅ GUARDRAIL COMPLIANCE
         if (field === 'quantity' || field === 'unit_price_cents' || field === 'mm_material') {
-          updatedItem.line_total_cents = updatedItem.quantity * updatedItem.unit_price_cents
+          updatedItem.line_total_cents = Math.round(updatedItem.quantity * updatedItem.unit_price_cents)
         }
         
         return updatedItem
@@ -149,8 +157,20 @@ export default function EditSalesOrderForm({ order, customers, materials }: Edit
   
   // Cálculo de KPIs
   const totalNegotiatedCents = totalNegotiatedReais ? 
-    Math.round(parseFloat(totalNegotiatedReais.replace(',', '.')) * 100) : 
+    parseBRLToCents(totalNegotiatedReais) : 
     totalFinalCents
+
+  // 🔍 DEBUG: Valores de dinheiro
+  console.log('🔍 [DEBUG] totalItemsCents:', totalItemsCents)
+  console.log('🔍 [DEBUG] totalFinalCents:', totalFinalCents)
+  console.log('🔍 [DEBUG] totalNegotiatedReais:', totalNegotiatedReais)
+  console.log('🔍 [DEBUG] totalNegotiatedCents:', totalNegotiatedCents)
+  console.log('🔍 [DEBUG] items:', items.map(item => ({
+    mm_material: item.mm_material,
+    quantity: item.quantity,
+    unit_price_cents: item.unit_price_cents,
+    line_total_cents: item.line_total_cents
+  })))
   
   // Gap entre valor final e valor negociado
   const valueGapCents = totalFinalCents - totalNegotiatedCents
@@ -166,6 +186,16 @@ export default function EditSalesOrderForm({ order, customers, materials }: Edit
   const profitNegotiatedCents = totalNegotiatedCents - estimatedCostNegotiatedCents
   const profitNegotiatedPercent = totalNegotiatedCents > 0 ? (profitNegotiatedCents / totalNegotiatedCents) * 100 : 0
 
+  // 🔍 DEBUG: Indicadores calculados
+  console.log('🔍 [DEBUG] Indicadores:', {
+    valueGapCents,
+    valueGapPercent,
+    profitFinalCents,
+    profitFinalPercent,
+    profitNegotiatedCents,
+    profitNegotiatedPercent
+  })
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!validateAndShowErrors()) return
@@ -173,28 +203,38 @@ export default function EditSalesOrderForm({ order, customers, materials }: Edit
     setIsLoading(true)
     setError('')
 
-    // Converter total negociado para centavos se preenchido
+    // Usar toCents() conforme guardrail
     const totalNegotiatedCents = totalNegotiatedReais ? 
-      Math.round(parseFloat(totalNegotiatedReais.replace(',', '.')) * 100) : 
+      toCents(totalNegotiatedReais) : 
       totalFinalCents
 
     try {
+      // ✅ CORRIGIDO: Enviar JSON em vez de FormData
+      const requestBody = {
+        so_id: order.so_id,
+        selectedCustomer: selectedCustomer,
+        orderDate: orderDate,
+        status: status,
+        paymentTerm: paymentTerm,
+        notes: notes,
+        totalFinalCents: totalFinalCents,
+        totalNegotiatedCents: totalNegotiatedCents,
+        items: items.map(item => ({
+          mm_material: item.mm_material,
+          quantity: item.quantity,
+          unit_price_cents: item.unit_price_cents,
+          line_total_cents: item.line_total_cents
+        }))
+      }
+
+      console.log('🔍 [DEBUG] Request body sendo enviado:', requestBody)
+
       const response = await fetch(`/api/sd/orders/${order.so_id}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({
-          selectedCustomer,
-          orderDate,
-          paymentMethod,
-          paymentTerm,
-          notes,
-          status,
-          totalNegotiatedCents,
-          items,
-          totalFinalCents
-        })
+        body: JSON.stringify(requestBody)
       })
 
       const result = await response.json()
@@ -300,27 +340,6 @@ export default function EditSalesOrderForm({ order, customers, materials }: Edit
             </div>
 
             <div>
-              <label htmlFor="payment_method" className="label-fiori">
-                Forma de Pagamento
-              </label>
-              <select
-                id="payment_method"
-                name="payment_method"
-                value={paymentMethod}
-                onChange={(e) => setPaymentMethod(e.target.value)}
-                className="select-fiori"
-              >
-                <option value="">Selecione uma forma</option>
-                <option value="PIX">PIX</option>
-                <option value="CARTAO_CREDITO">Cartão de Crédito</option>
-                <option value="CARTAO_DEBITO">Cartão de Débito</option>
-                <option value="BOLETO">Boleto</option>
-                <option value="DINHEIRO">Dinheiro</option>
-                <option value="TRANSFERENCIA">Transferência</option>
-              </select>
-            </div>
-
-            <div>
               <label htmlFor="payment_term" className="label-fiori">
                 Condição de Pagamento
               </label>
@@ -332,11 +351,10 @@ export default function EditSalesOrderForm({ order, customers, materials }: Edit
                 className="select-fiori"
               >
                 <option value="">Selecione uma condição</option>
-                <option value="A_VISTA">À Vista</option>
-                <option value="30_DIAS">30 dias</option>
-                <option value="60_DIAS">60 dias</option>
-                <option value="90_DIAS">90 dias</option>
-                <option value="PARCELADO">Parcelado</option>
+                <option value="PIX">PIX</option>
+                <option value="TRANSFERENCIA">Transferência</option>
+                <option value="BOLETO">Boleto</option>
+                <option value="CARTAO">Cartão</option>
               </select>
             </div>
 
@@ -429,7 +447,7 @@ export default function EditSalesOrderForm({ order, customers, materials }: Edit
                     <td>
                       <input
                         type="text"
-                        value={(item.unit_price_cents / 100).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                        value={formatBRL(item.unit_price_cents)}
                         readOnly
                         className="input-fiori bg-fiori-bg-secondary w-24 text-right"
                       />
@@ -437,7 +455,7 @@ export default function EditSalesOrderForm({ order, customers, materials }: Edit
                     <td>
                       <input
                         type="text"
-                        value={(item.line_total_cents / 100).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                        value={formatBRL(item.line_total_cents)}
                         readOnly
                         className="input-fiori bg-fiori-bg-secondary w-24 text-right"
                       />
@@ -475,7 +493,7 @@ export default function EditSalesOrderForm({ order, customers, materials }: Edit
                 type="text"
                 id="total_final_cents"
                 name="total_final_cents"
-                value={(totalFinalCents / 100).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                value={formatBRL(totalFinalCents)}
                 readOnly
                 className="input-fiori bg-fiori-bg-secondary"
               />

@@ -28,7 +28,6 @@ export default function PurchaseOrderPage({ params }: { params: { mm_order: stri
           return
         }
         const data = await res.json()
-        console.log('Purchase order data received:', data)
         setS({ loading: false, error: null, data })
       } catch (e) {
         if (!alive) return
@@ -54,8 +53,6 @@ export default function PurchaseOrderPage({ params }: { params: { mm_order: stri
   }
 
   const { header, items } = s.data?.ok ? s.data.data : {}
-  console.log('Extracted header:', header)
-  console.log('Extracted items:', items)
   
   return (
     <div className="space-y-8">
@@ -148,11 +145,11 @@ export default function PurchaseOrderPage({ params }: { params: { mm_order: stri
                 <tr>
                   <th className="px-6 py-3 text-left text-xs font-medium text-fiori-text-primary uppercase tracking-wider">Item</th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-fiori-text-primary uppercase tracking-wider">Material</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-fiori-text-primary uppercase tracking-wider">SKU</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-fiori-text-primary uppercase tracking-wider">Nome Comercial</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-fiori-text-primary uppercase tracking-wider">Descrição</th>
                   <th className="px-6 py-3 text-center text-xs font-medium text-fiori-text-primary uppercase tracking-wider">Quantidade</th>
                   <th className="px-6 py-3 text-right text-xs font-medium text-fiori-text-primary uppercase tracking-wider">Preço Unit.</th>
                   <th className="px-6 py-3 text-right text-xs font-medium text-fiori-text-primary uppercase tracking-wider">Total</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-fiori-text-primary uppercase tracking-wider">Observações</th>
                 </tr>
               </thead>
               <tbody className="bg-fiori-bg-elevated divide-y divide-fiori-border">
@@ -165,7 +162,12 @@ export default function PurchaseOrderPage({ params }: { params: { mm_order: stri
                       {item.mm_material || '-'}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-fiori-text-primary">
-                      {item.sku || '-'}
+                      {item.mm_material_data?.mm_comercial || '-'}
+                    </td>
+                    <td className="px-6 py-4 text-sm text-fiori-text-primary max-w-xs">
+                      <div className="truncate" title={item.mm_material_data?.mm_desc || ''}>
+                        {item.mm_material_data?.mm_desc || '-'}
+                      </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-fiori-text-primary text-center">
                       {item.mm_qtt || item.quantity || '-'}
@@ -176,14 +178,11 @@ export default function PurchaseOrderPage({ params }: { params: { mm_order: stri
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-fiori-text-primary text-right">
                       R$ {((item.line_total_cents || 0) / 100).toFixed(2)}
                     </td>
-                    <td className="px-6 py-4 text-sm text-fiori-text-primary">
-                      {item.notes || '-'}
-                    </td>
                   </tr>
                 ))}
                 {(!items || items.length === 0) && (
                   <tr>
-                    <td colSpan={7} className="px-6 py-8 text-center text-fiori-text-muted">
+                    <td colSpan={6} className="px-6 py-8 text-center text-fiori-text-muted">
                       Nenhum item encontrado
                     </td>
                   </tr>

@@ -27,7 +27,17 @@ export async function GET(_req: Request, { params }: { params: Params }) {
 
   const { data: items, error: itemsError } = await supabase
     .from('mm_purchase_order_item')
-    .select('po_item_id, mm_order, plant_id, mm_material, mm_qtt, unit_cost_cents, line_total_cents, currency, notes')
+    .select(`
+      po_item_id, 
+      mm_order, 
+      plant_id, 
+      mm_material, 
+      mm_qtt, 
+      unit_cost_cents, 
+      line_total_cents, 
+      currency,
+      mm_material_data:mm_material(mm_comercial, mm_desc)
+    `)
     .eq('mm_order', orderId)
     .order('po_item_id', { ascending: true })
 

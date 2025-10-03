@@ -19,7 +19,7 @@ export default function FioriShell({ children }: { children: React.ReactNode }) 
   const pathname = usePathname()
 
   useEffect(() => {
-    if (pathname?.startsWith("/auth/")) return
+    if (pathname?.startsWith("/auth/") || pathname === "/login") return
 
     const supabase = supabaseBrowser()
     

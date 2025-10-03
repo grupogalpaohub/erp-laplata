@@ -3,6 +3,8 @@ import { requireTenantId } from '@/utils/tenant'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
 
+export const dynamic = 'force-dynamic';
+
 export default async function WHPage() {
   const supabase = supabaseServer()
   

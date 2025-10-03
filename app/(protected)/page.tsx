@@ -1,6 +1,8 @@
 import { supabaseServer } from '@/lib/supabase/server'
 import { requireTenantId } from '@/utils/tenant'
 
+export const dynamic = 'force-dynamic';
+
 export default async function DashboardPage() {
   const supabase = supabaseServer()
   const tenantId = await requireTenantId()

@@ -1,6 +1,8 @@
 import Link from "next/link";
 import { isAllowedTenant } from "@/utils/tenant";
 
+export const dynamic = 'force-dynamic';
+
 export default function OnboardingPage() {
   const tenant = "LaplataLunaria";
   const valid = isAllowedTenant(tenant);

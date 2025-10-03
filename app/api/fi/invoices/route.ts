@@ -7,39 +7,55 @@ export async function GET(request: Request) {
   try {
     const tenantId = await requireTenantId()
     const { searchParams } = new URL(request.url)
-    const account_id = searchParams.get('account_id')
-    const type = searchParams.get('type')
-    const reference_type = searchParams.get('reference_type')
+    const customer_id = searchParams.get('customer_id')
+    const vendor_id = searchParams.get('vendor_id')
+    const status = searchParams.get('status') // paid, unpaid, overdue
     const page = parseInt(searchParams.get('page') || '1')
     const limit = parseInt(searchParams.get('limit') || '50')
 
     const offset = (page - 1) * limit
 
     let query = supabase
-      .from('fi_transaction')
+      .from('fi_invoice')
       .select(`
         *,
-        fi_account:account_id(account_code, account_name, account_type)
+        crm_customer:customer_id(customer_name, email),
+        mm_vendor:vendor_id(vendor_name, email)
       `, { count: 'exact' })
       .eq('tenant_id', tenantId)
-      .order('created_at', { ascending: false })
+      .order('invoice_date', { ascending: false })
       .range(offset, offset + limit - 1)
 
     // Aplicar filtros
-    if (account_id) {
-      query = query.eq('account_id', account_id)
+    if (customer_id) {
+      query = query.eq('customer_id', customer_id)
     }
-    if (type) {
-      query = query.eq('type', type)
+    if (vendor_id) {
+      query = query.eq('vendor_id', vendor_id)
     }
-    if (reference_type) {
-      query = query.eq('reference_type', reference_type)
+
+    // Filtro de status baseado na data de vencimento
+    if (status) {
+      const today = new Date().toISOString().split('T')[0]
+      switch (status) {
+        case 'paid':
+          // Assumindo que faturas pagas têm uma data de pagamento
+          // Como não temos esse campo, vamos filtrar por data de vencimento passada
+          query = query.lt('due_date', today)
+          break
+        case 'unpaid':
+          query = query.gte('due_date', today)
+          break
+        case 'overdue':
+          query = query.lt('due_date', today)
+          break
+      }
     }
 
     const { data, error, count } = await query
 
     if (error) {
-      console.error('Error fetching transactions:', error)
+      console.error('Error fetching invoices:', error)
       return NextResponse.json({ 
         ok: false, 
         error: { code: error.code, message: error.message } 
@@ -57,7 +73,7 @@ export async function GET(request: Request) {
       }
     })
   } catch (error: any) {
-    console.error('Unhandled error in GET /api/fi/transactions:', error)
+    console.error('Unhandled error in GET /api/fi/invoices:', error)
     return NextResponse.json({ 
       ok: false, 
       error: { code: 'UNHANDLED_ERROR', message: error.message } 

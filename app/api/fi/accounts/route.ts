@@ -7,39 +7,36 @@ export async function GET(request: Request) {
   try {
     const tenantId = await requireTenantId()
     const { searchParams } = new URL(request.url)
-    const account_id = searchParams.get('account_id')
-    const type = searchParams.get('type')
-    const reference_type = searchParams.get('reference_type')
+    const account_type = searchParams.get('account_type')
+    const parent_account_id = searchParams.get('parent_account_id')
     const page = parseInt(searchParams.get('page') || '1')
     const limit = parseInt(searchParams.get('limit') || '50')
 
     const offset = (page - 1) * limit
 
     let query = supabase
-      .from('fi_transaction')
+      .from('fi_account')
       .select(`
         *,
-        fi_account:account_id(account_code, account_name, account_type)
+        parent_account:parent_account_id(account_code, account_name),
+        child_accounts:fi_account!parent_account_id(account_code, account_name, account_type)
       `, { count: 'exact' })
       .eq('tenant_id', tenantId)
-      .order('created_at', { ascending: false })
+      .order('account_code', { ascending: true })
       .range(offset, offset + limit - 1)
 
     // Aplicar filtros
-    if (account_id) {
-      query = query.eq('account_id', account_id)
+    if (account_type) {
+      query = query.eq('account_type', account_type)
     }
-    if (type) {
-      query = query.eq('type', type)
-    }
-    if (reference_type) {
-      query = query.eq('reference_type', reference_type)
+    if (parent_account_id) {
+      query = query.eq('parent_account_id', parent_account_id)
     }
 
     const { data, error, count } = await query
 
     if (error) {
-      console.error('Error fetching transactions:', error)
+      console.error('Error fetching accounts:', error)
       return NextResponse.json({ 
         ok: false, 
         error: { code: error.code, message: error.message } 
@@ -57,7 +54,7 @@ export async function GET(request: Request) {
       }
     })
   } catch (error: any) {
-    console.error('Unhandled error in GET /api/fi/transactions:', error)
+    console.error('Unhandled error in GET /api/fi/accounts:', error)
     return NextResponse.json({ 
       ok: false, 
       error: { code: 'UNHANDLED_ERROR', message: error.message } 

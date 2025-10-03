@@ -2,6 +2,8 @@ import { cookies } from "next/headers"
 import { redirect } from "next/navigation"
 import { createServerClient } from "@supabase/ssr"
 
+export const runtime = 'nodejs';
+
 export default async function AuthCallback({ 
   searchParams 
 }: { 

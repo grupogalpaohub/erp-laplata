@@ -1,5 +1,7 @@
 import { supabaseServer } from '@/lib/supabase/server'
 
+export const runtime = 'nodejs';
+
 export default async function DebugSessionPage() {
   const supabase = supabaseServer()
   

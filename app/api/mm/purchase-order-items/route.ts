@@ -5,7 +5,7 @@ import { toCents } from '@/lib/money'
 
 // Schema do payload vindo do client (SEM tenant_id)
 const BodySchema = z.object({
-  mm_order: z.string().min(1),              // coluna do vínculo do item
+  mm_order: z.string().min(1),              // coluna do vínculo do item (FK para mm_purchase_order)
   mm_material: z.string().min(1),
   mm_qtt: z.union([z.number(), z.string()]).refine((v) => String(v).trim() !== ''),
   unit_cost_cents: z.number().int().nonnegative(),

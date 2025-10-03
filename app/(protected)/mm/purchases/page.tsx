@@ -31,9 +31,7 @@ async function PurchasesList() {
   const getStatusColor = (status: string | null | undefined) => {
     switch (status) {
       case 'draft': return 'bg-gray-100 text-gray-800'
-      case 'confirmed': return 'bg-blue-100 text-blue-800'
-      case 'shipped': return 'bg-green-100 text-green-800'
-      case 'cancelled': return 'bg-red-100 text-red-800'
+      case 'received': return 'bg-green-100 text-green-800'
       default: return 'bg-gray-100 text-gray-800'
     }
   }
@@ -41,9 +39,7 @@ async function PurchasesList() {
   const getStatusText = (status: string | null | undefined) => {
     switch (status) {
       case 'draft': return 'Rascunho'
-      case 'confirmed': return 'Confirmado'
-      case 'shipped': return 'Enviado'
-      case 'cancelled': return 'Cancelado'
+      case 'received': return 'Recebido'
       default: return 'Rascunho'
     }
   }

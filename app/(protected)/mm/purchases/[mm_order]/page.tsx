@@ -113,10 +113,7 @@ export default function PurchaseOrderPage({ params }: { params: { mm_order: stri
               <label className="text-sm font-medium text-fiori-text-secondary block mb-2">Status</label>
               <span className={`badge-fiori ${
                 header?.status === 'draft' ? 'badge-fiori-info' :
-                header?.status === 'approved' ? 'badge-fiori-success' :
-                header?.status === 'in_progress' ? 'badge-fiori-warning' :
-                header?.status === 'completed' ? 'badge-fiori-success' :
-                header?.status === 'cancelled' ? 'badge-fiori-danger' :
+                header?.status === 'received' ? 'badge-fiori-success' :
                 'badge-fiori-secondary'
               }`}>
                 {header?.status?.toUpperCase() || 'UNKNOWN'}

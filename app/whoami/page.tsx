@@ -1,6 +1,8 @@
 import { supabaseServer } from '@/lib/supabase/server'
 import { requireSession } from '@/lib/auth/requireSession'
 
+export const dynamic = 'force-dynamic';
+
 export default async function WhoAmI() {
   await requireSession()
   const supabase = supabaseServer()

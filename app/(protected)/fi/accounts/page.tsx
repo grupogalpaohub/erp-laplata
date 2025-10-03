@@ -3,6 +3,8 @@ import { requireTenantId } from '@/utils/tenant'
 import { redirect } from 'next/navigation'
 import { Account } from '@/lib/schemas/fi'
 
+export const dynamic = 'force-dynamic';
+
 export default async function AccountsPage() {
   const supabase = supabaseServer()
   

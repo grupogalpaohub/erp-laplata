@@ -3,6 +3,8 @@ import { requireTenantId } from '@/utils/tenant'
 import { redirect } from 'next/navigation'
 import { Invoice } from '@/lib/schemas/fi'
 
+export const dynamic = 'force-dynamic';
+
 export default async function InvoicesPage() {
   const supabase = supabaseServer()
   

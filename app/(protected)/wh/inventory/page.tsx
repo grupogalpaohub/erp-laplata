@@ -3,6 +3,8 @@ import { requireTenantId } from '@/utils/tenant'
 import { redirect } from 'next/navigation'
 import { InventoryBalance } from '@/lib/schemas/wh'
 
+export const dynamic = 'force-dynamic';
+
 export default async function InventoryPage() {
   const supabase = supabaseServer()
   

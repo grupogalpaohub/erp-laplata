@@ -4,6 +4,8 @@ import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import { Material } from '@/lib/schemas/mm'
 
+export const dynamic = 'force-dynamic';
+
 export default async function MaterialsPage() {
   const supabase = supabaseServer()
   

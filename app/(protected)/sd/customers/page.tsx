@@ -4,6 +4,8 @@ import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import { Customer } from '@/lib/schemas/sd'
 
+export const dynamic = 'force-dynamic';
+
 export default async function CustomersPage() {
   const supabase = supabaseServer()
   

@@ -1,76 +1,114 @@
 import { NextResponse } from 'next/server'
 import { supabaseServer } from '@/lib/supabase/server'
-import { v4 as uuidv4 } from 'uuid'
+import { requireTenantId } from '@/utils/tenant'
+import { CreateShipmentSchema } from '@/lib/schemas/sd'
 
-export async function POST(req: Request) {
+export async function GET(request: Request) {
+  const supabase = supabaseServer()
   try {
-    const supabase = supabaseServer()
-    
-    // GUARDRAIL: Verificar autenticação via supabaseServer()
-    const { data: { user }, error: authError } = await supabase.auth.getUser()
-    if (authError || !user) {
-      return NextResponse.json({
-        ok: false,
-        error: { code: 'UNAUTHORIZED', message: 'Usuário não autenticado' }
-      }, { status: 401 })
-    }
+    const tenantId = await requireTenantId()
+    const { searchParams } = new URL(request.url)
+    const so_id = searchParams.get('so_id')
+    const status = searchParams.get('status') || ''
+    const page = parseInt(searchParams.get('page') || '1')
+    const limit = parseInt(searchParams.get('limit') || '50')
 
-    const body = await req.json()
-    const { so_id, warehouse_id, notes } = body
+    const offset = (page - 1) * limit
 
-    if (!so_id || !warehouse_id) {
-      return NextResponse.json({ 
-        ok: false, 
-        error: { message: 'so_id e warehouse_id são obrigatórios' } 
-      }, { status: 400 })
-    }
-
-    // Validar se o SO tem itens - RLS filtra automaticamente por tenant_id
-    const { data: orderItems, error: itemsError } = await supabase
-      .from('sd_sales_order_item')
-      .select('mm_material, quantity')
-      .eq('so_id', so_id)
-
-    if (itemsError || !orderItems || orderItems.length === 0) {
-      return NextResponse.json({ 
-        ok: false, 
-        error: { message: 'Pedido não encontrado ou sem itens' } 
-      }, { status: 404 })
-    }
-
-    // Criar shipment (trigger do banco fará a baixa/ledger) - RLS filtra automaticamente por tenant_id
-    const shipmentId = `SHIP-${uuidv4()}`
-    const { data: shipmentData, error: createError } = await supabase
+    let query = supabase
       .from('sd_shipment')
-      .insert({
-        shipment_id: shipmentId,
-        so_id: so_id,
-        warehouse_id: warehouse_id,
-        ship_date: new Date().toISOString().split('T')[0],
-        status: 'allocated',
-        notes: notes || null
-      })
-      .select()
-      .single()
+      .select(`
+        *,
+        sd_sales_order:so_id(customer_id, order_date, status),
+        crm_customer:sd_sales_order.customer_id(customer_name, email, phone)
+      `, { count: 'exact' })
+      .eq('tenant_id', tenantId)
+      .order('created_at', { ascending: false })
+      .range(offset, offset + limit - 1)
 
-    if (createError) {
-      console.error('Error creating shipment:', createError)
+    // Aplicar filtros
+    if (so_id) {
+      query = query.eq('so_id', so_id)
+    }
+    if (status) {
+      query = query.eq('status', status)
+    }
+
+    const { data, error, count } = await query
+
+    if (error) {
+      console.error('Error fetching shipments:', error)
       return NextResponse.json({ 
         ok: false, 
-        error: { code: createError.code, message: createError.message } 
+        error: { code: error.code, message: error.message } 
       }, { status: 500 })
     }
 
     return NextResponse.json({ 
       ok: true, 
-      data: shipmentData 
-    }, { status: 200 })
-
-  } catch (error) {
-    console.error('Unexpected error in POST /api/sd/shipments:', error)
+      data: data || [], 
+      pagination: {
+        page,
+        limit,
+        total: count || 0,
+        pages: Math.ceil((count || 0) / limit)
+      }
+    })
+  } catch (error: any) {
+    console.error('Unhandled error in GET /api/sd/shipments:', error)
     return NextResponse.json({ 
       ok: false, 
-      error: { code: 'INTERNAL_ERROR', message: 'Erro interno do servidor' } 
+      error: { code: 'UNHANDLED_ERROR', message: error.message } 
+    }, { status: 500 })
+  }
+}
+
+export async function POST(request: Request) {
+  const supabase = supabaseServer()
+  try {
+    const tenantId = await requireTenantId()
+    const body = await request.json()
+
+    const validation = CreateShipmentSchema.safeParse(body)
+    if (!validation.success) {
+      return NextResponse.json({ 
+        ok: false, 
+        error: { 
+          code: 'VALIDATION_ERROR', 
+          message: validation.error.issues[0].message 
+        } 
+      }, { status: 400 })
+    }
+
+    const { data, error } = await supabase
+      .from('sd_shipment')
+      .insert({ 
+        ...validation.data, 
+        tenant_id: tenantId,
+        shipment_id: crypto.randomUUID(),
+        created_at: new Date().toISOString()
+      })
+      .select(`
+        *,
+        sd_sales_order:so_id(customer_id, order_date, status),
+        crm_customer:sd_sales_order.customer_id(customer_name, email, phone)
+      `)
+      .single()
+
+    if (error) {
+      console.error('Error creating shipment:', error)
+      return NextResponse.json({ 
+        ok: false, 
+        error: { code: error.code, message: error.message } 
+      }, { status: 500 })
+    }
+
+    return NextResponse.json({ ok: true, data })
+  } catch (error: any) {
+    console.error('Unhandled error in POST /api/sd/shipments:', error)
+    return NextResponse.json({ 
+      ok: false, 
+      error: { code: 'UNHANDLED_ERROR', message: error.message } 
     }, { status: 500 })
   }
 }

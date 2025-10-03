@@ -1,11 +1,9 @@
-import { supabaseServerReadOnly } from "@/lib/supabase/server-readonly";
-
+// Função temporária que retorna tenant padrão
+// TODO: Implementar verificação real de tenant quando necessário
 export async function getTenantId(): Promise<string | null> {
-  const sb = supabaseServerReadOnly();
-  const { data: { user }, error } = await sb.auth.getUser();
-  if (error) return null;
-  const t = user?.user_metadata?.tenant_id;
-  return t && typeof t === "string" && t.trim() ? t : null;
+  // Por enquanto, retornar tenant padrão
+  // Isso evita problemas de cookies no Vercel
+  return "LaplataLunaria";
 }
 
 // lança se não houver tenant

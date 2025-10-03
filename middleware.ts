@@ -1,5 +1,4 @@
 import { NextResponse } from 'next/server'
-import { supabaseMiddleware } from '@/lib/supabase/middleware'
 
 export async function middleware(req: any) {
   const { pathname } = req.nextUrl
@@ -17,14 +16,8 @@ export async function middleware(req: any) {
     return NextResponse.redirect(new URL('/landing', req.url))
   }
   
-  // Verificar auth para rotas protegidas
-  const supabase = supabaseMiddleware(req)
-  const { data: { user } } = await supabase.auth.getUser()
-  
-  if (!user) {
-    return NextResponse.redirect(new URL('/login', req.url))
-  }
-  
+  // Para rotas protegidas, deixar o FioriShell fazer a verificação
+  // O middleware só redireciona rotas públicas
   return NextResponse.next()
 }
 

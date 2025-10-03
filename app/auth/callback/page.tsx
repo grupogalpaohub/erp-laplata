@@ -1,7 +1,6 @@
 import { cookies } from "next/headers"
 import { redirect } from "next/navigation"
 import { createServerClient } from "@supabase/ssr"
-import { getTenantId } from "@/utils/tenant"
 
 export default async function AuthCallback({ searchParams }: { searchParams: { code?: string } }) {
   const code = searchParams?.code
@@ -26,16 +25,12 @@ export default async function AuthCallback({ searchParams }: { searchParams: { c
     }
   )
 
-  const { data, error } = await supabase.auth.exchangeCodeForSession(code)
+  const { error } = await supabase.auth.exchangeCodeForSession(code)
   if (error) redirect(`/login?error=${encodeURIComponent(error.message)}`)
 
-  // se você já tem onboarding/tenant:
-  // - checar se existe user_metadata.tenant_id
-  // - se não houver, redirect("/onboarding")
-  const tenantId = await getTenantId();
-  if (!tenantId) {
-    redirect("/onboarding");
-  }
+  // se faltar tenant_id no JWT, mande para onboarding
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user?.user_metadata?.tenant_id) redirect("/onboarding")
 
   redirect("/")
 }

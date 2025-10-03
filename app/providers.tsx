@@ -32,24 +32,36 @@ export function Providers({ children }: { children: React.ReactNode }) {
   }
 
   // 1) montar
-  useEffect(() => { doSync() }, [])
+  useEffect(() => { 
+    // 🔒 não roda nada na callback
+    if (pathname?.startsWith("/auth/")) return
+    doSync() 
+  }, [pathname])
 
   // 2) mudanças de auth
   useEffect(() => {
+    // 🔒 não roda nada na callback
+    if (pathname?.startsWith("/auth/")) return
     const { data: sub } = sb.auth.onAuthStateChange(() => { doSync() })
     return () => { sub.subscription.unsubscribe() }
-  }, [sb])
+  }, [sb, pathname])
 
   // 3) mudar de rota/query
   const searchString = search?.toString()
-  useEffect(() => { doSync() }, [pathname, searchString])
+  useEffect(() => { 
+    // 🔒 não roda nada na callback
+    if (pathname?.startsWith("/auth/")) return
+    doSync() 
+  }, [pathname, searchString])
 
   // 4) voltar foco
   useEffect(() => {
+    // 🔒 não roda nada na callback
+    if (pathname?.startsWith("/auth/")) return
     const onVis = () => { if (document.visibilityState === 'visible') doSync() }
     document.addEventListener('visibilitychange', onVis)
     return () => document.removeEventListener('visibilitychange', onVis)
-  }, [])
+  }, [pathname])
 
   return <>{children}</>
 }

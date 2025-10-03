@@ -2,14 +2,20 @@
 import { useEffect, useState } from "react";
 import { User } from "@supabase/supabase-js";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 import { supabaseBrowser } from "@/lib/supabase/client";
 
 export default function NavBar() {
   const [user, setUser] = useState<User | null>(null);
   const router = useRouter();
+  const pathname = usePathname();
 
   useEffect(() => {
+    // 🔒 não roda nada na callback
+    if (pathname?.startsWith("/auth/")) {
+      return;
+    }
+
     const supabase = supabaseBrowser() // <- chama a função
 
     supabase.auth.getUser().then(({ data }) => {
@@ -24,7 +30,7 @@ export default function NavBar() {
       // evita leak de listener no HMR
       sub?.subscription?.unsubscribe?.()
     }
-  }, []);
+  }, [pathname]);
 
   async function logout() {
     const supabase = supabaseBrowser()

@@ -50,7 +50,6 @@ export async function GET(req: Request) {
     const { data, error, count } = await query
     
     if (error) {
-      console.error('Erro ao buscar purchase order items:', error)
       return NextResponse.json({ 
         ok: false, 
         error: { 
@@ -72,7 +71,6 @@ export async function GET(req: Request) {
     })
     
   } catch (error) {
-    console.error('Erro inesperado na API purchase order items:', error)
     return NextResponse.json({ 
       ok: false, 
       error: { 
@@ -109,11 +107,10 @@ export async function POST(req: Request) {
       return NextResponse.json({ ok:false, error:{ message:'Quantidade inválida' } }, { status:400 })
     }
 
-    // 3) Validar cabeçalho (mesmo tenant + status draft)
+    // 3) Validar cabeçalho (mesmo tenant + status draft) - RLS filtra automaticamente
     const { data: po, error: poErr } = await supabase
       .from('mm_purchase_order')
       .select('mm_order, status')
-      .eq('tenant_id', tenant_id)
       .eq('mm_order', mm_order)
       .single()
 
@@ -190,7 +187,6 @@ export async function DELETE(req: Request) {
       .eq('mm_order', mm_order)
     
     if (error) {
-      console.error('Erro ao deletar purchase order items:', error)
       return NextResponse.json({ 
         ok: false, 
         error: { 
@@ -206,7 +202,6 @@ export async function DELETE(req: Request) {
     }, { status: 200 })
     
   } catch (error) {
-    console.error('Erro inesperado na API purchase order items DELETE:', error)
     return NextResponse.json({ 
       ok: false, 
       error: { 

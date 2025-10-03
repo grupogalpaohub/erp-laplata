@@ -23,9 +23,9 @@ async function PurchasesList() {
     // RLS filtra automaticamente por tenant_id
 
   // Fazer join manual
-  const ordersWithVendors = orders?.map(order => ({
+  const ordersWithVendors = orders?.map((order: any) => ({
     ...order,
-    mm_vendor: vendors?.find(v => v.vendor_id === order.vendor_id) || null
+    mm_vendor: vendors?.find((v: any) => v.vendor_id === order.vendor_id) || null
   })) || []
 
   const getStatusColor = (status: string | null | undefined) => {
@@ -88,7 +88,7 @@ async function PurchasesList() {
           </div>
         ) : (
           <div className="divide-y divide-gray-200">
-            {ordersWithVendors.map((order) => (
+            {ordersWithVendors.map((order: any) => (
               <div key={order.mm_order} className="p-6 hover:bg-gray-50">
                 <div className="flex items-center justify-between">
                   <div className="flex-1">

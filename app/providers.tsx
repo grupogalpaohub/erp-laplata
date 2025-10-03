@@ -41,7 +41,8 @@ export function Providers({ children }: { children: React.ReactNode }) {
   }, [sb])
 
   // 3) mudar de rota/query
-  useEffect(() => { doSync() }, [pathname, search?.toString()])
+  const searchString = search?.toString()
+  useEffect(() => { doSync() }, [pathname, searchString])
 
   // 4) voltar foco
   useEffect(() => {

@@ -6,8 +6,14 @@ export async function GET(req: Request) {
     // ✅ GUARDRAIL COMPLIANCE: API usando supabaseServer() helper
     const supabase = supabaseServer()
     
-    // Tenant fixo conforme guardrails
-    const TENANT_ID = "LaplataLunaria"
+    // GUARDRAIL: Verificar autenticação via supabaseServer()
+    const { data: { user }, error: authError } = await supabase.auth.getUser()
+    if (authError || !user) {
+      return NextResponse.json({
+        ok: false,
+        error: { code: 'UNAUTHORIZED', message: 'Usuário não autenticado' }
+      }, { status: 401 })
+    }
     
     // Buscar parâmetros de query
     const { searchParams } = new URL(req.url)
@@ -16,11 +22,10 @@ export async function GET(req: Request) {
     const q = searchParams.get('q') || ''
     const status = searchParams.get('status') || ''
     
-    // Construir query base
+    // Construir query base - RLS filtra automaticamente por tenant_id
     let query = supabase
       .from('mm_purchase_order')
       .select('*', { count: 'exact' })
-      .eq('tenant_id', TENANT_ID)
     
     // Aplicar filtros
     if (q) {
@@ -40,7 +45,6 @@ export async function GET(req: Request) {
     const { data, error, count } = await query
     
     if (error) {
-      console.error('Erro ao buscar purchase orders:', error)
       return NextResponse.json({ 
         ok: false, 
         error: { 
@@ -62,7 +66,6 @@ export async function GET(req: Request) {
     })
     
   } catch (error) {
-    console.error('Erro inesperado na API purchase orders:', error)
     return NextResponse.json({ 
       ok: false, 
       error: { 
@@ -78,8 +81,22 @@ export async function POST(req: Request) {
     // ✅ GUARDRAIL COMPLIANCE: API usando supabaseServer() helper
     const supabase = supabaseServer()
     
-    // Tenant fixo conforme guardrails
-    const TENANT_ID = "LaplataLunaria"
+    // GUARDRAIL: Verificar autenticação via supabaseServer()
+    const { data: { user }, error: authError } = await supabase.auth.getUser()
+    if (authError || !user) {
+      return NextResponse.json({
+        ok: false,
+        error: { code: 'UNAUTHORIZED', message: 'Usuário não autenticado' }
+      }, { status: 401 })
+    }
+    
+    const tenant_id = user.user_metadata?.tenant_id
+    if (!tenant_id) {
+      return NextResponse.json({
+        ok: false,
+        error: { code: 'INVALID_TENANT', message: 'Tenant inválido' }
+      }, { status: 403 })
+    }
     
     const body = await req.json()
     
@@ -96,7 +113,7 @@ export async function POST(req: Request) {
     
     // Preparar dados para inserção - ✅ GUARDRAIL COMPLIANCE: Campos conforme db_contract.json
     const poData = {
-      tenant_id: TENANT_ID,
+      tenant_id,
       mm_order: body.mm_order || null, // Será gerado pelo trigger se não fornecido
       vendor_id: body.vendor_id,
       order_date: body.order_date || new Date().toISOString().split('T')[0],
@@ -116,7 +133,6 @@ export async function POST(req: Request) {
       .single()
     
     if (error) {
-      console.error('Erro ao criar purchase order:', error)
       return NextResponse.json({ 
         ok: false, 
         error: { 
@@ -132,7 +148,6 @@ export async function POST(req: Request) {
     }, { status: 201 })
     
   } catch (error) {
-    console.error('Erro inesperado na API purchase orders POST:', error)
     return NextResponse.json({ 
       ok: false, 
       error: { 

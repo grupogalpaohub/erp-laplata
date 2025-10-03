@@ -92,10 +92,10 @@ export default async function SalesOrdersPage() {
             .in('customer_id', customerIds)
           
           if (customersData) {
-            const customerMap = new Map(customersData.map(c => [c.customer_id, c.name]))
+            const customerMap = new Map(customersData.map((c: any) => [c.customer_id, c.name]))
             
             // Associar nomes dos clientes aos pedidos
-            orders = orders.map(order => ({
+            orders = orders.map((order: any) => ({
               ...order,
               crm_customer: customerMap.has(order.customer_id) 
                 ? [{ name: customerMap.get(order.customer_id)! }]

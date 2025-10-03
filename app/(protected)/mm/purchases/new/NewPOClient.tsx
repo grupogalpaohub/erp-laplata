@@ -133,15 +133,6 @@ export default function NewPOClient({ vendors, materials, selectedVendorId }: Ne
       const timestamp = Date.now()
       const newMmOrder = `PO-${timestamp}`
       
-      console.log('Creating purchase order:', {
-        mm_order: newMmOrder,
-        vendor_id: selectedVendor,
-        order_date: orderDate,
-        expected_delivery: expectedDelivery || undefined,
-        status: status,
-        notes: notes || "",
-        items: items
-      });
 
       // 1. Criar header do pedido
       const headerResponse = await fetch('/api/mm/purchase-orders', {
@@ -157,14 +148,11 @@ export default function NewPOClient({ vendors, materials, selectedVendorId }: Ne
         })
       })
 
-      console.log('Header response status:', headerResponse.status);
-      
       if (!headerResponse.ok) {
-        const text = await headerResponse.text(); // se for 404, vem HTML
+        const text = await headerResponse.text();
         throw new Error(text);
       }
       const headerResult = await headerResponse.json()
-      console.log('Header result:', headerResult);
       
       if (!headerResult.ok) {
         throw new Error(headerResult.error?.message || 'Erro ao criar pedido')
@@ -421,7 +409,7 @@ export default function NewPOClient({ vendors, materials, selectedVendorId }: Ne
           ) : (
             <div className="text-center py-8 text-gray-500">
               <p>Nenhum item adicionado ao pedido</p>
-              <p className="text-sm">Clique em "Adicionar Item" para começar</p>
+              <p className="text-sm">Clique em &quot;Adicionar Item&quot; para começar</p>
             </div>
           )}
         </div>

@@ -115,7 +115,7 @@ export default async function EditSalesOrderPage({ params }: { params: { so_id: 
           <div className="card-fiori-content text-center">
             <h1 className="text-2xl font-bold text-fiori-text mb-4">Pedido não pode ser editado</h1>
             <p className="text-fiori-muted mb-6">
-              Apenas pedidos com status "Rascunho" podem ser editados.
+              Apenas pedidos com status &quot;Rascunho&quot; podem ser editados.
             </p>
             <Link href={`/sd/orders/${so_id}`} className="btn-fiori">
               <ArrowLeft className="w-4 h-4 mr-2" />

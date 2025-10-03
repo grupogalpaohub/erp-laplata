@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import { Save, X, Plus, Trash2 } from 'lucide-react'
 import { formatBRL, toCents, parseBRLToCents } from '@/lib/money'
@@ -61,12 +61,7 @@ export default function EditSalesOrderForm({ order, customers, materials }: Edit
   const [error, setError] = useState('')
   const [successMessage, setSuccessMessage] = useState('')
 
-  // Carregar itens do pedido
-  useEffect(() => {
-    loadOrderItems()
-  }, [order.so_id])
-
-  const loadOrderItems = async () => {
+  const loadOrderItems = useCallback(async () => {
     try {
       setIsLoadingItems(true)
       const response = await fetch(`/api/sd/orders/${order.so_id}/items`)
@@ -94,7 +89,12 @@ export default function EditSalesOrderForm({ order, customers, materials }: Edit
     } finally {
       setIsLoadingItems(false)
     }
-  }
+  }, [order.so_id])
+
+  // Carregar itens do pedido
+  useEffect(() => {
+    loadOrderItems()
+  }, [loadOrderItems])
 
   const addItem = () => {
     const newItem: OrderItem = {
@@ -160,17 +160,6 @@ export default function EditSalesOrderForm({ order, customers, materials }: Edit
     parseBRLToCents(totalNegotiatedReais) : 
     totalFinalCents
 
-  // 🔍 DEBUG: Valores de dinheiro
-  console.log('🔍 [DEBUG] totalItemsCents:', totalItemsCents)
-  console.log('🔍 [DEBUG] totalFinalCents:', totalFinalCents)
-  console.log('🔍 [DEBUG] totalNegotiatedReais:', totalNegotiatedReais)
-  console.log('🔍 [DEBUG] totalNegotiatedCents:', totalNegotiatedCents)
-  console.log('🔍 [DEBUG] items:', items.map(item => ({
-    mm_material: item.mm_material,
-    quantity: item.quantity,
-    unit_price_cents: item.unit_price_cents,
-    line_total_cents: item.line_total_cents
-  })))
   
   // Gap entre valor final e valor negociado
   const valueGapCents = totalFinalCents - totalNegotiatedCents

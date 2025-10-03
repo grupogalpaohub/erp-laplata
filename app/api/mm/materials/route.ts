@@ -1,8 +1,6 @@
 import { NextResponse } from 'next/server'
 import { supabaseServer } from '@/lib/supabase/server'
 
-const TENANT = 'LaplataLunaria'
-
 export async function GET(req: Request) {
   try {
     const supabase = supabaseServer()
@@ -20,7 +18,6 @@ export async function GET(req: Request) {
     let query = supabase
       .from('mm_material')
       .select('mm_material, mm_desc, commercial_name, mm_price_cents, mm_purchase_price_cents, unit_of_measure, status', { count: 'exact' })
-      .eq('tenant_id', TENANT)
       .eq('status', 'active')
       .order('mm_material')
 
@@ -40,7 +37,6 @@ export async function GET(req: Request) {
       pageSize 
     })
   } catch (error) {
-    console.error('Erro ao buscar materiais:', error)
     return NextResponse.json({ ok: false, error: 'Erro inesperado ao buscar materiais.' }, { status: 500 })
   }
 }
@@ -64,11 +60,17 @@ export async function POST(req: Request) {
       }, { status: 400 })
     }
 
+    // Obter tenant_id do usuário autenticado
+    const tenant_id = auth.user.user_metadata?.tenant_id
+    if (!tenant_id) {
+      return NextResponse.json({ ok: false, error: 'Tenant inválido' }, { status: 403 })
+    }
+
     // Inserir material - o trigger trg_mm_material_assign_id_bi gerará o mm_material automaticamente
     const { data, error: insErr } = await supabase
       .from('mm_material')
       .insert([{ 
-        tenant_id: TENANT, 
+        tenant_id, 
         mm_desc,
         // mm_material será gerado pelo trigger
         status: 'active',
@@ -85,7 +87,6 @@ export async function POST(req: Request) {
     if (insErr) return NextResponse.json({ ok: false, error: insErr.message }, { status: 400 })
     return NextResponse.json({ ok: true, mm_material: data.mm_material }, { status: 201 })
   } catch (error) {
-    console.error('Erro ao criar material:', error)
     return NextResponse.json({ ok: false, error: 'Erro inesperado ao criar material.' }, { status: 500 })
   }
 }

@@ -234,13 +234,13 @@ export default function NewPOClient({ vendors, materials, selectedVendorId }: Ne
   return (
     <form onSubmit={handleSubmit} className="space-y-8">
         {/* Informações do Pedido */}
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-          <h2 className="text-xl font-semibold text-gray-900 mb-6">Informações do Pedido</h2>
+        <div className="bg-gray-800 rounded-lg shadow-sm border border-gray-700 p-6">
+          <h2 className="text-xl font-semibold text-white mb-6">Informações do Pedido</h2>
           
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {/* Fornecedor */}
             <div>
-              <label htmlFor="vendor" className="block text-sm font-medium text-gray-700 mb-2">
+              <label htmlFor="vendor" className="block text-sm font-medium text-gray-300 mb-2">
                 Fornecedor *
               </label>
               <div className="flex gap-2">
@@ -249,7 +249,7 @@ export default function NewPOClient({ vendors, materials, selectedVendorId }: Ne
                   value={selectedVendor}
                   onChange={(e) => setSelectedVendor(e.target.value)}
                   required
-                  className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="flex-1 px-3 py-2 bg-gray-700 border border-gray-600 rounded-md text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
                 >
                   <option value="">Selecione um fornecedor</option>
                   {vendors.map(vendor => (
@@ -260,7 +260,7 @@ export default function NewPOClient({ vendors, materials, selectedVendorId }: Ne
                 </select>
                 <Link
                   href="/mm/vendors/new"
-                  className="px-4 py-2 bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200 transition-colors"
+                  className="px-4 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700 transition-colors"
                 >
                   Novo Fornecedor
                 </Link>
@@ -269,7 +269,7 @@ export default function NewPOClient({ vendors, materials, selectedVendorId }: Ne
 
             {/* Data do Pedido */}
             <div>
-              <label htmlFor="orderDate" className="block text-sm font-medium text-gray-700 mb-2">
+              <label htmlFor="orderDate" className="block text-sm font-medium text-gray-300 mb-2">
                 Data do Pedido *
               </label>
               <input
@@ -278,13 +278,13 @@ export default function NewPOClient({ vendors, materials, selectedVendorId }: Ne
                 value={orderDate}
                 onChange={(e) => setOrderDate(e.target.value)}
                 required
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-md text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
             </div>
 
             {/* Data de Entrega Esperada */}
             <div>
-              <label htmlFor="expectedDelivery" className="block text-sm font-medium text-gray-700 mb-2">
+              <label htmlFor="expectedDelivery" className="block text-sm font-medium text-gray-300 mb-2">
                 Data de Entrega Esperada
               </label>
               <input
@@ -292,25 +292,25 @@ export default function NewPOClient({ vendors, materials, selectedVendorId }: Ne
                 id="expectedDelivery"
                 value={expectedDelivery}
                 onChange={(e) => setExpectedDelivery(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-md text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
             </div>
 
             {/* Status */}
             <div>
-              <label htmlFor="status" className="block text-sm font-medium text-gray-700 mb-2">
+              <label htmlFor="status" className="block text-sm font-medium text-gray-300 mb-2">
                 Status
               </label>
-              <div className="px-3 py-2 bg-gray-50 border border-gray-300 rounded-md text-gray-700">
+              <div className="px-3 py-2 bg-gray-700 border border-gray-600 rounded-md text-white">
                 Rascunho
               </div>
-              <p className="mt-1 text-xs text-gray-500">Status inicial - será alterado ao salvar</p>
+              <p className="mt-1 text-xs text-gray-400">Status inicial - será alterado ao salvar</p>
             </div>
           </div>
 
           {/* Observações */}
           <div className="mt-6">
-            <label htmlFor="notes" className="block text-sm font-medium text-gray-700 mb-2">
+            <label htmlFor="notes" className="block text-sm font-medium text-gray-300 mb-2">
               Observações
             </label>
             <textarea
@@ -318,20 +318,20 @@ export default function NewPOClient({ vendors, materials, selectedVendorId }: Ne
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
               rows={3}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-md text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
               placeholder="Observações adicionais sobre o pedido..."
             />
           </div>
         </div>
 
         {/* Itens do Pedido */}
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+        <div className="bg-gray-800 rounded-lg shadow-sm border border-gray-700 p-6">
           <div className="flex items-center justify-between mb-6">
-            <h2 className="text-xl font-semibold text-gray-900">Itens do Pedido</h2>
+            <h2 className="text-xl font-semibold text-white">Itens do Pedido</h2>
             <button
               type="button"
               onClick={addItem}
-              className="btn-fiori-primary flex items-center gap-2"
+              className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 flex items-center gap-2"
             >
               <Plus className="w-4 h-4" />
               Adicionar Item
@@ -340,34 +340,34 @@ export default function NewPOClient({ vendors, materials, selectedVendorId }: Ne
 
           {items.length > 0 ? (
             <div className="overflow-x-auto">
-              <table className="min-w-full divide-y divide-gray-200">
-                <thead className="bg-gray-50">
+              <table className="min-w-full divide-y divide-gray-700">
+                <thead className="bg-gray-700">
                   <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
                       MATERIAL
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
                       QUANTIDADE
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
                       PREÇO (R$)
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
                       TOTAL (R$)
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
                       AÇÕES
                     </th>
                   </tr>
                 </thead>
-                <tbody className="bg-white divide-y divide-gray-200">
+                <tbody className="bg-gray-800 divide-y divide-gray-700">
                   {items.map((item) => (
                     <tr key={item.temp_id}>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <select
                           value={item.mm_material}
                           onChange={(e) => updateItem(item.temp_id, 'mm_material', e.target.value)}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-md text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
                         >
                           <option value="">Selecione um material</option>
                           {materials.map(material => (
@@ -383,20 +383,20 @@ export default function NewPOClient({ vendors, materials, selectedVendorId }: Ne
                           min="1"
                           value={item.mm_qtt}
                           onChange={(e) => updateItem(item.temp_id, 'mm_qtt', Number(e.target.value))}
-                          className="w-20 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          className="w-20 px-3 py-2 bg-gray-700 border border-gray-600 rounded-md text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
                         />
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-white">
                         {formatBRL(item.unit_cost_cents)}
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-white">
                         {formatBRL(item.line_total_cents)}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                         <button
                           type="button"
                           onClick={() => removeItem(item.temp_id)}
-                          className="text-red-600 hover:text-red-900"
+                          className="text-red-400 hover:text-red-300"
                         >
                           <Trash2 className="w-4 h-4" />
                         </button>
@@ -407,7 +407,7 @@ export default function NewPOClient({ vendors, materials, selectedVendorId }: Ne
               </table>
             </div>
           ) : (
-            <div className="text-center py-8 text-gray-500">
+            <div className="text-center py-8 text-gray-400">
               <p>Nenhum item adicionado ao pedido</p>
               <p className="text-sm">Clique em &quot;Adicionar Item&quot; para começar</p>
             </div>
@@ -415,19 +415,19 @@ export default function NewPOClient({ vendors, materials, selectedVendorId }: Ne
         </div>
 
         {/* Totais e Indicadores */}
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-          <h2 className="text-xl font-semibold text-gray-900 mb-6">Totais e Indicadores</h2>
+        <div className="bg-gray-800 rounded-lg shadow-sm border border-gray-700 p-6">
+          <h2 className="text-xl font-semibold text-white mb-6">Totais e Indicadores</h2>
           
           <div className="grid grid-cols-1 md:grid-cols-1 gap-6">
             {/* Valor Final */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-gray-300 mb-2">
                 Valor Final (R$)
               </label>
-              <div className="px-4 py-3 border-2 border-blue-200 rounded-lg bg-blue-50 text-blue-900 text-2xl font-bold">
+              <div className="px-4 py-3 border-2 border-blue-600 rounded-lg bg-blue-900 text-blue-100 text-2xl font-bold">
                 {formatBRL(totalCents)}
               </div>
-              <p className="mt-2 text-xs text-gray-500">
+              <p className="mt-2 text-xs text-gray-400">
                 Calculado automaticamente pela soma dos itens
               </p>
             </div>
@@ -455,14 +455,14 @@ export default function NewPOClient({ vendors, materials, selectedVendorId }: Ne
 
         {/* Mensagens */}
         {error && (
-          <div className="bg-red-50 border border-red-200 rounded-lg p-4">
-            <div className="text-red-800">{error}</div>
+          <div className="bg-red-900 border border-red-700 rounded-lg p-4">
+            <div className="text-red-200">{error}</div>
           </div>
         )}
 
         {successMessage && (
-          <div className="bg-green-50 border border-green-200 rounded-lg p-4">
-            <div className="text-green-800">{successMessage}</div>
+          <div className="bg-green-900 border border-green-700 rounded-lg p-4">
+            <div className="text-green-200">{successMessage}</div>
           </div>
         )}
     </form>

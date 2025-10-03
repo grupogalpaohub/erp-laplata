@@ -130,8 +130,8 @@ export default function NewSalesOrderForm({ customers, materials, selectedCustom
       formData.append('payment_term', paymentTerm)
       formData.append('notes', notes)
       formData.append('status', status)
-      formData.append('total_negotiated', (finalTotalNegotiatedCents / 100).toString())
-      formData.append('total', (totalFinalCents / 100).toString())
+      formData.append('total_negotiated', finalTotalNegotiatedCents.toString())
+      formData.append('total', totalFinalCents.toString())
       
       // Adicionar itens
       items.forEach(item => {

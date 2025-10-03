@@ -1,4 +1,4 @@
-# ERP LaPlata - Sistema de Gestão Empresarial
+# ERP LaPlata - Sistema de Gestão Empresarial (V2 Refactored)
 
 Sistema ERP completo desenvolvido com Next.js 14, TypeScript, Tailwind CSS e Supabase, inspirado no design SAP Fiori. Sistema modular com gestão completa de materiais, vendas, estoque, clientes e finanças.
 

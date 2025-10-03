@@ -15,14 +15,17 @@ interface User {
 
 export default function FioriShell({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null)
-  const [loading, setLoading] = useState(true)
   const pathname = usePathname()
+  
+  // Definir loading baseado na rota IMEDIATAMENTE
+  const loading = !(pathname?.startsWith("/auth/") || pathname === "/login")
+  const [userLoading, setUserLoading] = useState(true)
 
   useEffect(() => {
     console.log('🔍 FioriShell useEffect - pathname:', pathname)
     if (pathname?.startsWith("/auth/") || pathname === "/login") {
-      console.log('🔍 FioriShell - rota permitida, setLoading(false)')
-      setLoading(false)
+      console.log('🔍 FioriShell - rota permitida, setUserLoading(false)')
+      setUserLoading(false)
       return
     }
 
@@ -32,7 +35,7 @@ export default function FioriShell({ children }: { children: React.ReactNode }) 
     const getInitialSession = async () => {
       const { data: { session } } = await supabase.auth.getSession()
       setUser(session?.user ?? null)
-      setLoading(false)
+      setUserLoading(false)
     }
 
     getInitialSession()
@@ -41,16 +44,22 @@ export default function FioriShell({ children }: { children: React.ReactNode }) 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, session) => {
         setUser(session?.user ?? null)
-        setLoading(false)
+        setUserLoading(false)
       }
     )
 
     return () => subscription.unsubscribe()
   }, [pathname])
 
-  console.log('🔍 FioriShell render - loading:', loading, 'user:', user, 'pathname:', pathname)
+  console.log('🔍 FioriShell render - loading:', loading, 'userLoading:', userLoading, 'user:', user, 'pathname:', pathname)
 
-  if (loading) {
+  // Se for rota de login/auth, renderizar children imediatamente
+  if (!loading) {
+    console.log('🔍 FioriShell - rota permitida, renderizando children')
+    return <>{children}</>
+  }
+
+  if (userLoading) {
     console.log('🔍 FioriShell - mostrando loading')
     return (
       <div className="min-h-screen bg-gray-900 flex items-center justify-center">

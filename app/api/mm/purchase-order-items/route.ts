@@ -1,13 +1,21 @@
 import { NextResponse } from 'next/server'
 import { supabaseServer } from '@/lib/supabase/server'
+import { cookies } from 'next/headers'
 
 export async function GET(req: Request) {
   try {
     // ✅ GUARDRAIL COMPLIANCE: API usando supabaseServer() helper
-    const supabase = supabaseServer()
+    const cookieStore = cookies()
+    const supabase = supabaseServer(cookieStore)
     
-    // Tenant fixo conforme guardrails
-    const TENANT_ID = "LaplataLunaria"
+    // GUARDRAIL: Verificar autenticação via supabaseServer()
+    const { data: { user }, error: authError } = await supabase.auth.getUser()
+    if (authError || !user) {
+      return NextResponse.json({
+        ok: false,
+        error: { code: 'UNAUTHORIZED', message: 'Usuário não autenticado' }
+      }, { status: 401 })
+    }
     
     // Buscar parâmetros de query
     const { searchParams } = new URL(req.url)
@@ -15,11 +23,10 @@ export async function GET(req: Request) {
     const page = parseInt(searchParams.get('page') || '1')
     const pageSize = parseInt(searchParams.get('pageSize') || '50')
     
-    // Construir query base
+    // Construir query base - RLS filtra automaticamente por tenant_id
     let query = supabase
       .from('mm_purchase_order_item')
       .select('*', { count: 'exact' })
-      .eq('tenant_id', TENANT_ID)
     
     // Filtrar por order se fornecido
     if (mm_order) {
@@ -71,10 +78,17 @@ export async function GET(req: Request) {
 export async function POST(req: Request) {
   try {
     // ✅ GUARDRAIL COMPLIANCE: API usando supabaseServer() helper
-    const supabase = supabaseServer()
+    const cookieStore = cookies()
+    const supabase = supabaseServer(cookieStore)
     
-    // Tenant fixo conforme guardrails
-    const TENANT_ID = "LaplataLunaria"
+    // GUARDRAIL: Verificar autenticação via supabaseServer()
+    const { data: { user }, error: authError } = await supabase.auth.getUser()
+    if (authError || !user) {
+      return NextResponse.json({
+        ok: false,
+        error: { code: 'UNAUTHORIZED', message: 'Usuário não autenticado' }
+      }, { status: 401 })
+    }
     
     const body = await req.json()
     
@@ -97,8 +111,8 @@ export async function POST(req: Request) {
     const line_total_cents = Math.round(mm_qtt * unit_cost_cents)
     
     // Preparar dados para inserção - ✅ GUARDRAIL COMPLIANCE: Campos conforme db_contract.json
+    // RLS filtra automaticamente por tenant_id
     const itemData: any = {
-      tenant_id: TENANT_ID,
       mm_order: body.mm_order,
       plant_id: body.plant_id, // Obrigatório - sempre enviar (WH-001 ou selecionado)
       mm_material: body.mm_material,

@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
 import { supabaseServer } from '@/lib/supabase/server'
+import { cookies } from 'next/headers'
 
 type Params = { so_id: string }
 
@@ -10,7 +11,8 @@ export async function GET(_req: Request, { params }: { params: Params }) {
   }
 
   try {
-    const supabase = supabaseServer()
+    const cookieStore = cookies()
+    const supabase = supabaseServer(cookieStore)
 
     // Buscar pedido de vendas
     const { data: order, error } = await supabase
@@ -69,19 +71,13 @@ export async function PUT(req: Request, { params }: { params: Params }) {
   }
 
   try {
-    const supabase = supabaseServer()
-    
-    // 🔍 DEBUG: Verificar o que está sendo enviado
-    const rawBody = await req.text()
-    console.log('🔍 [DEBUG] Raw body received:', rawBody)
+    const cookieStore = cookies()
+    const supabase = supabaseServer(cookieStore)
     
     let body
     try {
-      body = JSON.parse(rawBody)
-      console.log('🔍 [DEBUG] Parsed body:', body)
+      body = await req.json()
     } catch (parseError) {
-      console.error('🔍 [DEBUG] JSON parse error:', parseError)
-      console.error('🔍 [DEBUG] Raw body that failed to parse:', rawBody)
       return NextResponse.json({ 
         ok: false, 
         error: { 
@@ -125,9 +121,7 @@ export async function PUT(req: Request, { params }: { params: Params }) {
       total_negotiated_cents: body.totalNegotiatedCents || body.totalFinalCents || 0,
     }
 
-    // 🔍 DEBUG: Dados que serão atualizados
-    console.log('🔍 [DEBUG] Update data:', updateData)
-    console.log('🔍 [DEBUG] SO ID:', soId)
+    // Dados preparados para atualização
 
     // Atualizar pedido
     const { data, error } = await supabase

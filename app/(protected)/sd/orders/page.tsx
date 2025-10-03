@@ -46,9 +46,7 @@ export default async function SalesOrdersPage() {
     const { data: { session } } = await supabase.auth.getSession()
     const tenant_id = session?.user?.user_metadata?.tenant_id || 'LaplataLunaria'
     
-    // 🔍 DEBUG: Verificar sessão e tenant
-    console.log('🔍 [DEBUG] Session:', session)
-    console.log('🔍 [DEBUG] Tenant ID:', tenant_id)
+    // Sessão e tenant verificados via RLS
 
     // Buscar pedidos com paginação
     const { data, count, error } = await supabase

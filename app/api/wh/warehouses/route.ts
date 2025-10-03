@@ -1,19 +1,25 @@
 import { NextResponse } from 'next/server'
 import { supabaseServer } from '@/lib/supabase/server'
+import { cookies } from 'next/headers'
 
 export async function GET() {
   try {
-    const supabase = supabaseServer()
+    const cookieStore = cookies()
+    const supabase = supabaseServer(cookieStore)
     
-    // Obter tenant_id da sessão
-    const { data: { session } } = await supabase.auth.getSession()
-    const tenant_id = session?.user?.user_metadata?.tenant_id || 'LaplataLunaria'
+    // GUARDRAIL: Verificar autenticação via supabaseServer()
+    const { data: { user }, error: authError } = await supabase.auth.getUser()
+    if (authError || !user) {
+      return NextResponse.json({
+        ok: false,
+        error: { code: 'UNAUTHORIZED', message: 'Usuário não autenticado' }
+      }, { status: 401 })
+    }
 
-    // Buscar warehouses ativos
+    // Buscar warehouses ativos - RLS filtra automaticamente por tenant_id
     const { data: warehouses, error } = await supabase
       .from('wh_warehouse')
       .select('warehouse_id, warehouse_name, location, status')
-      .eq('tenant_id', tenant_id)
       .eq('status', 'active')
       .order('warehouse_name')
 

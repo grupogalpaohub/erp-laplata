@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { supabaseServer } from '@/lib/supabase/server';
+import { cookies } from 'next/headers';
 import { z } from 'zod';
 
 const CreateSOItemBody = z.object({
@@ -11,7 +12,8 @@ const CreateSOItemBody = z.object({
 
 export async function POST(req: NextRequest) {
   try {
-    const supabase = supabaseServer();
+    const cookieStore = cookies();
+    const supabase = supabaseServer(cookieStore);
 
     const body = await req.json();
     
@@ -33,22 +35,19 @@ export async function POST(req: NextRequest) {
 
     const dto = parse.data;
     
-    // GUARDRAIL: Derivar tenant_id da sessão
-    const { data: session } = await supabase.auth.getSession();
-    if (!session?.session?.user) {
+    // GUARDRAIL: Verificar autenticação via supabaseServer()
+    const { data: { user }, error } = await supabase.auth.getUser();
+    if (error || !user) {
       return NextResponse.json({
         ok: false,
         error: { code: 'UNAUTHORIZED', message: 'Usuário não autenticado' }
       }, { status: 401 });
     }
-    
-    const tenant_id = session.session.user.user_metadata?.tenant_id || 'LaplataLunaria';
 
-    // Validar FK mm_material
+    // Validar FK mm_material - RLS filtra automaticamente por tenant_id
     const { data: material, error: materialError } = await supabase
       .from('mm_material')
       .select('mm_material')
-      .eq('tenant_id', tenant_id)
       .eq('mm_material', dto.mm_material)
       .single();
 
@@ -59,11 +58,10 @@ export async function POST(req: NextRequest) {
       }, { status: 400 });
     }
 
-    // Validar FK so_id
+    // Validar FK so_id - RLS filtra automaticamente por tenant_id
     const { data: salesOrder, error: soError } = await supabase
       .from('sd_sales_order')
       .select('so_id')
-      .eq('tenant_id', tenant_id)
       .eq('so_id', dto.so_id)
       .single();
 
@@ -89,10 +87,10 @@ export async function POST(req: NextRequest) {
 
     const row_no = (lastItem?.row_no || 0) + 1;
 
+    // RLS filtra automaticamente por tenant_id
     const { data, error } = await supabase
       .from('sd_sales_order_item')
       .insert({
-        tenant_id,
         so_id: dto.so_id,
         row_no,
         mm_material: dto.mm_material,    // Chave de material
@@ -125,7 +123,8 @@ export async function POST(req: NextRequest) {
 
 export async function GET(req: NextRequest) {
   try {
-    const supabase = supabaseServer();
+    const cookieStore = cookies();
+    const supabase = supabaseServer(cookieStore);
 
     const { searchParams } = new URL(req.url);
     const so_id = searchParams.get('so_id');
@@ -134,21 +133,19 @@ export async function GET(req: NextRequest) {
     const from = (page - 1) * pageSize;
     const to = from + pageSize - 1;
 
-    // GUARDRAIL: Derivar tenant_id da sessão
-    const { data: session } = await supabase.auth.getSession();
-    if (!session?.session?.user) {
+    // GUARDRAIL: Verificar autenticação via supabaseServer()
+    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    if (authError || !user) {
       return NextResponse.json({
         ok: false,
         error: { code: 'UNAUTHORIZED', message: 'Usuário não autenticado' }
       }, { status: 401 });
     }
-    
-    const tenant_id = session.session.user.user_metadata?.tenant_id || 'LaplataLunaria';
 
+    // RLS filtra automaticamente por tenant_id
     let query = supabase
       .from('sd_sales_order_item')
       .select('*', { count: 'exact' })
-      .eq('tenant_id', tenant_id)
       .range(from, to);
 
     if (so_id) {

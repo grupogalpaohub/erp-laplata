@@ -5,20 +5,42 @@
  */
 
 /**
- * Converte string de moeda brasileira para centavos
+ * Converte string/number para centavos com segurança (evita float glitches)
+ * aceita "1.234,56", "1234.56", 1234.56, "R$ 1.234,56"
+ */
+export function toCents(input: string | number): number {
+  const s = String(input)
+    .replace(/\s/g, '')
+    .replace(/[R$\u00A0]/g, '')
+    .replace(/\./g, '')         // remove separador de milhar
+    .replace(/,/g, '.')         // vírgula -> ponto
+  const n = Number(s)
+  if (Number.isNaN(n)) throw new Error('Valor inválido')
+  return Math.round(n * 100)
+}
+
+/**
+ * Formata valor em centavos para moeda brasileira
+ * Ex: 12345 → "R$ 123,45"
+ */
+export function formatBRL(cents: number): string {
+  const v = (cents ?? 0) / 100
+  return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(v)
+}
+
+/**
+ * Converte string de moeda brasileira para centavos (legacy - usar toCents)
  * Ex: "R$ 123,45" → 12345
  */
 export const parseBRLToCents = (txt: string): number => {
-  const onlyNums = txt.replace(/[^\d,,-.]/g, "").replace(/\./g, "").replace(",", ".");
-  const val = Number(onlyNums);
-  return Number.isFinite(val) ? Math.round(val * 100) : 0;
+  return toCents(txt);
 };
 
 /**
- * Converte número para centavos
+ * Converte número para centavos (legacy - usar toCents)
  * Ex: 123.45 → 12345
  */
-export const cents = (n: number) => Math.round(n * 100);
+export const cents = (n: number) => toCents(n);
 
 /**
  * Converte centavos para número decimal
@@ -31,23 +53,4 @@ export const centsToDecimal = (cents: number) => cents / 100;
  */
 export const isValidCents = (value: any): value is number => {
   return typeof value === 'number' && Number.isFinite(value) && value >= 0;
-};
-
-/**
- * Converte número ou string para centavos
- */
-export const toCents = (value: number | string) => {
-  const n = typeof value === 'string' ? Number(value.replace(/\./g,'').replace(',','.')) : value
-  return Math.round(n * 100)
-}
-
-/**
- * Formata valor em centavos para moeda brasileira
- */
-export const formatBRL = (cents: number): string => {
-  const value = (cents ?? 0) / 100;
-  return new Intl.NumberFormat('pt-BR', {
-    style: 'currency',
-    currency: 'BRL'
-  }).format(value);
 };

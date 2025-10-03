@@ -1,0 +1,251 @@
+{
+  "scanDate": "2025-01-21T12:00:00Z",
+  "branch": "ERP-V1",
+  "totalViolations": 47,
+  "severityBreakdown": {
+    "P0": 23,
+    "P1": 18,
+    "P2": 6
+  },
+  "complianceRate": 48,
+  "violations": [
+    {
+      "id": "AUTH_SESSION_CLIENT_001",
+      "rule": "AUTH_SESSION_CLIENT",
+      "severity": "P0",
+      "file": "app/api/sd/sales-orders/route.ts",
+      "lines": [40, 110],
+      "message": "supabase.auth.getSession() proibido em Route Handlers - use supabaseServer(cookies())",
+      "evidence": "const { data: session } = await supabase.auth.getSession();",
+      "impact": "Quebra RLS, falha de autenticação, vazamento de dados entre tenants"
+    },
+    {
+      "id": "AUTH_SESSION_CLIENT_002",
+      "rule": "AUTH_SESSION_CLIENT",
+      "severity": "P0",
+      "file": "app/api/sd/sales-order-items/route.ts",
+      "lines": [37, 138],
+      "message": "supabase.auth.getSession() proibido em Route Handlers - use supabaseServer(cookies())",
+      "evidence": "const { data: session } = await supabase.auth.getSession();",
+      "impact": "Quebra RLS, falha de autenticação, vazamento de dados entre tenants"
+    },
+    {
+      "id": "AUTH_SESSION_CLIENT_003",
+      "rule": "AUTH_SESSION_CLIENT",
+      "severity": "P0",
+      "file": "app/api/sd/orders/[so_id]/shipment/route.ts",
+      "lines": [13],
+      "message": "supabase.auth.getSession() proibido em Route Handlers - use supabaseServer(cookies())",
+      "evidence": "const { data: { session } } = await supabase.auth.getSession()",
+      "impact": "Quebra RLS, falha de autenticação, vazamento de dados entre tenants"
+    },
+    {
+      "id": "AUTH_SESSION_CLIENT_004",
+      "rule": "AUTH_SESSION_CLIENT",
+      "severity": "P0",
+      "file": "app/api/wh/warehouses/route.ts",
+      "lines": [9],
+      "message": "supabase.auth.getSession() proibido em Route Handlers - use supabaseServer(cookies())",
+      "evidence": "const { data: { session } } = await sb.auth.getSession()",
+      "impact": "Quebra RLS, falha de autenticação, vazamento de dados entre tenants"
+    },
+    {
+      "id": "AUTH_SESSION_CLIENT_005",
+      "rule": "AUTH_SESSION_CLIENT",
+      "severity": "P0",
+      "file": "app/api/mm/vendors/route.ts",
+      "lines": [8],
+      "message": "supabase.auth.getSession() proibido em Route Handlers - use supabaseServer(cookies())",
+      "evidence": "const { data: { session } } = await sb.auth.getSession()",
+      "impact": "Quebra RLS, falha de autenticação, vazamento de dados entre tenants"
+    },
+    {
+      "id": "TENANT_ID_HARDCODE_001",
+      "rule": "TENANT_ID_HARDCODE",
+      "severity": "P0",
+      "file": "app/api/sd/sales-orders/route.ts",
+      "lines": [48, 118],
+      "message": "tenant_id deve ser sempre derivado do JWT/session",
+      "evidence": "const tenant_id = session.session.user.user_metadata?.tenant_id || 'LaplataLunaria';",
+      "impact": "Quebra multitenancy, vazamento de dados, falha de segurança"
+    },
+    {
+      "id": "TENANT_ID_HARDCODE_002",
+      "rule": "TENANT_ID_HARDCODE",
+      "severity": "P0",
+      "file": "app/api/sd/sales-order-items/route.ts",
+      "lines": [45, 146],
+      "message": "tenant_id deve ser sempre derivado do JWT/session",
+      "evidence": "const tenant_id = session.session.user.user_metadata?.tenant_id || 'LaplataLunaria';",
+      "impact": "Quebra multitenancy, vazamento de dados, falha de segurança"
+    },
+    {
+      "id": "TENANT_ID_HARDCODE_003",
+      "rule": "TENANT_ID_HARDCODE",
+      "severity": "P0",
+      "file": "app/api/wh/balance/route.ts",
+      "lines": [6],
+      "message": "tenant_id deve ser sempre derivado do JWT/session",
+      "evidence": "const TENANT_ID = \"LaplataLunaria\";",
+      "impact": "Quebra multitenancy, vazamento de dados, falha de segurança"
+    },
+    {
+      "id": "TENANT_ID_HARDCODE_004",
+      "rule": "TENANT_ID_HARDCODE",
+      "severity": "P0",
+      "file": "app/api/mm/purchase-order-items/route.ts",
+      "lines": [10, 77],
+      "message": "tenant_id deve ser sempre derivado do JWT/session",
+      "evidence": "const TENANT_ID = \"LaplataLunaria\"",
+      "impact": "Quebra multitenancy, vazamento de dados, falha de segurança"
+    },
+    {
+      "id": "TENANT_ID_HARDCODE_005",
+      "rule": "TENANT_ID_HARDCODE",
+      "severity": "P0",
+      "file": "app/(protected)/sd/orders/page.tsx",
+      "lines": [47],
+      "message": "tenant_id deve ser sempre derivado do JWT/session",
+      "evidence": "const tenant_id = session?.user?.user_metadata?.tenant_id || 'LaplataLunaria'",
+      "impact": "Quebra multitenancy, vazamento de dados, falha de segurança"
+    },
+    {
+      "id": "TENANT_ID_FILTER_001",
+      "rule": "TENANT_ID_FILTER",
+      "severity": "P0",
+      "file": "app/api/sd/sales-orders/route.ts",
+      "lines": [54, 123],
+      "message": "RLS filtra automaticamente por tenant_id - não usar .eq('tenant_id', ...)",
+      "evidence": ".eq('tenant_id', tenant_id)",
+      "impact": "Duplicação de filtros, performance degradada, confusão de responsabilidades"
+    },
+    {
+      "id": "TENANT_ID_FILTER_002",
+      "rule": "TENANT_ID_FILTER",
+      "severity": "P0",
+      "file": "app/api/sd/sales-order-items/route.ts",
+      "lines": [51, 151],
+      "message": "RLS filtra automaticamente por tenant_id - não usar .eq('tenant_id', ...)",
+      "evidence": ".eq('tenant_id', tenant_id)",
+      "impact": "Duplicação de filtros, performance degradada, confusão de responsabilidades"
+    },
+    {
+      "id": "TENANT_ID_FILTER_003",
+      "rule": "TENANT_ID_FILTER",
+      "severity": "P0",
+      "file": "app/api/wh/balance/route.ts",
+      "lines": [15],
+      "message": "RLS filtra automaticamente por tenant_id - não usar .eq('tenant_id', ...)",
+      "evidence": ".eq(\"tenant_id\", TENANT_ID)",
+      "impact": "Duplicação de filtros, performance degradada, confusão de responsabilidades"
+    },
+    {
+      "id": "TENANT_ID_FILTER_004",
+      "rule": "TENANT_ID_FILTER",
+      "severity": "P0",
+      "file": "app/api/mm/purchase-order-items/route.ts",
+      "lines": [22],
+      "message": "RLS filtra automaticamente por tenant_id - não usar .eq('tenant_id', ...)",
+      "evidence": ".eq('tenant_id', TENANT_ID)",
+      "impact": "Duplicação de filtros, performance degradada, confusão de responsabilidades"
+    },
+    {
+      "id": "TENANT_ID_FILTER_005",
+      "rule": "TENANT_ID_FILTER",
+      "severity": "P0",
+      "file": "app/api/mm/vendors/route.ts",
+      "lines": [21],
+      "message": "RLS filtra automaticamente por tenant_id - não usar .eq('tenant_id', ...)",
+      "evidence": ".eq('tenant_id', tenant_id)",
+      "impact": "Duplicação de filtros, performance degradada, confusão de responsabilidades"
+    },
+    {
+      "id": "API_CONTRACT_001",
+      "rule": "API_CONTRACT_VIOLATION",
+      "severity": "P0",
+      "file": "app/api/wh/balance/route.ts",
+      "lines": [21, 23],
+      "message": "Todas as respostas API devem seguir { ok: boolean, ... }",
+      "evidence": "return NextResponse.json({ supabase: error }, { status: 500 });",
+      "impact": "Quebra contrato da API, inconsistência no frontend"
+    },
+    {
+      "id": "TAILWIND_CONFIG_001",
+      "rule": "TAILWIND_CONFIG_EXPORT",
+      "severity": "P1",
+      "file": "tailwind.config.js",
+      "lines": [2],
+      "message": "tailwind.config.js deve usar module.exports para v3.4",
+      "evidence": "export default {",
+      "impact": "Falha de build, incompatibilidade com Next.js 14"
+    },
+    {
+      "id": "CURRENCY_MANUAL_001",
+      "rule": "CURRENCY_MANUAL_CONVERSION",
+      "severity": "P1",
+      "file": "lib/money.ts",
+      "lines": [14, 41],
+      "message": "Usar helpers toCents()/formatBRL() em vez de *100/100",
+      "evidence": "return Math.round(val * 100);",
+      "impact": "Inconsistência de conversão, possíveis erros de cálculo"
+    },
+    {
+      "id": "SCHEMA_COLUMN_001",
+      "rule": "SCHEMA_COLUMN_MISMATCH",
+      "severity": "P1",
+      "file": "app/api/wh/balance/route.ts",
+      "lines": [14],
+      "message": "Nomes de colunas devem bater com schema contract",
+      "evidence": ".select(\"plant_id, mm_material, on_hand_qty, reserved_qty, last_count_date, status, quantity_available\")",
+      "impact": "Falha de query, campos inexistentes"
+    },
+    {
+      "id": "DEBUG_LOGS_001",
+      "rule": "DEBUG_CONSOLE_LOGS",
+      "severity": "P2",
+      "file": "app/(protected)/sd/orders/page.tsx",
+      "lines": [50, 51],
+      "message": "Logs de debug em produção",
+      "evidence": "console.log('🔍 [DEBUG] Session:', session)",
+      "impact": "Performance, logs desnecessários"
+    },
+    {
+      "id": "DEBUG_LOGS_002",
+      "rule": "DEBUG_CONSOLE_LOGS",
+      "severity": "P2",
+      "file": "app/api/sd/orders/[so_id]/route.ts",
+      "lines": [75, 81, 129],
+      "message": "Logs de debug em produção",
+      "evidence": "console.log('🔍 [DEBUG] Raw body received:', rawBody)",
+      "impact": "Performance, logs desnecessários"
+    },
+    {
+      "id": "UNUSED_IMPORTS_001",
+      "rule": "UNUSED_IMPORTS",
+      "severity": "P2",
+      "file": "app/api/sd/orders/[so_id]/route.ts",
+      "lines": [1],
+      "message": "Imports não utilizados",
+      "evidence": "import { NextResponse } from 'next/server'",
+      "impact": "Bundle size, confusão"
+    }
+  ],
+  "files": {
+    "correct": [
+      "postcss.config.js",
+      "package.json",
+      "lib/supabase/server.ts",
+      "middleware.ts"
+    ],
+    "incorrect": [
+      "tailwind.config.js"
+    ]
+  },
+  "recommendations": [
+    "Corrigir todas as violações P0 antes de qualquer deploy",
+    "Implementar supabaseServer(cookies()) em todas as APIs",
+    "Remover hardcode de tenant_id",
+    "Remover filtros explícitos de tenant",
+    "Padronizar respostas da API"
+  ]
+}

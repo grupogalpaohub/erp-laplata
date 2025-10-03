@@ -1,12 +1,19 @@
 import { supabaseServer } from '@/lib/supabase/server'
 import { NextResponse } from "next/server";
+import { cookies } from 'next/headers';
 
 export async function GET(req: Request) {
-  const sb = supabaseServer()
+  const cookieStore = cookies()
+  const sb = supabaseServer(cookieStore)
   
-  // Obter tenant_id da sessão
-  const { data: { session } } = await sb.auth.getSession()
-  const tenant_id = session?.user?.user_metadata?.tenant_id || 'LaplataLunaria'
+  // GUARDRAIL: Verificar autenticação via supabaseServer()
+  const { data: { user }, error: authError } = await sb.auth.getUser()
+  if (authError || !user) {
+    return NextResponse.json({
+      ok: false,
+      error: { code: 'UNAUTHORIZED', message: 'Usuário não autenticado' }
+    }, { status: 401 })
+  }
   
   const url = new URL(req.url);
   const q = url.searchParams.get("q")?.trim() ?? "";
@@ -18,7 +25,8 @@ export async function GET(req: Request) {
   const from = (page - 1) * pageSize;
   const to = from + pageSize - 1;
   
-  const { data, count, error } = await query.eq('tenant_id', tenant_id).range(from, to);
+  // RLS filtra automaticamente por tenant_id
+  const { data, count, error } = await query.range(from, to);
   if (error) return NextResponse.json({ ok:false, error: error.message }, { status: 400 });
 
   return NextResponse.json({ ok:true, items: data, total: count ?? 0, page, pageSize });

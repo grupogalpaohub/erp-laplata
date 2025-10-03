@@ -1,19 +1,26 @@
 import { NextResponse } from 'next/server'
 import { supabaseServer } from '@/lib/supabase/server'
+import { cookies } from 'next/headers'
 
 export async function GET(
   request: Request,
   { params }: { params: { so_id: string } }
 ) {
   try {
-    const supabase = supabaseServer()
+    const cookieStore = cookies()
+    const supabase = supabaseServer(cookieStore)
     const { so_id } = params
 
-    // Obter tenant_id da sessão
-    const { data: { session } } = await supabase.auth.getSession()
-    const tenant_id = session?.user?.user_metadata?.tenant_id || 'LaplataLunaria'
+    // GUARDRAIL: Verificar autenticação via supabaseServer()
+    const { data: { user }, error: authError } = await supabase.auth.getUser()
+    if (authError || !user) {
+      return NextResponse.json({
+        ok: false,
+        error: { code: 'UNAUTHORIZED', message: 'Usuário não autenticado' }
+      }, { status: 401 })
+    }
 
-    // Buscar shipment do pedido
+    // Buscar shipment do pedido - RLS filtra automaticamente por tenant_id
     const { data: shipment, error } = await supabase
       .from('sd_shipment')
       .select(`
@@ -25,7 +32,6 @@ export async function GET(
         created_at
       `)
       .eq('so_id', so_id)
-      .eq('tenant_id', tenant_id)
       .single()
 
     if (error) {

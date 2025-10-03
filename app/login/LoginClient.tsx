@@ -45,7 +45,8 @@ export default function LoginClient() {
     const { error } = await sb.auth.signInWithOAuth({
       provider: 'google',
       options: {
-        redirectTo: `${window.location.origin}/auth/callback`
+        redirectTo: `${process.env.NEXT_PUBLIC_BASE_URL || window.location.origin}/auth/callback`,
+        queryParams: { prompt: "consent" }
       }
     });
     

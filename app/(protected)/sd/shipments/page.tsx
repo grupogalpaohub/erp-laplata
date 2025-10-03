@@ -12,16 +12,6 @@ interface Shipment {
   status: string
   ship_date: string | null
   created_at: string
-  sd_sales_order: {
-    customer_id: string
-    order_date: string
-    status: string
-  }
-  crm_customer: {
-    customer_name: string
-    email: string
-    phone: string
-  }
 }
 
 export default async function ShipmentsPage() {
@@ -30,7 +20,7 @@ export default async function ShipmentsPage() {
   try {
     const tenantId = await requireTenantId()
     
-    // Buscar shipments
+    // Buscar shipments (sem alias inválido por enquanto)
     const { data: shipments, error } = await supabase
       .from('sd_shipment')
       .select(`
@@ -39,17 +29,7 @@ export default async function ShipmentsPage() {
         warehouse_id,
         status,
         ship_date,
-        created_at,
-        sd_sales_order:so_id(
-          customer_id,
-          order_date,
-          status
-        ),
-        crm_customer:sd_sales_order.customer_id(
-          customer_name,
-          email,
-          phone
-        )
+        created_at
       `)
       .eq('tenant_id', tenantId)
       .order('created_at', { ascending: false })
@@ -72,7 +52,10 @@ export default async function ShipmentsPage() {
       )
     }
 
-    const shipmentsData = shipments as Shipment[] || []
+    // Checagem defensiva para evitar erro de compilação
+    const shipmentsData: Shipment[] = Array.isArray(shipments)
+      ? (shipments as unknown as Shipment[])
+      : []
 
     return (
       <div className="min-h-screen bg-gray-900 p-6">
@@ -201,7 +184,7 @@ export default async function ShipmentsPage() {
                           </Link>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-white">
-                          {shipment.crm_customer?.customer_name || 'N/A'}
+                          Cliente (ID: {shipment.so_id})
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
                           <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${

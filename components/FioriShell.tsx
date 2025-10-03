@@ -15,6 +15,9 @@ export default async function FioriShell({ children }: { children: React.ReactNo
     user = null;
     isAuthenticated = false;
   }
+  
+  // Debug: log do estado de autenticação
+  console.log('FioriShell - isAuthenticated:', isAuthenticated, 'user:', user?.email);
 
   return (
     <div className="min-h-screen bg-fiori-primary">

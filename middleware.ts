@@ -4,8 +4,15 @@ import { createServerClient } from "@supabase/ssr";
 export async function middleware(req: any) {
   const res = NextResponse.next();
   
-  // Evitar loops infinitos - se já está redirecionando, não redireciona novamente
-  if (req.nextUrl.pathname.startsWith('/login') && req.headers.get('x-redirect-count')) {
+  // Permitir acesso direto ao /login SEM verificação de sessão
+  if (req.nextUrl.pathname === "/login") {
+    return res;
+  }
+  
+  // Permitir acesso a arquivos estáticos e APIs
+  if (req.nextUrl.pathname.startsWith('/_next') || 
+      req.nextUrl.pathname.startsWith('/api') ||
+      req.nextUrl.pathname.startsWith('/auth')) {
     return res;
   }
   
@@ -30,17 +37,10 @@ export async function middleware(req: any) {
   try {
     const { data } = await supabase.auth.getSession();
     
-    // Se estiver autenticado E tentando acessar /login, redireciona para dashboard
-    if (req.nextUrl.pathname === "/login" && data.session) {
-      return NextResponse.redirect(new URL("/dashboard", req.url));
-    }
-    
     // Se não estiver autenticado E tentando acessar páginas protegidas, redireciona para login
     const protectedPaths = ["/dashboard", "/mm", "/sd", "/wh", "/co", "/crm", "/fi", "/analytics"];
     if (protectedPaths.some(path => req.nextUrl.pathname.startsWith(path)) && !data.session) {
-      const loginUrl = new URL("/login", req.url);
-      loginUrl.searchParams.set('redirect', req.nextUrl.pathname);
-      return NextResponse.redirect(loginUrl);
+      return NextResponse.redirect(new URL("/login", req.url));
     }
     
     // Se não estiver autenticado E tentando acessar /, redireciona para login

@@ -10,8 +10,19 @@ export async function getUserServer() {
     };
   }
   
-  const supabase = supabaseServer();
-  const { data: { user } } = await supabase.auth.getUser();
-  return user ?? null;
+  try {
+    const supabase = supabaseServer();
+    const { data: { user }, error } = await supabase.auth.getUser();
+    
+    if (error) {
+      console.error('getUserServer error:', error);
+      return null;
+    }
+    
+    return user ?? null;
+  } catch (error) {
+    console.error('getUserServer catch error:', error);
+    return null;
+  }
 }
 

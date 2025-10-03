@@ -1,12 +1,9 @@
-import { requireSession } from '@/lib/auth/requireSession'
+export const runtime = 'nodejs';
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+export const fetchCache = 'default-no-store';
 
-// Forçar SSR em todas as páginas protegidas
-export const dynamic = 'force-dynamic'
-export const revalidate = 0
-export const fetchCache = 'default-no-store'
-export const runtime = 'nodejs'
-
-export default async function ProtectedLayout({ children }: { children: React.ReactNode }) {
-  await requireSession()
-  return <>{children}</>
+export default function ProtectedLayout({ children }: { children: React.ReactNode }) {
+  // NADA de supabase aqui; apenas render.
+  return children;
 }

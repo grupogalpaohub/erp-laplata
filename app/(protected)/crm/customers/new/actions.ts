@@ -60,9 +60,20 @@ export async function createCustomerAction(formData: FormData) {
     // ✅ Gerar PK texto exigida pelo schema
     const customer_id = `CUST-${Date.now()}`;
 
+    // ✅ Obter tenant_id do usuário autenticado
+    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    if (authError || !user) {
+      return { ok: false, error: 'Usuário não autenticado' };
+    }
+    const tenant_id = user.user_metadata?.tenant_id;
+    if (!tenant_id) {
+      return { ok: false, error: 'Tenant não encontrado' };
+    }
+
     // ✅ Use EXATAMENTE os nomes REAIS das colunas do schema crm_customer
     const payload = {
       customer_id,
+      tenant_id, // ✅ OBRIGATÓRIO para RLS
       name: c.name,
       customer_type: c.customer_type,
       status: 'active',

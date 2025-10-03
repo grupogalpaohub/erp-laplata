@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
 import { supabaseServer } from '@/lib/supabase/server'
+import { requireTenantId } from '@/utils/tenant'
 
 export async function POST(
   request: Request,
@@ -9,16 +10,20 @@ export async function POST(
     const supabase = supabaseServer()
     const { shipment_id } = params
 
-    // Obter tenant_id da sessão
-    const { data: { session } } = await supabase.auth.getSession()
-    const tenant_id = session?.user?.user_metadata?.tenant_id || 'LaplataLunaria'
+    // GUARDRAIL: Verificar autenticação via supabaseServer()
+    const { data: { user }, error: authError } = await supabase.auth.getUser()
+    if (authError || !user) {
+      return NextResponse.json({
+        ok: false,
+        error: { code: 'UNAUTHORIZED', message: 'Usuário não autenticado' }
+      }, { status: 401 })
+    }
 
-    // Verificar se o shipment existe e está allocated
+    // Verificar se o shipment existe e está allocated - RLS filtra automaticamente por tenant_id
     const { data: shipment, error: shipmentError } = await supabase
       .from('sd_shipment')
       .select('shipment_id, so_id, status, warehouse_id')
       .eq('shipment_id', shipment_id)
-      .eq('tenant_id', tenant_id)
       .single()
 
     if (shipmentError || !shipment) {
@@ -35,7 +40,7 @@ export async function POST(
       }, { status: 400 })
     }
 
-    // Atualizar status do shipment para shipped
+    // Atualizar status do shipment para shipped - RLS filtra automaticamente por tenant_id
     const { error: updateError } = await supabase
       .from('sd_shipment')
       .update({ 
@@ -43,25 +48,21 @@ export async function POST(
         ship_date: new Date().toISOString().split('T')[0] // hoje
       })
       .eq('shipment_id', shipment_id)
-      .eq('tenant_id', tenant_id)
 
     if (updateError) {
-      console.error('Error updating shipment status:', updateError)
       return NextResponse.json({
         ok: false,
         error: { code: 'UPDATE_ERROR', message: updateError.message }
       }, { status: 500 })
     }
 
-    // Atualizar status do pedido para shipped
+    // Atualizar status do pedido para shipped - RLS filtra automaticamente por tenant_id
     const { error: orderUpdateError } = await supabase
       .from('sd_sales_order')
       .update({ status: 'shipped' })
       .eq('so_id', shipment.so_id)
-      .eq('tenant_id', tenant_id)
 
     if (orderUpdateError) {
-      console.error('Error updating order status:', orderUpdateError)
       // Não falhar por causa do status do pedido
     }
 
@@ -75,10 +76,9 @@ export async function POST(
     })
 
   } catch (error: any) {
-    console.error('Error shipping order:', error)
     return NextResponse.json({
       ok: false,
-      error: { message: String(error?.message ?? error) }
+      error: { code: 'INTERNAL_ERROR', message: 'Erro interno do servidor' }
     }, { status: 500 })
   }
 }

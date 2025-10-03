@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { supabaseServer } from '@/lib/supabase/server';
+import { requireTenantId } from '@/utils/tenant';
 import { z } from 'zod';
 
 // Schema baseado no Inventário 360° real
@@ -36,22 +37,22 @@ export async function POST(req: NextRequest) {
 
     const dto = parse.data;
     
-    // GUARDRAIL: Derivar tenant_id da sessão
-    const { data: session } = await supabase.auth.getSession();
-    if (!session?.session?.user) {
+    // GUARDRAIL: Verificar autenticação via supabaseServer()
+    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    if (authError || !user) {
       return NextResponse.json({
         ok: false,
         error: { code: 'UNAUTHORIZED', message: 'Usuário não autenticado' }
       }, { status: 401 });
     }
-    
-    const tenant_id = session.session.user.user_metadata?.tenant_id || 'LaplataLunaria';
 
-    // Validar FK account_id
+    // Obter tenant_id via helper
+    const tenant_id = await requireTenantId();
+
+    // Validar FK account_id - RLS filtra automaticamente por tenant_id
     const { data: account, error: accountError } = await supabase
       .from('fi_account')
       .select('account_id')
-      .eq('tenant_id', tenant_id)
       .eq('account_id', dto.account_id)
       .single();
 
@@ -103,21 +104,19 @@ export async function GET(req: NextRequest) {
     const from = (page - 1) * pageSize;
     const to = from + pageSize - 1;
 
-    // GUARDRAIL: Derivar tenant_id da sessão
-    const { data: session } = await supabase.auth.getSession();
-    if (!session?.session?.user) {
+    // GUARDRAIL: Verificar autenticação via supabaseServer()
+    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    if (authError || !user) {
       return NextResponse.json({
         ok: false,
         error: { code: 'UNAUTHORIZED', message: 'Usuário não autenticado' }
       }, { status: 401 });
     }
-    
-    const tenant_id = session.session.user.user_metadata?.tenant_id || 'LaplataLunaria';
 
+    // RLS filtra automaticamente por tenant_id
     const { data, count, error } = await supabase
       .from('fi_transaction')
       .select('*', { count: 'exact' })
-      .eq('tenant_id', tenant_id)
       .range(from, to);
 
     if (error) {

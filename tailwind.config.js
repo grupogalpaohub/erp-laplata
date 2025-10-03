@@ -53,4 +53,8 @@ module.exports = {
   },
   plugins: [],
   darkMode: 'class',
+  // Forçar tema escuro por padrão
+  corePlugins: {
+    preflight: false,
+  },
 }

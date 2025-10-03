@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server'
-import { supabaseServer } from '@/lib/supabase/server'
+import { supabaseMiddleware } from '@/lib/supabase/middleware'
 
 export async function middleware(req: any) {
   const { pathname } = req.nextUrl
@@ -18,7 +18,7 @@ export async function middleware(req: any) {
   }
   
   // Verificar auth para rotas protegidas
-  const supabase = supabaseServer()
+  const supabase = supabaseMiddleware(req)
   const { data: { user } } = await supabase.auth.getUser()
   
   if (!user) {

@@ -2,6 +2,16 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Forçar tema escuro por padrão */
+html {
+  color-scheme: dark;
+}
+
+html, body {
+  background-color: #1a1a1a !important;
+  color: #ffffff !important;
+}
+
 /* Fiori Dark Theme */
 :root {
   /* Primary Colors */

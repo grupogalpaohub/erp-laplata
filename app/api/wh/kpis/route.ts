@@ -2,6 +2,10 @@ import { NextResponse } from 'next/server'
 import { supabaseServer } from '@/lib/supabase/server'
 import { requireTenantId } from '@/utils/tenant'
 
+// Forçar Node.js runtime para APIs que usam Supabase
+export const dynamic = 'force-dynamic'
+export const runtime = 'nodejs'
+
 export async function GET(request: Request) {
   const supabase = supabaseServer()
   try {

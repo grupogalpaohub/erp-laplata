@@ -3,6 +3,10 @@ import { supabaseServer } from '@/lib/supabase/server'
 import { requireTenantId } from '@/utils/tenant'
 import { CreateReceivingSchema } from '@/lib/schemas/mm'
 
+// Forçar Node.js runtime para APIs que usam Supabase
+export const dynamic = 'force-dynamic'
+export const runtime = 'nodejs'
+
 export async function GET(request: Request) {
   const supabase = supabaseServer()
   try {

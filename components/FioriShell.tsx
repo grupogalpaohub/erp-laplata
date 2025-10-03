@@ -19,7 +19,9 @@ export default function FioriShell({ children }: { children: React.ReactNode }) 
   const pathname = usePathname()
 
   useEffect(() => {
+    console.log('🔍 FioriShell useEffect - pathname:', pathname)
     if (pathname?.startsWith("/auth/") || pathname === "/login") {
+      console.log('🔍 FioriShell - rota permitida, setLoading(false)')
       setLoading(false)
       return
     }
@@ -46,7 +48,10 @@ export default function FioriShell({ children }: { children: React.ReactNode }) 
     return () => subscription.unsubscribe()
   }, [pathname])
 
+  console.log('🔍 FioriShell render - loading:', loading, 'user:', user, 'pathname:', pathname)
+
   if (loading) {
+    console.log('🔍 FioriShell - mostrando loading')
     return (
       <div className="min-h-screen bg-gray-900 flex items-center justify-center">
         <div className="text-white">Carregando...</div>
@@ -55,6 +60,7 @@ export default function FioriShell({ children }: { children: React.ReactNode }) 
   }
 
   if (!user) {
+    console.log('🔍 FioriShell - mostrando redirect para login')
     return (
       <div className="min-h-screen bg-gray-900 flex items-center justify-center">
         <div className="text-center">

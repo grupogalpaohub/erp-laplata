@@ -189,7 +189,6 @@ export default function NewPOClient({ vendors, materials, selectedVendorId }: Ne
           body: JSON.stringify({
             mm_order: newMmOrder,
             mm_material: item.mm_material,
-            plant_id: 'GOIANIA',
             mm_qtt: Number(item.mm_qtt),
             unit_cost_cents: item.unit_cost_cents,
             notes: ""

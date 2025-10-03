@@ -1,18 +1,13 @@
 import { NextResponse } from 'next/server'
 import { z } from 'zod'
 import { supabaseServer } from '@/lib/supabase/server'
-import { toCents } from '@/lib/money'
 
-// Schema do payload vindo do client (SEM tenant_id)
 const BodySchema = z.object({
-  mm_order: z.string().min(1),              // coluna do vínculo do item (FK para mm_purchase_order)
+  mm_order: z.string().min(1),            // chave do cabeçalho (PK)
   mm_material: z.string().min(1),
-  mm_qtt: z.union([z.number(), z.string()]).refine((v) => String(v).trim() !== ''),
+  mm_qtt: z.union([z.number(), z.string()]),
   unit_cost_cents: z.number().int().nonnegative(),
-  plant_id: z.string().min(1).optional(),
-  notes: z.string().optional(),
-  currency: z.string().optional(),
-  freeze_item_price: z.boolean().optional()
+  notes: z.string().optional().default('')
 })
 
 export async function GET(req: Request) {
@@ -91,74 +86,70 @@ export async function POST(req: Request) {
   try {
     const supabase = supabaseServer()
 
-    // 1) Autenticação + tenant_id do JWT (server-side)
-    const { data: { user }, error: authError } = await supabase.auth.getUser()
-    if (authError || !user) {
-      return NextResponse.json({ ok: false, error: { message: 'Unauthorized' } }, { status: 401 })
+    // 1) User + tenant do JWT
+    const { data: { user }, error: authErr } = await supabase.auth.getUser()
+    if (authErr || !user) {
+      return NextResponse.json({ ok:false, error:{ message:'Unauthorized' } }, { status:401 })
     }
     const tenant_id = user.user_metadata?.tenant_id
     if (!tenant_id) {
-      return NextResponse.json({ ok: false, error: { message: 'Tenant inválido' } }, { status: 403 })
+      return NextResponse.json({ ok:false, error:{ message:'Tenant inválido' } }, { status:403 })
     }
 
-    // 2) Payload SEM tenant_id
-    const json = await req.json()
-    const parsed = BodySchema.safeParse(json)
+    // 2) Validar payload (sem tenant_id)
+    const payload = await req.json()
+    const parsed = BodySchema.safeParse(payload)
     if (!parsed.success) {
-      return NextResponse.json({ ok: false, error: { message: 'Payload inválido', details: parsed.error.flatten() } }, { status: 400 })
+      return NextResponse.json({ ok:false, error:{ message:'Payload inválido', details: parsed.error.flatten() } }, { status:400 })
     }
-    const { mm_order, mm_material, mm_qtt, unit_cost_cents, plant_id, notes, currency, freeze_item_price } = parsed.data
-    const qtt = Number(mm_qtt) // quantidade: UI pode mandar string
+    const { mm_order, mm_material, mm_qtt, unit_cost_cents, notes } = parsed.data
+    const quantity = Number(mm_qtt)
+    if (!Number.isFinite(quantity) || quantity <= 0) {
+      return NextResponse.json({ ok:false, error:{ message:'Quantidade inválida' } }, { status:400 })
+    }
 
-    // 3) Validar PO (mesmo tenant e status permitido)
-    const { data: po, error: poError } = await supabase
+    // 3) Validar cabeçalho (mesmo tenant + status draft)
+    const { data: po, error: poErr } = await supabase
       .from('mm_purchase_order')
       .select('mm_order, status')
       .eq('tenant_id', tenant_id)
       .eq('mm_order', mm_order)
       .single()
 
-    if (poError || !po) {
-      return NextResponse.json({ ok: false, error: { message: 'PO não encontrado ou sem permissão' } }, { status: 404 })
+    if (poErr || !po) {
+      return NextResponse.json({ ok:false, error:{ message:'PO não encontrado ou sem permissão' } }, { status:404 })
     }
     if (po.status !== 'draft') {
-      return NextResponse.json({ ok: false, error: { message: 'Só é permitido incluir itens em PO com status "draft"' } }, { status: 409 })
+      return NextResponse.json({ ok:false, error:{ message:'Somente PO em "draft" pode receber itens' } }, { status:409 })
     }
 
-    // 4) Não precisamos calcular row_no - a tabela não tem essa coluna
-    // O po_item_id é gerado automaticamente pelo serial
+    // 4) Totais em centavos (sem hacks)
+    const line_total_cents = Math.round(unit_cost_cents * quantity)
 
-    // 5) Calcular total (centavos) — sem hacks de dinheiro
-    const line_total_cents = Math.round(unit_cost_cents * qtt)
-
-    // 6) INSERT com tenant_id (exigência da RLS no INSERT)
-    const insertPayload: any = {
+    // 5) Inserir item na tabela base, incluindo tenant_id e mm_order
+    const insertPayload = {
       tenant_id,
       mm_order,
       mm_material,
+      mm_qtt: quantity,
       unit_cost_cents,
       line_total_cents,
-      mm_qtt: String(qtt),
-      plant_id: plant_id || 'WH-001',
-      notes: notes || null,
-      currency: currency || 'BRL',
-      freeze_item_price: freeze_item_price || false
+      notes
     }
 
-    const { data: ins, error: insError } = await supabase
+    const { data: ins, error: insErr } = await supabase
       .from('mm_purchase_order_item')
       .insert(insertPayload)
-      .select('mm_order, po_item_id, mm_material, unit_cost_cents, line_total_cents')
+      .select('*')
       .single()
 
-    if (insError) {
-      // 42501 = RLS bloqueou. Tipicamente: faltou tenant_id OU coluna-vínculo errada.
-      return NextResponse.json({ ok: false, error: { message: 'Falha ao inserir item', details: insError.message, code: insError.code } }, { status: 500 })
+    if (insErr) {
+      return NextResponse.json({ ok:false, error:{ message:'Falha ao inserir item', code: insErr.code, details: insErr.message } }, { status:500 })
     }
 
-    return NextResponse.json({ ok: true, data: ins }, { status: 201 })
-  } catch (e: any) {
-    return NextResponse.json({ ok: false, error: { message: e?.message ?? 'Erro inesperado' } }, { status: 500 })
+    return NextResponse.json({ ok:true, data: ins }, { status:201 })
+  } catch (e:any) {
+    return NextResponse.json({ ok:false, error:{ message: e?.message ?? 'Erro inesperado' } }, { status:500 })
   }
 }
 

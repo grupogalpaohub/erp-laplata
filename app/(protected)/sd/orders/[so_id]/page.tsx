@@ -49,9 +49,7 @@ export default async function SalesOrderDetailPage({ params }: { params: { so_id
   try {
     const supabase = supabaseServer()
     
-    // Obter tenant_id da sessão
-    const { data: { session } } = await supabase.auth.getSession()
-    const tenant_id = session?.user?.user_metadata?.tenant_id || 'LaplataLunaria'
+    // RLS filtra automaticamente por tenant_id - não precisa derivar manualmente
 
     // Buscar pedido
     const { data: orderData, error: orderError } = await supabase
@@ -71,7 +69,6 @@ export default async function SalesOrderDetailPage({ params }: { params: { so_id
         notes,
         created_at
       `)
-      .eq('tenant_id', tenant_id)
       .eq('so_id', so_id)
       .single()
 
@@ -81,12 +78,11 @@ export default async function SalesOrderDetailPage({ params }: { params: { so_id
       order = orderData
 
       // Buscar dados do cliente separadamente
-      if (order.customer_id) {
+      if (order?.customer_id) {
         const { data: customerData } = await supabase
           .from('crm_customer')
           .select('name')
-          .eq('tenant_id', tenant_id)
-          .eq('customer_id', order.customer_id)
+          .eq('customer_id', order?.customer_id)
           .single()
         
         if (customerData) {
@@ -110,7 +106,6 @@ export default async function SalesOrderDetailPage({ params }: { params: { so_id
             mm_comercial
           )
         `)
-        .eq('tenant_id', tenant_id)
         .eq('so_id', so_id)
         .order('row_no')
 

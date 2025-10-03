@@ -39,7 +39,7 @@ export default async function InventoryPage() {
   const inventoryRows = inventoryData || []
 
   // 2) Buscar materiais
-  const materialIds = [...new Set(inventoryRows.map(r => r.mm_material))]
+  const materialIds = [...new Set(inventoryRows.map((r: any) => r.mm_material))]
   const { data: materialsData, error: materialsError } = materialIds.length
     ? await sb.from('mm_material').select('mm_material,mm_comercial,mm_desc,mm_purchase_price_cents').in('mm_material', materialIds)
     : { data: [], error: null }
@@ -49,8 +49,8 @@ export default async function InventoryPage() {
   }
 
   // Join em memória
-  const materialMap = new Map((materialsData || []).map(m => [m.mm_material, m]))
-  const inventory: InventoryItem[] = inventoryRows.map(item => ({
+  const materialMap = new Map((materialsData || []).map((m: any) => [m.mm_material, m]))
+  const inventory: InventoryItem[] = inventoryRows.map((item: any) => ({
     ...item,
     available_qty: Number(item.on_hand_qty) - Number(item.reserved_qty),
     mm_material_data: materialMap.get(item.mm_material)

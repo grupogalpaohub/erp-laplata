@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { supabaseServer } from '@/lib/supabase/server';
-import { cookies } from 'next/headers';
 import { z } from 'zod';
 
 // Schema baseado no Inventário 360° real - so_id será gerado pelo DB
@@ -15,8 +14,7 @@ const CreateSOBody = z.object({
 
 export async function POST(req: NextRequest) {
   try {
-    const cookieStore = cookies();
-    const supabase = supabaseServer(cookieStore);
+    const supabase = supabaseServer();
 
     const body = await req.json();
     
@@ -39,8 +37,8 @@ export async function POST(req: NextRequest) {
     const dto = parse.data;
     
     // GUARDRAIL: Verificar autenticação via supabaseServer()
-    const { data: { user }, error } = await supabase.auth.getUser();
-    if (error || !user) {
+    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    if (authError || !user) {
       return NextResponse.json({
         ok: false,
         error: { code: 'UNAUTHORIZED', message: 'Usuário não autenticado' }
@@ -63,7 +61,7 @@ export async function POST(req: NextRequest) {
 
     // GUARDRAIL: Não enviar so_id - será gerado pelo trigger do DB
     // RLS filtra automaticamente por tenant_id
-    const { data, error } = await supabase
+    const { data, error: insertError } = await supabase
       .from('sd_sales_order')
       .insert({
         customer_id: dto.customer_id,
@@ -78,10 +76,10 @@ export async function POST(req: NextRequest) {
       .select('so_id, customer_id, order_date, expected_ship, payment_method, payment_term, notes, status, total_final_cents')
       .single();
 
-    if (error) {
+    if (insertError) {
       return NextResponse.json({
         ok: false,
-        error: { code: 'DB_ERROR', message: error.message }
+        error: { code: 'DB_ERROR', message: insertError.message }
       }, { status: 500 });
     }
 
@@ -97,8 +95,7 @@ export async function POST(req: NextRequest) {
 
 export async function GET(req: NextRequest) {
   try {
-    const cookieStore = cookies();
-    const supabase = supabaseServer(cookieStore);
+    const supabase = supabaseServer();
 
     const { searchParams } = new URL(req.url);
     const page = Math.max(1, Number(searchParams.get('page') || 1));
@@ -116,15 +113,15 @@ export async function GET(req: NextRequest) {
     }
 
     // RLS filtra automaticamente por tenant_id
-    const { data, count, error } = await supabase
+    const { data, count, error: queryError } = await supabase
       .from('sd_sales_order')
       .select('*', { count: 'exact' })
       .range(from, to);
 
-    if (error) {
+    if (queryError) {
       return NextResponse.json({
         ok: false,
-        error: { code: 'DB_ERROR', message: error.message }
+        error: { code: 'DB_ERROR', message: queryError.message }
       }, { status: 500 });
     }
 

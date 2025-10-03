@@ -1,6 +1,5 @@
 import Link from 'next/link'
-import { createServerClient } from '@supabase/ssr'
-import { cookies } from 'next/headers'
+import { supabaseServer } from '@/lib/supabase/server'
 import { requireSession } from '@/lib/auth/requireSession'
 import { ArrowLeft } from 'lucide-react'
 import NewPOClient from './NewPOClient'
@@ -19,57 +18,32 @@ export default async function NewPurchaseOrderPage({ searchParams }: NewPurchase
   let materials: any[] = []
 
   try {
-    const cookieStore = cookies()
-    const supabase = createServerClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-      { cookies: { get: (k) => cookieStore.get(k)?.value } }
-    )
+    const supabase = supabaseServer()
     
-    await requireSession()
-    
-    // GUARDRAIL: Derivar tenant_id da sessão
-    const { data: session } = await supabase.auth.getSession();
-    console.log('Session data:', session);
-    
-    if (!session?.session?.user) {
-      console.log('No user in session, using default tenant');
-      const tenant_id = 'LaplataLunaria';
-    } else {
-      const tenant_id = session.session.user.user_metadata?.tenant_id || 'LaplataLunaria';
-      console.log('User tenant_id:', tenant_id);
+    // GUARDRAIL: Verificar autenticação via supabaseServer()
+    const { data: { user }, error: authError } = await supabase.auth.getUser()
+    if (authError || !user) {
+      // Redirecionar para login se não autenticado
+      return <div>Redirecionando para login...</div>
     }
     
-    const tenant_id = session?.session?.user?.user_metadata?.tenant_id || 'LaplataLunaria';
+    // RLS filtra automaticamente por tenant_id - não precisa derivar manualmente
 
-    // Buscar dados necessários com filtro por tenant_id
+    // Buscar dados necessários - RLS filtra automaticamente por tenant_id
     const [vendorsResult, materialsResult] = await Promise.allSettled([
       supabase
         .from('mm_vendor')
         .select('vendor_id, vendor_name')
-        .eq('tenant_id', tenant_id)
         .order('vendor_name'),
       supabase
         .from('mm_material')
         .select('mm_material, mm_comercial, mm_desc, mm_price_cents, mm_purchase_price_cents')
-        .eq('tenant_id', tenant_id)
     ])
 
     vendors = vendorsResult.status === 'fulfilled' ? (vendorsResult.value.data || []) : []
     materials = materialsResult.status === 'fulfilled' ? (materialsResult.value.data || []) : []
     
-    console.log('=== DATA LOADING DEBUG ===')
-    console.log('Tenant ID:', tenant_id)
-    console.log('Vendors loaded:', vendors.length, vendors)
-    console.log('Materials loaded:', materials.length, materials)
-    console.log('Vendors result status:', vendorsResult.status)
-    console.log('Materials result status:', materialsResult.status)
-    if (materialsResult.status === 'rejected') {
-      console.log('Materials error:', materialsResult.reason)
-    } else if (materialsResult.status === 'fulfilled') {
-      console.log('Materials raw data:', materialsResult.value.data)
-      console.log('Materials count:', materialsResult.value.data?.length || 0)
-    }
+    // Dados carregados com sucesso via RLS
 
   } catch (error) {
     console.error('Error loading data for new purchase order:', error)

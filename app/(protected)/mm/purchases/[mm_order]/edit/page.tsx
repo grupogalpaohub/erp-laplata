@@ -62,13 +62,13 @@ export default async function EditPurchaseOrderPage({ params }: EditPurchaseOrde
     const { data: vendors } = await supabase
       .from('mm_vendor')
       .select('vendor_id, vendor_name, email, telefone')
-      .eq('tenant_id', 'LaplataLunaria')
+      // RLS filtra automaticamente por tenant_id
 
     // Buscar materiais
     const { data: materials } = await supabase
       .from('mm_material')
       .select('mm_material, mm_comercial, mm_desc, mm_purchase_price_cents')
-      .eq('tenant_id', 'LaplataLunaria')
+      // RLS filtra automaticamente por tenant_id
       .eq('status', 'active')
 
     return (

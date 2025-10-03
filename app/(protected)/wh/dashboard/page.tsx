@@ -71,7 +71,7 @@ export default async function WHDashboardPage() {
       .not('collection', 'is', null)
 
     if (collectionsData) {
-      const collectionStats = collectionsData.reduce((acc, item) => {
+      const collectionStats = collectionsData.reduce((acc: any, item: any) => {
         const collection = item.collection || 'Sem Coleção'
         if (!acc[collection]) {
           acc[collection] = { count: 0, qty: 0 }
@@ -82,7 +82,7 @@ export default async function WHDashboardPage() {
       }, {} as Record<string, { count: number; qty: number }>)
 
       topCollections = Object.entries(collectionStats)
-        .map(([collection, stats]) => ({
+        .map(([collection, stats]: [string, any]) => ({
           collection,
           count: stats.count,
           qty: stats.qty

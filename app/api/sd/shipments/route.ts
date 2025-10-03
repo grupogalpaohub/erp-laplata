@@ -5,8 +5,15 @@ import { v4 as uuidv4 } from 'uuid'
 export async function POST(req: Request) {
   try {
     const supabase = supabaseServer()
-    const { data: { session } } = await supabase.auth.getSession()
-    const tenant_id = session?.user?.user_metadata?.tenant_id || 'LaplataLunaria'
+    
+    // GUARDRAIL: Verificar autenticação via supabaseServer()
+    const { data: { user }, error: authError } = await supabase.auth.getUser()
+    if (authError || !user) {
+      return NextResponse.json({
+        ok: false,
+        error: { code: 'UNAUTHORIZED', message: 'Usuário não autenticado' }
+      }, { status: 401 })
+    }
 
     const body = await req.json()
     const { so_id, warehouse_id, notes } = body
@@ -18,11 +25,10 @@ export async function POST(req: Request) {
       }, { status: 400 })
     }
 
-    // Validar se o SO tem itens
+    // Validar se o SO tem itens - RLS filtra automaticamente por tenant_id
     const { data: orderItems, error: itemsError } = await supabase
       .from('sd_sales_order_item')
       .select('mm_material, quantity')
-      .eq('tenant_id', tenant_id)
       .eq('so_id', so_id)
 
     if (itemsError || !orderItems || orderItems.length === 0) {
@@ -32,12 +38,11 @@ export async function POST(req: Request) {
       }, { status: 404 })
     }
 
-    // Criar shipment (trigger do banco fará a baixa/ledger)
+    // Criar shipment (trigger do banco fará a baixa/ledger) - RLS filtra automaticamente por tenant_id
     const shipmentId = `SHIP-${uuidv4()}`
     const { data: shipmentData, error: createError } = await supabase
       .from('sd_shipment')
       .insert({
-        tenant_id: tenant_id,
         shipment_id: shipmentId,
         so_id: so_id,
         warehouse_id: warehouse_id,

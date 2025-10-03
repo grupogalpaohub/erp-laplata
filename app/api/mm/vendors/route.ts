@@ -1,10 +1,8 @@
 import { supabaseServer } from '@/lib/supabase/server'
 import { NextResponse } from "next/server";
-import { cookies } from 'next/headers';
 
 export async function GET(req: Request) {
-  const cookieStore = cookies()
-  const sb = supabaseServer(cookieStore)
+  const sb = supabaseServer()
   
   // GUARDRAIL: Verificar autenticação via supabaseServer()
   const { data: { user }, error: authError } = await sb.auth.getUser()

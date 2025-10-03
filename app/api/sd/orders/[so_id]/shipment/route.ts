@@ -1,14 +1,12 @@
 import { NextResponse } from 'next/server'
 import { supabaseServer } from '@/lib/supabase/server'
-import { cookies } from 'next/headers'
 
 export async function GET(
   request: Request,
   { params }: { params: { so_id: string } }
 ) {
   try {
-    const cookieStore = cookies()
-    const supabase = supabaseServer(cookieStore)
+    const supabase = supabaseServer()
     const { so_id } = params
 
     // GUARDRAIL: Verificar autenticação via supabaseServer()

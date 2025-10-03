@@ -58,7 +58,7 @@ export default async function MovementsPage({ searchParams }: { searchParams: { 
   const movementsData = data || []
 
   // Buscar dados dos materiais separadamente
-  const materialIds = [...new Set(movementsData.map(m => m.mm_material))]
+  const materialIds = [...new Set(movementsData.map((m: any) => m.mm_material))]
   const { data: materialsData, error: materialsError } = materialIds.length
     ? await sb.from('mm_material').select('mm_material,mm_comercial,mm_desc').in('mm_material', materialIds)
     : { data: [], error: null }
@@ -68,8 +68,8 @@ export default async function MovementsPage({ searchParams }: { searchParams: { 
   }
 
   // Join em memória
-  const materialMap = new Map((materialsData || []).map(m => [m.mm_material, m]))
-  const movements: Movement[] = movementsData.map(movement => ({
+  const materialMap = new Map((materialsData || []).map((m: any) => [m.mm_material, m]))
+  const movements: Movement[] = movementsData.map((movement: any) => ({
     ...movement,
     mm_material_data: materialMap.get(movement.mm_material)
   }))

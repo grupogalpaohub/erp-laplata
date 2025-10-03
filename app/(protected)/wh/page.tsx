@@ -34,7 +34,7 @@ export default async function WHPage() {
     }
 
     // 2) Buscar materiais
-    const ids = [...new Set((inv ?? []).map(r => r.mm_material))]
+    const ids = [...new Set((inv ?? []).map((r: any) => r.mm_material))]
     const { data: mats, error: e2 } = ids.length
       ? await sb.from('mm_material').select('mm_material,mm_desc,mm_purchase_price_cents').in('mm_material', ids)
       : { data: [], error: null }
@@ -44,8 +44,8 @@ export default async function WHPage() {
     }
 
     // Join em memória + KPIs
-    const materialMap = new Map((mats || []).map(m => [m.mm_material, m]))
-    inventory = (inv || []).map(item => ({
+    const materialMap = new Map((mats || []).map((m: any) => [m.mm_material, m]))
+    inventory = (inv || []).map((item: any) => ({
       ...item,
       mm_material_data: materialMap.get(item.mm_material)
     }))

@@ -1,6 +1,5 @@
 import { NextResponse } from 'next/server'
 import { supabaseServer } from '@/lib/supabase/server'
-import { cookies } from 'next/headers'
 
 type Params = { so_id: string }
 
@@ -11,8 +10,7 @@ export async function GET(_req: Request, { params }: { params: Params }) {
   }
 
   try {
-    const cookieStore = cookies()
-    const supabase = supabaseServer(cookieStore)
+    const supabase = supabaseServer()
 
     // Buscar pedido de vendas
     const { data: order, error } = await supabase
@@ -71,8 +69,7 @@ export async function PUT(req: Request, { params }: { params: Params }) {
   }
 
   try {
-    const cookieStore = cookies()
-    const supabase = supabaseServer(cookieStore)
+    const supabase = supabaseServer()
     
     let body
     try {
@@ -156,11 +153,11 @@ export async function PUT(req: Request, { params }: { params: Params }) {
       }, { status: 500 })
     }
 
-    console.log('🔍 [DEBUG] Update successful, data returned:', data)
+    // Atualização realizada com sucesso
 
     // Se há itens para atualizar, processar
     if (body.items && Array.isArray(body.items)) {
-      console.log('🔍 [DEBUG] Processing items:', body.items)
+      // Processando itens do pedido
       
       // Primeiro, remover itens existentes
       const { error: deleteError } = await supabase
@@ -172,7 +169,7 @@ export async function PUT(req: Request, { params }: { params: Params }) {
         console.error('🔍 [DEBUG] Error deleting existing items:', deleteError)
         // Não falhar por causa dos itens, apenas logar
       } else {
-        console.log('🔍 [DEBUG] Successfully deleted existing items')
+        // Itens existentes removidos com sucesso
       }
 
       // Inserir novos itens
@@ -191,7 +188,7 @@ export async function PUT(req: Request, { params }: { params: Params }) {
             row_no: i + 1
           }
           
-          console.log(`🔍 [DEBUG] Inserting item ${i + 1}:`, itemData)
+          // Inserindo item do pedido
           
           const { error: itemError } = await supabase
             .from('sd_sales_order_item')
@@ -201,7 +198,7 @@ export async function PUT(req: Request, { params }: { params: Params }) {
             console.error(`🔍 [DEBUG] Error inserting item ${i + 1}:`, itemError)
             // Não falhar por causa dos itens, apenas logar
           } else {
-            console.log(`🔍 [DEBUG] Successfully inserted item ${i + 1}`)
+            // Item inserido com sucesso
           }
         }
       }

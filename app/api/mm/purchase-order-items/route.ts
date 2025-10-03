@@ -1,12 +1,10 @@
 import { NextResponse } from 'next/server'
 import { supabaseServer } from '@/lib/supabase/server'
-import { cookies } from 'next/headers'
 
 export async function GET(req: Request) {
   try {
     // ✅ GUARDRAIL COMPLIANCE: API usando supabaseServer() helper
-    const cookieStore = cookies()
-    const supabase = supabaseServer(cookieStore)
+    const supabase = supabaseServer()
     
     // GUARDRAIL: Verificar autenticação via supabaseServer()
     const { data: { user }, error: authError } = await supabase.auth.getUser()
@@ -78,8 +76,7 @@ export async function GET(req: Request) {
 export async function POST(req: Request) {
   try {
     // ✅ GUARDRAIL COMPLIANCE: API usando supabaseServer() helper
-    const cookieStore = cookies()
-    const supabase = supabaseServer(cookieStore)
+    const supabase = supabaseServer()
     
     // GUARDRAIL: Verificar autenticação via supabaseServer()
     const { data: { user }, error: authError } = await supabase.auth.getUser()
@@ -169,8 +166,14 @@ export async function DELETE(req: Request) {
     // ✅ GUARDRAIL COMPLIANCE: API usando supabaseServer() helper
     const supabase = supabaseServer()
     
-    // Tenant fixo conforme guardrails
-    const TENANT_ID = "LaplataLunaria"
+    // GUARDRAIL: Verificar autenticação via supabaseServer()
+    const { data: { user }, error: authError } = await supabase.auth.getUser()
+    if (authError || !user) {
+      return NextResponse.json({
+        ok: false,
+        error: { code: 'UNAUTHORIZED', message: 'Usuário não autenticado' }
+      }, { status: 401 })
+    }
     
     // Buscar parâmetros de query
     const { searchParams } = new URL(req.url)
@@ -186,11 +189,10 @@ export async function DELETE(req: Request) {
       }, { status: 400 })
     }
     
-    // Deletar todos os itens do pedido
+    // Deletar todos os itens do pedido - RLS filtra automaticamente por tenant_id
     const { error } = await supabase
       .from('mm_purchase_order_item')
       .delete()
-      .eq('tenant_id', TENANT_ID)
       .eq('mm_order', mm_order)
     
     if (error) {

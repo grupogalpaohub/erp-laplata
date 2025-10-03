@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { supabaseServer } from '@/lib/supabase/server';
-import { cookies } from 'next/headers';
 import { z } from 'zod';
 
 const CreateSOItemBody = z.object({
@@ -12,8 +11,7 @@ const CreateSOItemBody = z.object({
 
 export async function POST(req: NextRequest) {
   try {
-    const cookieStore = cookies();
-    const supabase = supabaseServer(cookieStore);
+    const supabase = supabaseServer();
 
     const body = await req.json();
     
@@ -36,8 +34,8 @@ export async function POST(req: NextRequest) {
     const dto = parse.data;
     
     // GUARDRAIL: Verificar autenticação via supabaseServer()
-    const { data: { user }, error } = await supabase.auth.getUser();
-    if (error || !user) {
+    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    if (authError || !user) {
       return NextResponse.json({
         ok: false,
         error: { code: 'UNAUTHORIZED', message: 'Usuário não autenticado' }
@@ -79,7 +77,6 @@ export async function POST(req: NextRequest) {
     const { data: lastItem } = await supabase
       .from('sd_sales_order_item')
       .select('row_no')
-      .eq('tenant_id', tenant_id)
       .eq('so_id', dto.so_id)
       .order('row_no', { ascending: false })
       .limit(1)
@@ -88,7 +85,7 @@ export async function POST(req: NextRequest) {
     const row_no = (lastItem?.row_no || 0) + 1;
 
     // RLS filtra automaticamente por tenant_id
-    const { data, error } = await supabase
+    const { data, error: insertError } = await supabase
       .from('sd_sales_order_item')
       .insert({
         so_id: dto.so_id,
@@ -104,10 +101,10 @@ export async function POST(req: NextRequest) {
       `)
       .single();
 
-    if (error) {
+    if (insertError) {
       return NextResponse.json({
         ok: false,
-        error: { code: 'INSERT_FAILED', message: error.message }
+        error: { code: 'INSERT_FAILED', message: insertError.message }
       }, { status: 500 });
     }
 
@@ -123,8 +120,7 @@ export async function POST(req: NextRequest) {
 
 export async function GET(req: NextRequest) {
   try {
-    const cookieStore = cookies();
-    const supabase = supabaseServer(cookieStore);
+    const supabase = supabaseServer();
 
     const { searchParams } = new URL(req.url);
     const so_id = searchParams.get('so_id');
@@ -152,12 +148,12 @@ export async function GET(req: NextRequest) {
       query = query.eq('so_id', so_id);
     }
 
-    const { data, count, error } = await query;
+    const { data, count, error: queryError } = await query;
 
-    if (error) {
+    if (queryError) {
       return NextResponse.json({
         ok: false,
-        error: { code: 'QUERY_FAILED', message: error.message }
+        error: { code: 'QUERY_FAILED', message: queryError.message }
       }, { status: 500 });
     }
 

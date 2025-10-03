@@ -92,7 +92,7 @@ export default async function CustomerDetailPage({ params }: PageProps) {
       totalSalesValue = 0
     } else {
       salesOrders = ordersData || []
-      totalSalesValue = salesOrders.reduce((sum, order) => sum + (order.total_cents || 0), 0)
+      totalSalesValue = salesOrders.reduce((sum: number, order: any) => sum + (order.total_cents || 0), 0)
     }
 
   } catch (error) {
@@ -430,7 +430,7 @@ export default async function CustomerDetailPage({ params }: PageProps) {
         <div className="card-fiori-content">
           {salesOrders.length > 0 ? (
             <div className="space-y-4">
-              {salesOrders.map((order) => (
+              {salesOrders.map((order: any) => (
                 <div key={order.so_id} className="border border-fiori-border rounded-lg p-4 hover:bg-fiori-surface transition-colors">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-4">

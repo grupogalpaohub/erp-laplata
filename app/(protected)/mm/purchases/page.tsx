@@ -9,7 +9,7 @@ async function PurchasesList() {
   const { data: orders, error } = await supabase
     .from('mm_purchase_order')
     .select('*')
-    .eq('tenant_id', 'LaplataLunaria')
+    // RLS filtra automaticamente por tenant_id
     .order('created_at', { ascending: false })
 
   if (error) {
@@ -20,7 +20,7 @@ async function PurchasesList() {
   const { data: vendors } = await supabase
     .from('mm_vendor')
     .select('vendor_id, vendor_name, email, telefone')
-    .eq('tenant_id', 'LaplataLunaria')
+    // RLS filtra automaticamente por tenant_id
 
   // Fazer join manual
   const ordersWithVendors = orders?.map(order => ({

@@ -1,12 +1,10 @@
 // app/api/wh/balance/route.ts
 import { NextResponse } from "next/server";
 import { supabaseServer } from '@/lib/supabase/server';
-import { cookies } from 'next/headers';
 
 export async function GET(req: Request) {
   try {
-    const cookieStore = cookies();
-    const supabase = supabaseServer(cookieStore);
+    const supabase = supabaseServer();
     
     // GUARDRAIL: Verificar autenticação via supabaseServer()
     const { data: { user }, error: authError } = await supabase.auth.getUser();
@@ -38,7 +36,7 @@ export async function GET(req: Request) {
     }
 
     // Calcular quantity_available em memória
-    const rows = (data ?? []).map(r => ({
+    const rows = (data ?? []).map((r: any) => ({
       ...r,
       quantity_available: Number(r.on_hand_qty ?? 0) - Number(r.reserved_qty ?? 0),
     }));

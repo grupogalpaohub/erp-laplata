@@ -46,17 +46,17 @@ export default async function FIDashboardPage() {
 
     if (revenueResult.status === 'fulfilled') {
       const revenue = revenueResult.value.data || []
-      totalRevenue = revenue.reduce((sum, order) => sum + (order.total_final_cents || 0), 0)
+      totalRevenue = revenue.reduce((sum: number, order: any) => sum + (order.total_final_cents || 0), 0)
     }
 
     if (payablesResult.status === 'fulfilled') {
       const payables = payablesResult.value.data || []
-      totalPayables = payables.reduce((sum, payable) => sum + (payable.amount_cents || 0), 0)
+      totalPayables = payables.reduce((sum: number, payable: any) => sum + (payable.amount_cents || 0), 0)
     }
 
     if (receivablesResult.status === 'fulfilled') {
       const receivables = receivablesResult.value.data || []
-      totalReceivables = receivables.reduce((sum, receivable) => sum + (receivable.amount_cents || 0), 0)
+      totalReceivables = receivables.reduce((sum: number, receivable: any) => sum + (receivable.amount_cents || 0), 0)
     }
 
     if (entriesResult.status === 'fulfilled') {

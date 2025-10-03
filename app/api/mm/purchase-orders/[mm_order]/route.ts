@@ -1,118 +1,160 @@
 import { NextResponse } from 'next/server'
 import { supabaseServer } from '@/lib/supabase/server'
+import { requireTenantId } from '@/utils/tenant'
+import { UpdatePurchaseOrderSchema } from '@/lib/schemas/mm'
 
-type Params = { mm_order?: string; po_id?: string; id?: string }
-
-export async function GET(_req: Request, { params }: { params: Params }) {
-  const orderId = params?.mm_order ?? params?.po_id ?? params?.id ?? ''
-  if (!orderId) {
-    return NextResponse.json({ ok: false, error: { message: 'missing order id' } }, { status: 400 })
-  }
-  if (!orderId.startsWith('PO-')) {
-    return NextResponse.json({ ok: false, error: { message: 'invalid order id' } }, { status: 400 })
-  }
-
+export async function GET(
+  request: Request,
+  { params }: { params: { mm_order: string } }
+) {
   const supabase = supabaseServer()
+  try {
+    const tenantId = await requireTenantId()
 
-  const { data: header, error: headerError } = await supabase
-    .from('mm_purchase_order')
-    .select('tenant_id, mm_order, vendor_id, order_date, expected_delivery, status, total_cents, created_at, notes')
-    .eq('mm_order', orderId)
-    .single()
+    const { data, error } = await supabase
+      .from('mm_purchase_order')
+      .select(`
+        *,
+        mm_vendor:vendor_id(vendor_name, email, phone),
+        items:mm_purchase_order_item(
+          po_item_id,
+          mm_material,
+          quantity,
+          unit_price_cents,
+          line_total_cents,
+          plant_id,
+          currency,
+          notes,
+          mm_material:mm_material(material_name, category, classification)
+        )
+      `)
+      .eq('mm_order', params.mm_order)
+      .eq('tenant_id', tenantId)
+      .single()
 
-  if (headerError) {
-    const status = headerError.code === 'PGRST116' ? 404 : 500
-    return NextResponse.json({ ok: false, error: { code: headerError.code, message: headerError.message } }, { status })
+    if (error) {
+      if (error.code === 'PGRST116') {
+        return NextResponse.json({ 
+          ok: false, 
+          error: { code: 'NOT_FOUND', message: 'Pedido de compra não encontrado' } 
+        }, { status: 404 })
+      }
+      console.error('Error fetching purchase order:', error)
+      return NextResponse.json({ 
+        ok: false, 
+        error: { code: error.code, message: error.message } 
+      }, { status: 500 })
+    }
+
+    return NextResponse.json({ ok: true, data })
+  } catch (error: any) {
+    console.error('Unhandled error in GET /api/mm/purchase-orders/[mm_order]:', error)
+    return NextResponse.json({ 
+      ok: false, 
+      error: { code: 'UNHANDLED_ERROR', message: error.message } 
+    }, { status: 500 })
   }
-
-  const { data: items, error: itemsError } = await supabase
-    .from('mm_purchase_order_item')
-    .select(`
-      po_item_id, 
-      mm_order, 
-      plant_id, 
-      mm_material, 
-      mm_qtt, 
-      unit_cost_cents, 
-      line_total_cents, 
-      currency,
-      mm_material_data:mm_material(mm_comercial, mm_desc)
-    `)
-    .eq('mm_order', orderId)
-    .order('po_item_id', { ascending: true })
-
-  if (itemsError) {
-    return NextResponse.json({ ok: false, error: { code: itemsError.code, message: itemsError.message } }, { status: 500 })
-  }
-
-  return NextResponse.json({ ok: true, data: { header, items: items ?? [] } }, { status: 200 })
 }
 
-export async function PUT(req: Request, { params }: { params: Params }) {
-  const orderId = params?.mm_order ?? params?.po_id ?? params?.id ?? ''
-  if (!orderId) {
-    return NextResponse.json({ ok: false, error: { message: 'missing order id' } }, { status: 400 })
-  }
-  if (!orderId.startsWith('PO-')) {
-    return NextResponse.json({ ok: false, error: { message: 'invalid order id' } }, { status: 400 })
-  }
-
+export async function PUT(
+  request: Request,
+  { params }: { params: { mm_order: string } }
+) {
+  const supabase = supabaseServer()
   try {
-    const supabase = supabaseServer()
-    const body = await req.json()
+    const tenantId = await requireTenantId()
+    const body = await request.json()
 
-    // Validar campos obrigatórios
-    if (!body.vendor_id) {
+    const validation = UpdatePurchaseOrderSchema.safeParse(body)
+    if (!validation.success) {
       return NextResponse.json({ 
         ok: false, 
         error: { 
-          code: 'MISSING_VENDOR_ID', 
-          message: 'vendor_id é obrigatório' 
+          code: 'VALIDATION_ERROR', 
+          message: validation.error.issues[0].message 
         } 
       }, { status: 400 })
     }
 
-    // Preparar dados para atualização - ✅ GUARDRAIL COMPLIANCE: Campos conforme db_contract.json
-    const updateData = {
-      vendor_id: body.vendor_id,
-      order_date: body.order_date || new Date().toISOString().split('T')[0],
-      status: body.status || 'draft',
-      expected_delivery: body.expected_delivery || null,
-      notes: body.notes || null,
-      total_cents: body.total_cents || 0,
-    }
-
     const { data, error } = await supabase
       .from('mm_purchase_order')
-      .update(updateData)
-      .eq('mm_order', orderId)
-      .select()
+      .update(validation.data)
+      .eq('mm_order', params.mm_order)
+      .eq('tenant_id', tenantId)
+      .select(`
+        *,
+        mm_vendor:vendor_id(vendor_name, email, phone)
+      `)
       .single()
 
     if (error) {
-      console.error('Erro ao atualizar purchase order:', error)
+      if (error.code === 'PGRST116') {
+        return NextResponse.json({ 
+          ok: false, 
+          error: { code: 'NOT_FOUND', message: 'Pedido de compra não encontrado' } 
+        }, { status: 404 })
+      }
+      console.error('Error updating purchase order:', error)
       return NextResponse.json({ 
         ok: false, 
-        error: { 
-          code: (error as any).code, 
-          message: error.message 
-        } 
+        error: { code: error.code, message: error.message } 
       }, { status: 500 })
     }
 
-    return NextResponse.json({ 
-      ok: true, 
-      data 
-    }, { status: 200 })
-
-  } catch (error) {
-    console.error('Erro inesperado na API purchase orders PUT:', error)
+    return NextResponse.json({ ok: true, data })
+  } catch (error: any) {
+    console.error('Unhandled error in PUT /api/mm/purchase-orders/[mm_order]:', error)
     return NextResponse.json({ 
       ok: false, 
-      error: { 
-        code: 'INTERNAL_ERROR', 
-        message: 'Erro interno do servidor' 
-      } 
+      error: { code: 'UNHANDLED_ERROR', message: error.message } 
+    }, { status: 500 })
+  }
+}
+
+export async function DELETE(
+  request: Request,
+  { params }: { params: { mm_order: string } }
+) {
+  const supabase = supabaseServer()
+  try {
+    const tenantId = await requireTenantId()
+
+    // Primeiro deletar os itens do pedido
+    const { error: itemsError } = await supabase
+      .from('mm_purchase_order_item')
+      .delete()
+      .eq('mm_order', params.mm_order)
+      .eq('tenant_id', tenantId)
+
+    if (itemsError) {
+      console.error('Error deleting purchase order items:', itemsError)
+      return NextResponse.json({ 
+        ok: false, 
+        error: { code: itemsError.code, message: itemsError.message } 
+      }, { status: 500 })
+    }
+
+    // Depois deletar o pedido
+    const { error } = await supabase
+      .from('mm_purchase_order')
+      .delete()
+      .eq('mm_order', params.mm_order)
+      .eq('tenant_id', tenantId)
+
+    if (error) {
+      console.error('Error deleting purchase order:', error)
+      return NextResponse.json({ 
+        ok: false, 
+        error: { code: error.code, message: error.message } 
+      }, { status: 500 })
+    }
+
+    return NextResponse.json({ ok: true, data: { deleted: true } })
+  } catch (error: any) {
+    console.error('Unhandled error in DELETE /api/mm/purchase-orders/[mm_order]:', error)
+    return NextResponse.json({ 
+      ok: false, 
+      error: { code: 'UNHANDLED_ERROR', message: error.message } 
     }, { status: 500 })
   }
 }

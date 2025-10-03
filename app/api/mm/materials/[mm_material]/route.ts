@@ -1,52 +1,133 @@
+import { NextResponse } from 'next/server'
 import { supabaseServer } from '@/lib/supabase/server'
-// app/api/mm/materials/[mm_material]/route.ts
-import { NextResponse } from "next/server";
+import { requireTenantId } from '@/utils/tenant'
+import { UpdateMaterialSchema } from '@/lib/schemas/mm'
 
+export async function GET(
+  request: Request,
+  { params }: { params: { mm_material: string } }
+) {
+  const supabase = supabaseServer()
+  try {
+    const tenantId = await requireTenantId()
 
-import { toCents } from "@/lib/money";
+    const { data, error } = await supabase
+      .from('mm_material')
+      .select(`
+        *,
+        mm_vendor:vendor_id(vendor_name, email, phone)
+      `)
+      .eq('mm_material', params.mm_material)
+      .eq('tenant_id', tenantId)
+      .single()
 
-export async function GET(_: Request, { params }: { params: { mm_material: string } }) {
-  // ✅ GUARDRAIL COMPLIANCE: API usando @supabase/ssr e cookies()
-  const sb = supabaseServer()
-  const { data, error } = await sb.from("mm_material").select("*").eq("mm_material", params.mm_material).single();
-  if (error) return NextResponse.json({ ok:false, error: error.message }, { status: 404 });
-  return NextResponse.json({ ok:true, material: data });
+    if (error) {
+      if (error.code === 'PGRST116') {
+        return NextResponse.json({ 
+          ok: false, 
+          error: { code: 'NOT_FOUND', message: 'Material não encontrado' } 
+        }, { status: 404 })
+      }
+      console.error('Error fetching material:', error)
+      return NextResponse.json({ 
+        ok: false, 
+        error: { code: error.code, message: error.message } 
+      }, { status: 500 })
+    }
+
+    return NextResponse.json({ ok: true, data })
+  } catch (error: any) {
+    console.error('Unhandled error in GET /api/mm/materials/[mm_material]:', error)
+    return NextResponse.json({ 
+      ok: false, 
+      error: { code: 'UNHANDLED_ERROR', message: error.message } 
+    }, { status: 500 })
+  }
 }
 
-export async function PATCH(req: Request, { params }: { params: { mm_material: string } }) {
-  const body = await req.json().catch(() => ({}));
-  // ✅ GUARDRAIL COMPLIANCE: API usando @supabase/ssr e cookies()
-  const sb = supabaseServer()
+export async function PUT(
+  request: Request,
+  { params }: { params: { mm_material: string } }
+) {
+  const supabase = supabaseServer()
+  try {
+    const tenantId = await requireTenantId()
+    const body = await request.json()
 
-              const patch: any = {
-                // mm_comercial: false, // não persistir - mapeado no código
-                mm_desc: body.mm_desc,
-                mm_mat_type: body.mm_mat_type ?? null,
-                mm_mat_class: body.mm_mat_class ?? null,
-                status: body.status ?? undefined,
-                mm_vendor_id: body.mm_vendor_id ?? null,
-                commercial_name: body.commercial_name ?? null,
-                unit_of_measure: body.unit_of_measure ?? null,
-                dimensions: body.dimensions ?? null,
-                purity: body.purity ?? null,
-                color: body.color ?? null,
-                finish: body.finish ?? null,
-                min_stock: body.min_stock ?? null,
-                max_stock: body.max_stock ?? null,
-                lead_time_days: body.lead_time_days ?? null
-              };
-              if (body.unit_price_brl != null) patch.mm_price_cents = toCents(String(body.unit_price_brl));
-              if (body.purchase_price_brl != null) patch.mm_purchase_price_cents = toCents(String(body.purchase_price_brl));
+    const validation = UpdateMaterialSchema.safeParse(body)
+    if (!validation.success) {
+      return NextResponse.json({ 
+        ok: false, 
+        error: { 
+          code: 'VALIDATION_ERROR', 
+          message: validation.error.issues[0].message 
+        } 
+      }, { status: 400 })
+    }
 
-  const { data, error } = await sb.from("mm_material").update(patch).eq("mm_material", params.mm_material).select("*").single();
-  if (error) return NextResponse.json({ ok:false, error: error.message }, { status: 400 });
-  return NextResponse.json({ ok:true, material: data });
+    const { data, error } = await supabase
+      .from('mm_material')
+      .update(validation.data)
+      .eq('mm_material', params.mm_material)
+      .eq('tenant_id', tenantId)
+      .select(`
+        *,
+        mm_vendor:vendor_id(vendor_name, email, phone)
+      `)
+      .single()
+
+    if (error) {
+      if (error.code === 'PGRST116') {
+        return NextResponse.json({ 
+          ok: false, 
+          error: { code: 'NOT_FOUND', message: 'Material não encontrado' } 
+        }, { status: 404 })
+      }
+      console.error('Error updating material:', error)
+      return NextResponse.json({ 
+        ok: false, 
+        error: { code: error.code, message: error.message } 
+      }, { status: 500 })
+    }
+
+    return NextResponse.json({ ok: true, data })
+  } catch (error: any) {
+    console.error('Unhandled error in PUT /api/mm/materials/[mm_material]:', error)
+    return NextResponse.json({ 
+      ok: false, 
+      error: { code: 'UNHANDLED_ERROR', message: error.message } 
+    }, { status: 500 })
+  }
 }
 
-export async function DELETE(_: Request, { params }: { params: { mm_material: string } }) {
-  // ✅ GUARDRAIL COMPLIANCE: API usando @supabase/ssr e cookies()
-  const sb = supabaseServer()
-  const { error } = await sb.from("mm_material").delete().eq("mm_material", params.mm_material);
-  if (error) return NextResponse.json({ ok:false, error: error.message }, { status: 400 });
-  return NextResponse.json({ ok:true });
+export async function DELETE(
+  request: Request,
+  { params }: { params: { mm_material: string } }
+) {
+  const supabase = supabaseServer()
+  try {
+    const tenantId = await requireTenantId()
+
+    const { error } = await supabase
+      .from('mm_material')
+      .delete()
+      .eq('mm_material', params.mm_material)
+      .eq('tenant_id', tenantId)
+
+    if (error) {
+      console.error('Error deleting material:', error)
+      return NextResponse.json({ 
+        ok: false, 
+        error: { code: error.code, message: error.message } 
+      }, { status: 500 })
+    }
+
+    return NextResponse.json({ ok: true, data: { deleted: true } })
+  } catch (error: any) {
+    console.error('Unhandled error in DELETE /api/mm/materials/[mm_material]:', error)
+    return NextResponse.json({ 
+      ok: false, 
+      error: { code: 'UNHANDLED_ERROR', message: error.message } 
+    }, { status: 500 })
+  }
 }

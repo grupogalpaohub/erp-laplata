@@ -1,65 +1,101 @@
+import { NextResponse } from 'next/server'
 import { supabaseServer } from '@/lib/supabase/server'
-import { NextResponse } from "next/server";
+import { requireTenantId } from '@/utils/tenant'
+import { CreateVendorSchema, UpdateVendorSchema } from '@/lib/schemas/mm'
 
-export async function GET(req: Request) {
-  const sb = supabaseServer()
-  
-  // GUARDRAIL: Verificar autenticação via supabaseServer()
-  const { data: { user }, error: authError } = await sb.auth.getUser()
-  if (authError || !user) {
-    return NextResponse.json({
-      ok: false,
-      error: { code: 'UNAUTHORIZED', message: 'Usuário não autenticado' }
-    }, { status: 401 })
+export async function GET(request: Request) {
+  const supabase = supabaseServer()
+  try {
+    const tenantId = await requireTenantId()
+    const { searchParams } = new URL(request.url)
+    const page = parseInt(searchParams.get('page') || '1')
+    const limit = parseInt(searchParams.get('limit') || '10')
+    const search = searchParams.get('search') || ''
+
+    const offset = (page - 1) * limit
+
+    let query = supabase
+      .from('mm_vendor')
+      .select('*', { count: 'exact' })
+      .eq('tenant_id', tenantId)
+      .order('vendor_name', { ascending: true })
+      .range(offset, offset + limit - 1)
+
+    // Aplicar filtro de busca
+    if (search) {
+      query = query.or(`vendor_name.ilike.%${search}%,email.ilike.%${search}%`)
+    }
+
+    const { data, error, count } = await query
+
+    if (error) {
+      console.error('Error fetching vendors:', error)
+      return NextResponse.json({ 
+        ok: false, 
+        error: { code: error.code, message: error.message } 
+      }, { status: 500 })
+    }
+
+    return NextResponse.json({ 
+      ok: true, 
+      data: data || [], 
+      pagination: {
+        page,
+        limit,
+        total: count || 0,
+        pages: Math.ceil((count || 0) / limit)
+      }
+    })
+  } catch (error: any) {
+    console.error('Unhandled error in GET /api/mm/vendors:', error)
+    return NextResponse.json({ 
+      ok: false, 
+      error: { code: 'UNHANDLED_ERROR', message: error.message } 
+    }, { status: 500 })
   }
-  
-  const url = new URL(req.url);
-  const q = url.searchParams.get("q")?.trim() ?? "";
-  const page = Number(url.searchParams.get("page") ?? 1);
-  const pageSize = Math.min(Number(url.searchParams.get("pageSize") ?? 50), 200);
-  let query = sb.from("mm_vendor").select("*", { count: "exact" }).order("vendor_name");
-  if (q) query = query.ilike("vendor_name", `%${q}%`).or(`vendor_id.ilike.%${q}%,email.ilike.%${q}%`);
-
-  const from = (page - 1) * pageSize;
-  const to = from + pageSize - 1;
-  
-  // RLS filtra automaticamente por tenant_id
-  const { data, count, error } = await query.range(from, to);
-  if (error) return NextResponse.json({ ok:false, error: error.message }, { status: 400 });
-
-  return NextResponse.json({ ok:true, items: data, total: count ?? 0, page, pageSize });
 }
 
-export async function POST(req: Request) {
-  const body = await req.json().catch(() => ({}));
-  const sb = supabaseServer()
-  
-  // Obter tenant_id da sessão
-  const { data: { session } } = await sb.auth.getSession()
-  const tenant_id = session?.user?.user_metadata?.tenant_id || 'LaplataLunaria'
+export async function POST(request: Request) {
+  const supabase = supabaseServer()
+  try {
+    const tenantId = await requireTenantId()
+    const body = await request.json()
 
-  const vendor = {
-    tenant_id,
-    vendor_id: body.vendor_id,
-    vendor_name: body.vendor_name,
-    email: body.email ?? null,
-    telefone: body.telefone ?? null,
-    cidade: body.cidade ?? null,
-    estado: body.estado ?? null,
-    vendor_rating: body.vendor_rating ?? null,
-    contact_person: body.contact_person ?? null,
-    address: body.address ?? null,
-    city: body.city ?? null,
-    state: body.state ?? null,
-    zip_code: body.zip_code ?? null,
-    country: body.country ?? "Brasil",
-    tax_id: body.tax_id ?? null,
-    payment_terms: body.payment_terms ?? 30,
-    rating: body.rating ?? "B",
-    status: body.status ?? "active"
-  };
+    const validation = CreateVendorSchema.safeParse(body)
+    if (!validation.success) {
+      return NextResponse.json({ 
+        ok: false, 
+        error: { 
+          code: 'VALIDATION_ERROR', 
+          message: validation.error.issues[0].message 
+        } 
+      }, { status: 400 })
+    }
 
-  const { data, error } = await sb.from("mm_vendor").insert(vendor).select("*").single();
-  if (error) return NextResponse.json({ ok:false, error: error.message }, { status: 400 });
-  return NextResponse.json({ ok:true, vendor: data }, { status: 201 });
+    const { data, error } = await supabase
+      .from('mm_vendor')
+      .insert({ 
+        ...validation.data, 
+        tenant_id: tenantId,
+        vendor_id: crypto.randomUUID()
+      })
+      .select()
+      .single()
+
+    if (error) {
+      console.error('Error creating vendor:', error)
+      return NextResponse.json({ 
+        ok: false, 
+        error: { code: error.code, message: error.message } 
+      }, { status: 500 })
+    }
+
+    return NextResponse.json({ ok: true, data })
+  } catch (error: any) {
+    console.error('Unhandled error in POST /api/mm/vendors:', error)
+    return NextResponse.json({ 
+      ok: false, 
+      error: { code: 'UNHANDLED_ERROR', message: error.message } 
+    }, { status: 500 })
+  }
 }

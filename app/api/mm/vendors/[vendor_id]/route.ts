@@ -1,50 +1,127 @@
+import { NextResponse } from 'next/server'
 import { supabaseServer } from '@/lib/supabase/server'
-// app/api/mm/vendors/[vendor_id]/route.ts
-import { NextResponse } from "next/server";
+import { requireTenantId } from '@/utils/tenant'
+import { UpdateVendorSchema } from '@/lib/schemas/mm'
 
+export async function GET(
+  request: Request,
+  { params }: { params: { vendor_id: string } }
+) {
+  const supabase = supabaseServer()
+  try {
+    const tenantId = await requireTenantId()
 
+    const { data, error } = await supabase
+      .from('mm_vendor')
+      .select('*')
+      .eq('vendor_id', params.vendor_id)
+      .eq('tenant_id', tenantId)
+      .single()
 
-export async function GET(_: Request, { params }: { params: { vendor_id: string } }) {
-  // ✅ GUARDRAIL COMPLIANCE: API usando @supabase/ssr e cookies()
-  const sb = supabaseServer()
-  const { data, error } = await sb.from("mm_vendor").select("*").eq("vendor_id", params.vendor_id).single();
-  if (error) return NextResponse.json({ ok:false, error: error.message }, { status: 404 });
-  return NextResponse.json({ ok:true, vendor: data });
+    if (error) {
+      if (error.code === 'PGRST116') {
+        return NextResponse.json({ 
+          ok: false, 
+          error: { code: 'NOT_FOUND', message: 'Fornecedor não encontrado' } 
+        }, { status: 404 })
+      }
+      console.error('Error fetching vendor:', error)
+      return NextResponse.json({ 
+        ok: false, 
+        error: { code: error.code, message: error.message } 
+      }, { status: 500 })
+    }
+
+    return NextResponse.json({ ok: true, data })
+  } catch (error: any) {
+    console.error('Unhandled error in GET /api/mm/vendors/[vendor_id]:', error)
+    return NextResponse.json({ 
+      ok: false, 
+      error: { code: 'UNHANDLED_ERROR', message: error.message } 
+    }, { status: 500 })
+  }
 }
 
-export async function PATCH(req: Request, { params }: { params: { vendor_id: string } }) {
-  const patch = await req.json().catch(() => ({}));
-  // ✅ GUARDRAIL COMPLIANCE: API usando @supabase/ssr e cookies()
-  const sb = supabaseServer()
+export async function PUT(
+  request: Request,
+  { params }: { params: { vendor_id: string } }
+) {
+  const supabase = supabaseServer()
+  try {
+    const tenantId = await requireTenantId()
+    const body = await request.json()
 
-  // Mapear campos para nomes corretos do banco
-  const dbPatch: any = {}
-  if (patch.vendor_name !== undefined) dbPatch.vendor_name = patch.vendor_name
-  if (patch.email !== undefined) dbPatch.email = patch.email
-  if (patch.telefone !== undefined) dbPatch.telefone = patch.telefone
-  if (patch.cidade !== undefined) dbPatch.cidade = patch.cidade
-  if (patch.estado !== undefined) dbPatch.estado = patch.estado
-  if (patch.vendor_rating !== undefined) dbPatch.vendor_rating = patch.vendor_rating
-  if (patch.contact_person !== undefined) dbPatch.contact_person = patch.contact_person
-  if (patch.address !== undefined) dbPatch.address = patch.address
-  if (patch.city !== undefined) dbPatch.city = patch.city
-  if (patch.state !== undefined) dbPatch.state = patch.state
-  if (patch.zip_code !== undefined) dbPatch.zip_code = patch.zip_code
-  if (patch.country !== undefined) dbPatch.country = patch.country
-  if (patch.tax_id !== undefined) dbPatch.tax_id = patch.tax_id
-  if (patch.payment_terms !== undefined) dbPatch.payment_terms = patch.payment_terms
-  if (patch.rating !== undefined) dbPatch.rating = patch.rating
-  if (patch.status !== undefined) dbPatch.status = patch.status
+    const validation = UpdateVendorSchema.safeParse(body)
+    if (!validation.success) {
+      return NextResponse.json({ 
+        ok: false, 
+        error: { 
+          code: 'VALIDATION_ERROR', 
+          message: validation.error.issues[0].message 
+        } 
+      }, { status: 400 })
+    }
 
-  const { data, error } = await sb.from("mm_vendor").update(dbPatch).eq("vendor_id", params.vendor_id).select("*").single();
-  if (error) return NextResponse.json({ ok:false, error: error.message }, { status: 400 });
-  return NextResponse.json({ ok:true, vendor: data });
+    const { data, error } = await supabase
+      .from('mm_vendor')
+      .update(validation.data)
+      .eq('vendor_id', params.vendor_id)
+      .eq('tenant_id', tenantId)
+      .select()
+      .single()
+
+    if (error) {
+      if (error.code === 'PGRST116') {
+        return NextResponse.json({ 
+          ok: false, 
+          error: { code: 'NOT_FOUND', message: 'Fornecedor não encontrado' } 
+        }, { status: 404 })
+      }
+      console.error('Error updating vendor:', error)
+      return NextResponse.json({ 
+        ok: false, 
+        error: { code: error.code, message: error.message } 
+      }, { status: 500 })
+    }
+
+    return NextResponse.json({ ok: true, data })
+  } catch (error: any) {
+    console.error('Unhandled error in PUT /api/mm/vendors/[vendor_id]:', error)
+    return NextResponse.json({ 
+      ok: false, 
+      error: { code: 'UNHANDLED_ERROR', message: error.message } 
+    }, { status: 500 })
+  }
 }
 
-export async function DELETE(_: Request, { params }: { params: { vendor_id: string } }) {
-  // ✅ GUARDRAIL COMPLIANCE: API usando @supabase/ssr e cookies()
-  const sb = supabaseServer()
-  const { error } = await sb.from("mm_vendor").delete().eq("vendor_id", params.vendor_id);
-  if (error) return NextResponse.json({ ok:false, error: error.message }, { status: 400 });
-  return NextResponse.json({ ok:true });
+export async function DELETE(
+  request: Request,
+  { params }: { params: { vendor_id: string } }
+) {
+  const supabase = supabaseServer()
+  try {
+    const tenantId = await requireTenantId()
+
+    const { error } = await supabase
+      .from('mm_vendor')
+      .delete()
+      .eq('vendor_id', params.vendor_id)
+      .eq('tenant_id', tenantId)
+
+    if (error) {
+      console.error('Error deleting vendor:', error)
+      return NextResponse.json({ 
+        ok: false, 
+        error: { code: error.code, message: error.message } 
+      }, { status: 500 })
+    }
+
+    return NextResponse.json({ ok: true, data: { deleted: true } })
+  } catch (error: any) {
+    console.error('Unhandled error in DELETE /api/mm/vendors/[vendor_id]:', error)
+    return NextResponse.json({ 
+      ok: false, 
+      error: { code: 'UNHANDLED_ERROR', message: error.message } 
+    }, { status: 500 })
+  }
 }

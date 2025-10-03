@@ -1,55 +1,114 @@
-// app/api/mm/receivings/route.ts
-import { NextResponse } from "next/server";
-import { supabaseServer } from '@/lib/supabase/server';
-import { z } from "zod";
+import { NextResponse } from 'next/server'
+import { supabaseServer } from '@/lib/supabase/server'
+import { requireTenantId } from '@/utils/tenant'
+import { CreateReceivingSchema } from '@/lib/schemas/mm'
 
-const Body = z.object({
-  mm_order: z.string().min(1),
-  plant_id: z.string().min(1),
-  mm_material: z.string().min(1),
-  qty_received: z.union([z.number(), z.string()]),
-  notes: z.string().optional()
-});
-
-function toNum(v: unknown) {
-  if (typeof v === "string") return Number(v.replace(",", "."));
-  return Number(v);
-}
-
-export async function POST(req: Request) {
+export async function GET(request: Request) {
+  const supabase = supabaseServer()
   try {
-    const TENANT_ID = "LaplataLunaria";
-    const p = Body.parse(await req.json());
-    const qty = Math.max(0, Math.trunc(toNum(p.qty_received) || 0));
+    const tenantId = await requireTenantId()
+    const { searchParams } = new URL(request.url)
+    const mm_order = searchParams.get('mm_order')
+    const mm_material = searchParams.get('mm_material')
+    const page = parseInt(searchParams.get('page') || '1')
+    const limit = parseInt(searchParams.get('limit') || '50')
 
-    const supabase = supabaseServer();
+    const offset = (page - 1) * limit
 
-    // 1) valida FK do material (evita 23503 que você viu)
-    const { data: mat, error: matErr } = await supabase
-      .from("mm_material")
-      .select("mm_material")
-      .eq("tenant_id", TENANT_ID)
-      .eq("mm_material", p.mm_material)
-      .single();
+    let query = supabase
+      .from('mm_receiving')
+      .select(`
+        *,
+        mm_material:mm_material(material_name, category, classification),
+        mm_purchase_order:mm_order(vendor_id, order_date, status)
+      `, { count: 'exact' })
+      .eq('tenant_id', tenantId)
+      .order('received_at', { ascending: false })
+      .range(offset, offset + limit - 1)
 
-    if (matErr || !mat) {
-      return NextResponse.json({ error: "material not found" }, { status: 400 });
+    // Aplicar filtros
+    if (mm_order) {
+      query = query.eq('mm_order', mm_order)
+    }
+    if (mm_material) {
+      query = query.eq('mm_material', mm_material)
     }
 
-    // 2) insere recebimento
-    const { error } = await supabase.from("mm_receiving").insert([{
-      tenant_id: TENANT_ID,
-      mm_order: p.mm_order,
-      plant_id: p.plant_id,        // use o ID real da planta, p.ex. WH-001
-      mm_material: p.mm_material,
-      qty_received: qty,
-      notes: p.notes ?? ""
-    }]);
+    const { data, error, count } = await query
 
-    if (error) return NextResponse.json({ supabase: error }, { status: 500 });
-    return NextResponse.json({ ok: true }, { status: 201 });
+    if (error) {
+      console.error('Error fetching receivings:', error)
+      return NextResponse.json({ 
+        ok: false, 
+        error: { code: error.code, message: error.message } 
+      }, { status: 500 })
+    }
 
-  } catch (e: any) {
-    return NextResponse.json({ exception: String(e?.message ?? e) }, { status: 500 });
+    return NextResponse.json({ 
+      ok: true, 
+      data: data || [], 
+      pagination: {
+        page,
+        limit,
+        total: count || 0,
+        pages: Math.ceil((count || 0) / limit)
+      }
+    })
+  } catch (error: any) {
+    console.error('Unhandled error in GET /api/mm/receivings:', error)
+    return NextResponse.json({ 
+      ok: false, 
+      error: { code: 'UNHANDLED_ERROR', message: error.message } 
+    }, { status: 500 })
+  }
+}
+
+export async function POST(request: Request) {
+  const supabase = supabaseServer()
+  try {
+    const tenantId = await requireTenantId()
+    const body = await request.json()
+
+    const validation = CreateReceivingSchema.safeParse(body)
+    if (!validation.success) {
+      return NextResponse.json({ 
+        ok: false, 
+        error: { 
+          code: 'VALIDATION_ERROR', 
+          message: validation.error.issues[0].message 
+        } 
+      }, { status: 400 })
+    }
+
+    const { data, error } = await supabase
+      .from('mm_receiving')
+      .insert({ 
+        ...validation.data, 
+        tenant_id: tenantId,
+        recv_id: crypto.randomUUID(),
+        received_at: new Date().toISOString()
+      })
+      .select(`
+        *,
+        mm_material:mm_material(material_name, category, classification),
+        mm_purchase_order:mm_order(vendor_id, order_date, status)
+      `)
+      .single()
+
+    if (error) {
+      console.error('Error creating receiving:', error)
+      return NextResponse.json({ 
+        ok: false, 
+        error: { code: error.code, message: error.message } 
+      }, { status: 500 })
+    }
+
+    return NextResponse.json({ ok: true, data })
+  } catch (error: any) {
+    console.error('Unhandled error in POST /api/mm/receivings:', error)
+    return NextResponse.json({ 
+      ok: false, 
+      error: { code: 'UNHANDLED_ERROR', message: error.message } 
+    }, { status: 500 })
   }
 }

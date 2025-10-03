@@ -125,20 +125,8 @@ export async function POST(req: Request) {
       return NextResponse.json({ ok: false, error: { message: 'Só é permitido incluir itens em PO com status "draft"' } }, { status: 409 })
     }
 
-    // 4) Calcular próximo row_no por PO
-    const { data: maxRow, error: maxErr } = await supabase
-      .from('mm_purchase_order_item')
-      .select('row_no')
-      .eq('tenant_id', tenant_id)
-      .eq('mm_order', mm_order)
-      .order('row_no', { ascending: false })
-      .limit(1)
-      .maybeSingle()
-
-    if (maxErr) {
-      return NextResponse.json({ ok: false, error: { message: 'Erro ao obter row_no', details: maxErr.message } }, { status: 500 })
-    }
-    const row_no = (maxRow?.row_no ?? 0) + 1
+    // 4) Não precisamos calcular row_no - a tabela não tem essa coluna
+    // O po_item_id é gerado automaticamente pelo serial
 
     // 5) Calcular total (centavos) — sem hacks de dinheiro
     const line_total_cents = Math.round(unit_cost_cents * qtt)
@@ -147,7 +135,6 @@ export async function POST(req: Request) {
     const insertPayload: any = {
       tenant_id,
       mm_order,
-      row_no,
       mm_material,
       unit_cost_cents,
       line_total_cents,
@@ -161,7 +148,7 @@ export async function POST(req: Request) {
     const { data: ins, error: insError } = await supabase
       .from('mm_purchase_order_item')
       .insert(insertPayload)
-      .select('mm_order, row_no, mm_material, unit_cost_cents, line_total_cents')
+      .select('mm_order, po_item_id, mm_material, unit_cost_cents, line_total_cents')
       .single()
 
     if (insError) {

@@ -191,6 +191,7 @@ export default function NewPOClient({ vendors, materials, selectedVendorId }: Ne
             mm_material: item.mm_material,
             mm_qtt: Number(item.mm_qtt),
             unit_cost_cents: item.unit_cost_cents,
+            plant_id: 'GOIANIA',
             notes: ""
           })
         })

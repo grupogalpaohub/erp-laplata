@@ -7,6 +7,7 @@ const BodySchema = z.object({
   mm_material: z.string().min(1),
   mm_qtt: z.union([z.number(), z.string()]),
   unit_cost_cents: z.number().int().nonnegative(),
+  plant_id: z.string().min(1),            // OBRIGATÓRIO - NOT NULL no banco
   notes: z.string().optional().default('')
 })
 
@@ -102,7 +103,7 @@ export async function POST(req: Request) {
     if (!parsed.success) {
       return NextResponse.json({ ok:false, error:{ message:'Payload inválido', details: parsed.error.flatten() } }, { status:400 })
     }
-    const { mm_order, mm_material, mm_qtt, unit_cost_cents, notes } = parsed.data
+    const { mm_order, mm_material, mm_qtt, unit_cost_cents, plant_id, notes } = parsed.data
     const quantity = Number(mm_qtt)
     if (!Number.isFinite(quantity) || quantity <= 0) {
       return NextResponse.json({ ok:false, error:{ message:'Quantidade inválida' } }, { status:400 })
@@ -134,6 +135,7 @@ export async function POST(req: Request) {
       mm_qtt: quantity,
       unit_cost_cents,
       line_total_cents,
+      plant_id,
       notes
     }
 

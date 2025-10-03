@@ -1,4 +1,4 @@
-import { supabaseServer } from '@/lib/supabase/server'
+import { supabaseServerReadOnly } from '@/lib/supabase/server-readonly'
 import { requireTenantId } from '@/utils/tenant'
 import Link from 'next/link'
 
@@ -25,7 +25,7 @@ interface Shipment {
 }
 
 export default async function ShipmentsPage() {
-  const supabase = supabaseServer()
+  const supabase = supabaseServerReadOnly()
   
   try {
     const tenantId = await requireTenantId()

@@ -1,8 +1,7 @@
-import { cookies } from "next/headers";
-import { supabaseServer } from "@/lib/supabase/server";
+import { supabaseServerReadOnly } from "@/lib/supabase/server-readonly";
 
 export async function getTenantId(): Promise<string | null> {
-  const sb = supabaseServer();
+  const sb = supabaseServerReadOnly();
   const { data: { user }, error } = await sb.auth.getUser();
   if (error) return null;
   const t = user?.user_metadata?.tenant_id;

@@ -1,4 +1,3 @@
-// app/api/auth/set-tenant/route.ts
 import { NextResponse } from "next/server";
 import { supabaseServer } from "@/lib/supabase/server";
 import { isAllowedTenant } from "@/utils/tenant";
@@ -22,5 +21,5 @@ export async function POST(req: Request) {
     return NextResponse.json({ ok: false, error: { message: updErr.message } }, { status: 400 });
   }
 
-  return NextResponse.redirect(new URL("/", process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000"));
+  return NextResponse.redirect(new URL("/", process.env.NEXT_PUBLIC_BASE_URL));
 }

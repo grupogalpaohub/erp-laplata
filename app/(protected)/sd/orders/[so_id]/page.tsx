@@ -75,7 +75,7 @@ export default async function SalesOrderDetailPage({ params }: { params: { so_id
     if (orderError) {
       error = orderError.message
     } else {
-      order = orderData
+      order = orderData as any
 
       // Buscar dados do cliente separadamente
       if (order?.customer_id) {

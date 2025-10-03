@@ -2,9 +2,16 @@ import { cookies } from "next/headers"
 import { redirect } from "next/navigation"
 import { createServerClient } from "@supabase/ssr"
 
-export default async function AuthCallback({ searchParams }: { searchParams: { code?: string } }) {
+export default async function AuthCallback({ 
+  searchParams 
+}: { 
+  searchParams: { code?: string; error?: string } 
+}) {
   const code = searchParams?.code
-  if (!code) redirect("/login?error=missing_code")
+  const error = searchParams?.error
+  
+  if (error) redirect(`/login?error=${error}`)
+  if (!code) redirect("/login?error=no_code")
 
   const cookieStore = cookies()
   const supabase = createServerClient(
@@ -12,25 +19,25 @@ export default async function AuthCallback({ searchParams }: { searchParams: { c
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
     {
       cookies: {
-        get: (name: string) => {
-          return cookieStore.get(name)?.value
-        },
-        set: (name: string, value: string, options: any) => {
+        get: (name) => cookieStore.get(name)?.value,
+        set: (name, value, options) => {
           cookieStore.set({ name, value, ...options })
         },
-        remove: (name: string, options: any) => {
+        remove: (name, options) => {
           cookieStore.set({ name, value: "", ...options, expires: new Date(0) })
-        },
-      },
+        }
+      }
     }
   )
 
-  const { error } = await supabase.auth.exchangeCodeForSession(code)
-  if (error) redirect(`/login?error=${encodeURIComponent(error.message)}`)
+  const { error: authError } = await supabase.auth.exchangeCodeForSession(code)
+  if (authError) redirect(`/login?error=${authError.message}`)
 
-  // se faltar tenant_id no JWT, mande para onboarding
+  // Verificar tenant_id
   const { data: { user } } = await supabase.auth.getUser()
-  if (!user?.user_metadata?.tenant_id) redirect("/onboarding")
+  if (!user?.user_metadata?.tenant_id) {
+    redirect("/onboarding")
+  }
 
   redirect("/")
 }

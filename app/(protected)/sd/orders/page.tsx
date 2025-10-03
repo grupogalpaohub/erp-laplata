@@ -73,7 +73,7 @@ export default async function SalesOrdersPage() {
     if (error) {
       console.error('Error loading sales orders:', error)
     } else {
-      orders = data || []
+      orders = (data || []) as any[]
       totalCount = count || 0
       
       // 🔍 DEBUG: Verificar dados retornados

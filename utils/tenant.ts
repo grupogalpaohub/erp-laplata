@@ -1,8 +1,8 @@
-// utils/tenant.ts
+import { cookies } from "next/headers";
 import { supabaseServer } from "@/lib/supabase/server";
 
 export async function getTenantId(): Promise<string | null> {
-  const sb = supabaseServer(); // NUNCA passar argumentos
+  const sb = supabaseServer();
   const { data: { user }, error } = await sb.auth.getUser();
   if (error) return null;
   const t = user?.user_metadata?.tenant_id;

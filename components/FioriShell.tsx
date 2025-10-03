@@ -1,87 +1,78 @@
-import Link from 'next/link'
-import { getUserServer } from '@/lib/auth/getUserServer'
-import { ENV } from '@/lib/env'
+"use client"
+import { useEffect, useState } from "react"
+import { usePathname } from "next/navigation"
+import Link from "next/link"
+import { supabaseBrowser } from "@/lib/supabase/client"
+import NavBar from "./NavBar"
 
-export default async function FioriShell({ children }: { children: React.ReactNode }) {
-  let user = null;
-  let isAuthenticated = false;
-  
-  try {
-    user = await getUserServer();
-    isAuthenticated = !!user;
-  } catch (error) {
-    console.error('Erro ao obter usuário:', error);
-    // Em caso de erro, assumir não autenticado
-    user = null;
-    isAuthenticated = false;
+interface User {
+  id: string
+  email?: string
+  user_metadata?: {
+    tenant_id?: string
   }
-  
+}
+
+export default function FioriShell({ children }: { children: React.ReactNode }) {
+  const [user, setUser] = useState<User | null>(null)
+  const [loading, setLoading] = useState(true)
+  const pathname = usePathname()
+
+  useEffect(() => {
+    if (pathname?.startsWith("/auth/")) return
+
+    const supabase = supabaseBrowser()
+    
+    // Get initial session
+    const getInitialSession = async () => {
+      const { data: { session } } = await supabase.auth.getSession()
+      setUser(session?.user ?? null)
+      setLoading(false)
+    }
+
+    getInitialSession()
+
+    // Listen for auth changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      (event, session) => {
+        setUser(session?.user ?? null)
+        setLoading(false)
+      }
+    )
+
+    return () => subscription.unsubscribe()
+  }, [pathname])
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-900 flex items-center justify-center">
+        <div className="text-white">Carregando...</div>
+      </div>
+    )
+  }
+
+  if (!user) {
+    return (
+      <div className="min-h-screen bg-gray-900 flex items-center justify-center">
+        <div className="text-center">
+          <div className="text-white mb-4">Redirecionando para login...</div>
+          <Link 
+            href="/login" 
+            className="text-blue-400 hover:text-blue-300 underline"
+          >
+            Clique aqui se não for redirecionado
+          </Link>
+        </div>
+      </div>
+    )
+  }
 
   return (
-    <div className="min-h-screen bg-fiori-primary">
-      <header className="nav-fiori sticky top-0 z-30">
-        <div className="container-fiori h-16 flex items-center justify-between">
-          <div className="flex items-center gap-8">
-            <div className="flex items-center gap-3">
-              <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
-                <span className="text-white font-bold text-sm">E</span>
-              </div>
-              <span className="text-xl font-semibold text-fiori-primary">ERP LaPlata</span>
-              {ENV.AUTH_DISABLED && (
-                <span className="ml-2 px-2 py-0.5 text-xs rounded bg-yellow-500/20 text-yellow-300 border border-yellow-400/40">
-                  DEV (auth off)
-                </span>
-              )}
-            </div>
-            <nav className="hidden md:flex items-center gap-1">
-              {[
-                ['/', 'Home'],
-                ['/mm', 'Materiais'],
-                ['/sd', 'Vendas'],
-                ['/wh', 'Estoque'],
-                ['/co', 'Controle'],
-                ['/crm', 'CRM'],
-                ['/fi', 'Financeiro'],
-                ['/analytics', 'Analytics'],
-              ].map(([href, label]) => (
-                <Link
-                  key={href}
-                  href={href}
-                  prefetch={false}
-                  className="nav-fiori-item"
-                >
-                  {label}
-                </Link>
-              ))}
-            </nav>
-          </div>
-          <div className="flex items-center gap-4">
-            {ENV.AUTH_DISABLED ? (
-              <div className="text-sm text-gray-300">
-                Modo Desenvolvimento
-              </div>
-            ) : isAuthenticated ? (
-              <div className="flex items-center gap-3">
-                <span className="text-sm text-gray-300">{user?.email}</span>
-                <form action="/api/logout" method="POST">
-                  <button className="btn-fiori-outline">
-                    <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
-                    </svg>
-                    Sair
-                  </button>
-                </form>
-              </div>
-            ) : (
-              <div className="text-sm text-gray-300">
-                Redirecionando para login...
-              </div>
-            )}
-          </div>
-        </div>
-      </header>
-      <main className="container-fiori py-8">{children}</main>
+    <div className="min-h-screen bg-gray-900">
+      <NavBar user={user} />
+      <main className="flex-1">
+        {children}
+      </main>
     </div>
   )
 }
-

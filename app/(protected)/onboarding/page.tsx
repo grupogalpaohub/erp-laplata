@@ -1,30 +1,40 @@
-// app/(protected)/onboarding/page.tsx
 import Link from "next/link";
 import { isAllowedTenant } from "@/utils/tenant";
 
 export default function OnboardingPage() {
-  // Não criamos UI nova complexa. Apenas instrução e botão rápido para o tenant único permitido.
   const tenant = "LaplataLunaria";
   const valid = isAllowedTenant(tenant);
 
   return (
-    <div className="p-6">
-      <h1 className="text-xl font-semibold mb-4">Confirmar acesso</h1>
-      <p className="mb-4">Seu usuário ainda não está associado a um tenant. Clique para confirmar o tenant permitido.</p>
-      <form method="post" action="/api/auth/set-tenant">
-        <input type="hidden" name="tenant_id" value={tenant} />
-        <button
-          type="submit"
-          className="px-4 py-2 rounded bg-primary text-primary-foreground"
-          disabled={!valid}
-          aria-disabled={!valid}
-        >
-          Confirmar tenant: {tenant}
-        </button>
-      </form>
-      <p className="text-sm text-muted-foreground mt-4">
-        Se não era para você acessar este ambiente, <Link href="/logout" className="underline">sair</Link>.
-      </p>
+    <div className="min-h-screen bg-gray-900 flex items-center justify-center">
+      <div className="max-w-md w-full space-y-8 p-8">
+        <div className="text-center">
+          <h1 className="text-2xl font-bold text-white mb-4">Confirmar acesso</h1>
+          <p className="text-gray-400 mb-6">
+            Seu usuário ainda não está associado a um tenant. Clique para confirmar o tenant permitido.
+          </p>
+        </div>
+        
+        <form method="post" action="/api/auth/set-tenant" className="space-y-6">
+          <input type="hidden" name="tenant_id" value={tenant} />
+          <button
+            type="submit"
+            className="w-full flex justify-center py-3 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+            disabled={!valid}
+            aria-disabled={!valid}
+          >
+            Confirmar tenant: {tenant}
+          </button>
+        </form>
+        
+        <p className="text-sm text-gray-400 text-center">
+          Se não era para você acessar este ambiente,{" "}
+          <Link href="/logout" className="text-blue-400 hover:text-blue-300 underline">
+            sair
+          </Link>
+          .
+        </p>
+      </div>
     </div>
   );
 }

@@ -46,7 +46,7 @@ interface PageProps {
 
 export default async function CustomerDetailPage({ params }: PageProps) {
   let customer: Customer | null = null
-  let salesOrders = []
+  let salesOrders: any[] = []
   let totalSalesValue = 0
 
   try {

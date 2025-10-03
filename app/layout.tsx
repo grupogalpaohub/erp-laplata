@@ -1,23 +1,30 @@
-import "@/styles/fiori-helpers.css";
+import type { Metadata } from 'next'
+import { Inter } from 'next/font/google'
 import './globals.css'
-import FioriShell from '@/components/FioriShell'
-import SuppressHydrationWarnings from '@/components/SuppressHydrationWarnings'
 import { Providers } from './providers'
+import FioriShell from '@/components/FioriShell'
 
-export const dynamic = 'force-dynamic'
-export const metadata = { title: 'ERP LaPlata' }
+const inter = Inter({ subsets: ['latin'] })
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+export const metadata: Metadata = {
+  title: 'ERP LaPlata',
+  description: 'Sistema ERP para gestão empresarial',
+}
+
+export default function RootLayout({
+  children,
+}: {
+  children: React.ReactNode
+}) {
   return (
     <html lang="pt-BR">
-      <body suppressHydrationWarning={true}>
-        <SuppressHydrationWarnings />
+      <body className={inter.className}>
         <Providers>
-          <FioriShell>{children}</FioriShell>
+          <FioriShell>
+            {children}
+          </FioriShell>
         </Providers>
       </body>
     </html>
   )
 }
-
-

@@ -1,35 +1,41 @@
 import { NextResponse } from 'next/server'
 import { supabaseServer } from '@/lib/supabase/server'
 import { requireTenantId } from '@/utils/tenant'
-import { CreateWarehouseSchema } from '@/lib/schemas/wh'
+import { CreateLowStockAlertSchema, UpdateLowStockAlertSchema } from '@/lib/schemas/wh'
 
 export async function GET(request: Request) {
   const supabase = supabaseServer()
   try {
     const tenantId = await requireTenantId()
     const { searchParams } = new URL(request.url)
+    const plant_id = searchParams.get('plant_id')
+    const status = searchParams.get('status') || 'active'
     const page = parseInt(searchParams.get('page') || '1')
-    const limit = parseInt(searchParams.get('limit') || '10')
-    const search = searchParams.get('search') || ''
+    const limit = parseInt(searchParams.get('limit') || '50')
 
     const offset = (page - 1) * limit
 
     let query = supabase
-      .from('wh_warehouse')
-      .select('*', { count: 'exact' })
+      .from('wh_low_stock_alert')
+      .select(`
+        *,
+        mm_material:mm_material(material_name, category, classification),
+        wh_warehouse:plant_id(plant_name, address)
+      `, { count: 'exact' })
       .eq('tenant_id', tenantId)
-      .order('plant_name', { ascending: true })
+      .eq('status', status)
+      .order('alert_date', { ascending: false })
       .range(offset, offset + limit - 1)
 
-    // Aplicar filtro de busca
-    if (search) {
-      query = query.or(`plant_name.ilike.%${search}%,plant_id.ilike.%${search}%`)
+    // Aplicar filtros
+    if (plant_id) {
+      query = query.eq('plant_id', plant_id)
     }
 
     const { data, error, count } = await query
 
     if (error) {
-      console.error('Error fetching warehouses:', error)
+      console.error('Error fetching low stock alerts:', error)
       return NextResponse.json({ 
         ok: false, 
         error: { code: error.code, message: error.message } 
@@ -47,7 +53,7 @@ export async function GET(request: Request) {
       }
     })
   } catch (error: any) {
-    console.error('Unhandled error in GET /api/wh/warehouses:', error)
+    console.error('Unhandled error in GET /api/wh/alerts:', error)
     return NextResponse.json({ 
       ok: false, 
       error: { code: 'UNHANDLED_ERROR', message: error.message } 
@@ -61,7 +67,7 @@ export async function POST(request: Request) {
     const tenantId = await requireTenantId()
     const body = await request.json()
 
-    const validation = CreateWarehouseSchema.safeParse(body)
+    const validation = CreateLowStockAlertSchema.safeParse(body)
     if (!validation.success) {
       return NextResponse.json({ 
         ok: false, 
@@ -73,16 +79,22 @@ export async function POST(request: Request) {
     }
 
     const { data, error } = await supabase
-      .from('wh_warehouse')
+      .from('wh_low_stock_alert')
       .insert({ 
         ...validation.data, 
-        tenant_id: tenantId
+        tenant_id: tenantId,
+        alert_id: crypto.randomUUID(),
+        alert_date: new Date().toISOString()
       })
-      .select()
+      .select(`
+        *,
+        mm_material:mm_material(material_name, category, classification),
+        wh_warehouse:plant_id(plant_name, address)
+      `)
       .single()
 
     if (error) {
-      console.error('Error creating warehouse:', error)
+      console.error('Error creating low stock alert:', error)
       return NextResponse.json({ 
         ok: false, 
         error: { code: error.code, message: error.message } 
@@ -91,7 +103,7 @@ export async function POST(request: Request) {
 
     return NextResponse.json({ ok: true, data })
   } catch (error: any) {
-    console.error('Unhandled error in POST /api/wh/warehouses:', error)
+    console.error('Unhandled error in POST /api/wh/alerts:', error)
     return NextResponse.json({ 
       ok: false, 
       error: { code: 'UNHANDLED_ERROR', message: error.message } 

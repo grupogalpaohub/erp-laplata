@@ -1,233 +1,125 @@
 import { supabaseServer } from '@/lib/supabase/server'
-import { requireSession } from '@/lib/auth/requireSession'
-import { formatBRL } from '@/lib/money'
-import Link from 'next/link'
-import { Package, Eye, TrendingUp, AlertTriangle } from 'lucide-react'
-
-export const dynamic = 'force-dynamic'
-export const revalidate = 0
-
-interface InventoryItem {
-  tenant_id: string
-  plant_id: string
-  mm_material: string
-  on_hand_qty: number
-  reserved_qty: number
-  available_qty: number
-  mm_material_data?: {
-    mm_comercial: string
-    mm_desc: string
-    mm_purchase_price_cents: number
-  }
-}
+import { requireTenantId } from '@/utils/tenant'
+import { redirect } from 'next/navigation'
+import { InventoryBalance } from '@/lib/schemas/wh'
 
 export default async function InventoryPage() {
-  const sb = supabaseServer()
-  await requireSession()
+  const supabase = supabaseServer()
+  
+  try {
+    const tenantId = await requireTenantId()
+    
+    const { data: inventory, error } = await supabase
+      .from('wh_inventory_balance')
+      .select(`
+        *,
+        mm_material:mm_material(material_name, category, classification, unit_price_cents),
+        wh_warehouse:plant_id(plant_name, address)
+      `)
+      .eq('tenant_id', tenantId)
+      .order('mm_material', { ascending: true })
 
-  // ✅ CORREÇÃO: 2 chamadas separadas + join em memória
-  // 1) Buscar inventário
-  const { data: inventoryData, error } = await sb
-    .from('wh_inventory_balance')
-    .select('plant_id,mm_material,on_hand_qty,reserved_qty,status')
-    .order('mm_material')
+    if (error) {
+      console.error('Error loading inventory:', error)
+      redirect('/wh')
+    }
 
-  if (error) {
-    console.error('Error fetching inventory:', error)
-  }
-
-  const inventoryRows = inventoryData || []
-
-  // 2) Buscar materiais
-  const materialIds = [...new Set(inventoryRows.map((r: any) => r.mm_material))]
-  const { data: materialsData, error: materialsError } = materialIds.length
-    ? await sb.from('mm_material').select('mm_material,mm_comercial,mm_desc,mm_purchase_price_cents').in('mm_material', materialIds)
-    : { data: [], error: null }
-
-  if (materialsError) {
-    console.error('Error fetching materials:', materialsError)
-  }
-
-  // Join em memória
-  const materialMap = new Map((materialsData || []).map((m: any) => [m.mm_material, m]))
-  const inventory: InventoryItem[] = inventoryRows.map((item: any) => ({
-    ...item,
-    available_qty: Number(item.on_hand_qty) - Number(item.reserved_qty),
-    mm_material_data: materialMap.get(item.mm_material)
-  }))
-
-  // Calcular estatísticas
-  const totalItems = (inventory ?? []).length
-
-  const totalValueCents = (inventory ?? []).reduce((sum, item) => {
-    const qty = Number(item.on_hand_qty ?? 0)
-    const unitCents = Number(item.mm_material_data?.mm_purchase_price_cents ?? 0)
-    return sum + Math.round(qty * unitCents)
-  }, 0)
-
-  const lowStockItems = inventory.filter(item => item.on_hand_qty < 10).length
-  const zeroStockItems = inventory.filter(item => item.on_hand_qty === 0).length
-
-  return (
-    <div className="container-fiori">
-      <div className="section-fiori">
-        <div className="flex items-center justify-between mb-8">
-          <div>
-            <h1 className="text-3xl font-bold text-fiori-primary">Posição de Estoque</h1>
-            <p className="text-fiori-secondary mt-2">Visão completa do inventário por material</p>
-          </div>
-          <div className="flex gap-4">
-            <Link href="/wh" className="btn-fiori-secondary">
-              ← Voltar
-            </Link>
-            <Link href="/wh/movements" className="btn-fiori-primary">
-              Ver Movimentações
-            </Link>
-          </div>
+    return (
+      <div className="p-6 space-y-6">
+        <div className="flex justify-between items-center">
+          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
+            Saldo de Estoque
+          </h1>
         </div>
 
-        {/* Estatísticas */}
-        <div className="grid-fiori-4 mb-8">
-          <div className="tile-fiori">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="tile-fiori-subtitle">Valor Total</p>
-                <p className="tile-fiori-metric">
-                  {formatBRL(totalValueCents)}
-                </p>
-              </div>
-              <Package className="tile-fiori-icon" />
-            </div>
-          </div>
-
-          <div className="tile-fiori">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="tile-fiori-subtitle">Total de Itens</p>
-                <p className="tile-fiori-metric">{totalItems}</p>
-              </div>
-              <TrendingUp className="tile-fiori-icon" />
-            </div>
-          </div>
-
-          <div className="tile-fiori">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="tile-fiori-subtitle">Estoque Baixo</p>
-                <p className="tile-fiori-metric text-fiori-warning">{lowStockItems}</p>
-              </div>
-              <AlertTriangle className="tile-fiori-icon text-fiori-warning" />
-            </div>
-          </div>
-
-          <div className="tile-fiori">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="tile-fiori-subtitle">Sem Estoque</p>
-                <p className="tile-fiori-metric text-fiori-danger">{zeroStockItems}</p>
-              </div>
-              <AlertTriangle className="tile-fiori-icon text-fiori-danger" />
-            </div>
-          </div>
-        </div>
-
-        {/* Tabela de Estoque */}
-        <div className="card-fiori">
-          <div className="card-fiori-header">
-            <h2 className="card-fiori-title">Posição por Material</h2>
-          </div>
-          <div className="card-fiori-body">
-            <div className="overflow-x-auto">
-              <table className="table-fiori">
-                <thead>
-                  <tr>
-                    <th>Material</th>
-                    <th>Descrição</th>
-                    <th className="text-right">Em Mão</th>
-                    <th className="text-right">Reservado</th>
-                    <th className="text-right">Disponível</th>
-                    <th className="text-right">Valor Unit.</th>
-                    <th className="text-right">Valor Total</th>
-                    <th>Status</th>
-                    <th>Ações</th>
+        {/* Inventory Table */}
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow overflow-hidden">
+          <div className="overflow-x-auto">
+            <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+              <thead className="bg-gray-50 dark:bg-gray-700">
+                <tr>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                    Material
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                    Armazém
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                    Disponível
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                    Reservado
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                    Bloqueado
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                    Valor Total
+                  </th>
+                </tr>
+              </thead>
+              <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
+                {inventory?.map((item: InventoryBalance & { 
+                  mm_material?: any, 
+                  wh_warehouse?: any 
+                }) => (
+                  <tr key={`${item.plant_id}-${item.mm_material}`} className="hover:bg-gray-50 dark:hover:bg-gray-700">
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="text-sm font-medium text-gray-900 dark:text-white">
+                        {item.mm_material?.material_name || 'N/A'}
+                      </div>
+                      <div className="text-sm text-gray-500 dark:text-gray-400">
+                        {item.mm_material?.category || 'N/A'} - {item.mm_material?.classification || 'N/A'}
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="text-sm text-gray-900 dark:text-white">
+                        {item.wh_warehouse?.plant_name || item.plant_id}
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
+                        item.available_qty > 0 
+                          ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200'
+                          : 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200'
+                      }`}>
+                        {item.available_qty}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
+                      {item.reserved_qty}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
+                      {item.blocked_qty}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
+                      {item.mm_material?.unit_price_cents 
+                        ? `R$ ${((item.available_qty * item.mm_material.unit_price_cents) / 100).toFixed(2)}`
+                        : 'N/A'
+                      }
+                    </td>
                   </tr>
-                </thead>
-                <tbody>
-                  {inventory.map((item) => {
-                    // Valor unitário (centavos)
-                    const unitPriceCents = Number(item.mm_material_data?.mm_purchase_price_cents ?? 0)
-                    
-                    // Valor total (centavos)
-                    const lineTotalCents = Math.round(Number(item.on_hand_qty ?? 0) * unitPriceCents)
-                    
-                    const isLowStock = item.on_hand_qty < 10
-                    const isZeroStock = item.on_hand_qty === 0
-
-                    return (
-                      <tr key={`${item.plant_id}-${item.mm_material}`}>
-                        <td>
-                          <span className="font-mono text-sm text-fiori-primary">
-                            {item.mm_material}
-                          </span>
-                        </td>
-                        <td>
-                          <div>
-                            <div className="font-semibold">
-                              {item.mm_material_data?.mm_comercial || 'N/A'}
-                            </div>
-                            <div className="text-xs text-fiori-muted">
-                              {item.mm_material_data?.mm_desc || 'Sem descrição'}
-                            </div>
-                          </div>
-                        </td>
-                        <td className="text-right font-medium">
-                          {item.on_hand_qty.toLocaleString()}
-                        </td>
-                        <td className="text-right">
-                          <span className="text-fiori-info">
-                            {item.reserved_qty.toLocaleString()}
-                          </span>
-                        </td>
-                        <td className="text-right font-medium">
-                          <span className={item.available_qty > 0 ? 'text-fiori-success' : 'text-fiori-danger'}>
-                            {item.available_qty.toLocaleString()}
-                          </span>
-                        </td>
-                        <td className="text-right">
-                          {formatBRL(unitPriceCents)}
-                        </td>
-                        <td className="text-right font-medium">
-                          {formatBRL(lineTotalCents)}
-                        </td>
-                        <td>
-                          {isZeroStock ? (
-                            <span className="badge-fiori badge-fiori-danger">Sem Estoque</span>
-                          ) : isLowStock ? (
-                            <span className="badge-fiori badge-fiori-warning">Estoque Baixo</span>
-                          ) : (
-                            <span className="badge-fiori badge-fiori-success">Normal</span>
-                          )}
-                        </td>
-                        <td>
-                          <div className="flex gap-2">
-                            <Link
-                              href={`/wh/movements?material=${item.mm_material}`}
-                              className="btn-fiori-outline text-xs"
-                            >
-                              <Eye className="w-4 h-4" />
-                            </Link>
-                          </div>
-                        </td>
-                      </tr>
-                    )
-                  })}
-                </tbody>
-              </table>
-            </div>
+                ))}
+              </tbody>
+            </table>
           </div>
         </div>
-      </div>
-    </div>
-  )
-}
 
+        {(!inventory || inventory.length === 0) && (
+          <div className="text-center py-12">
+            <svg className="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+            </svg>
+            <h3 className="mt-2 text-sm font-medium text-gray-900 dark:text-white">Nenhum item em estoque encontrado</h3>
+            <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
+              Os saldos de estoque aparecerão aqui quando houver movimentações.
+            </p>
+          </div>
+        )}
+      </div>
+    )
+  } catch (error) {
+    console.error('Error loading inventory page:', error)
+    redirect('/login')
+  }
+}

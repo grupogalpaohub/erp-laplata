@@ -1,298 +1,190 @@
-import Link from 'next/link'
-import { ArrowLeft } from 'lucide-react'
-import { requireSession } from '@/lib/auth/requireSession'
 import { supabaseServer } from '@/lib/supabase/server'
-import { formatBRL } from '@/lib/money'
-
-export const dynamic = 'force-dynamic'
-export const revalidate = 0
-export const fetchCache = 'force-no-store'
+import { requireTenantId } from '@/utils/tenant'
+import { redirect } from 'next/navigation'
+import Link from 'next/link'
 
 export default async function WHPage() {
-  let inventory: any[] = []
-  let movements: any[] = []
-  let transfers: any[] = []
-  let totalItems = 0
-  let totalValue = 0
-  let lowStockItems = 0
-  let movementsToday = 0
-
+  const supabase = supabaseServer()
+  
   try {
-    await requireSession() // Verificar se está autenticado
+    const tenantId = await requireTenantId()
     
-    const sb = supabaseServer()
+    // Buscar KPIs básicos
+    const [
+      { count: warehousesCount },
+      { count: materialsInStockCount },
+      { count: activeAlertsCount },
+      { count: movementsCount }
+    ] = await Promise.all([
+      supabase
+        .from('wh_warehouse')
+        .select('*', { count: 'exact', head: true })
+        .eq('tenant_id', tenantId),
+      supabase
+        .from('wh_inventory_balance')
+        .select('*', { count: 'exact', head: true })
+        .eq('tenant_id', tenantId)
+        .gt('available_qty', 0),
+      supabase
+        .from('wh_low_stock_alert')
+        .select('*', { count: 'exact', head: true })
+        .eq('tenant_id', tenantId)
+        .eq('status', 'active'),
+      supabase
+        .from('wh_inventory_ledger')
+        .select('*', { count: 'exact', head: true })
+        .eq('tenant_id', tenantId)
+    ])
 
-    // ✅ CORREÇÃO: 2 chamadas separadas + join em memória
-    // 1) Buscar inventário
-    const { data: inv, error: e1 } = await sb
-      .from('wh_inventory_balance')
-      .select('mm_material,on_hand_qty,reserved_qty,status')
-      .order('mm_material', { ascending: true })
-
-    if (e1) {
-      console.error('Error loading inventory:', e1)
-    }
-
-    // 2) Buscar materiais
-    const ids = [...new Set((inv ?? []).map((r: any) => r.mm_material))]
-    const { data: mats, error: e2 } = ids.length
-      ? await sb.from('mm_material').select('mm_material,mm_desc,mm_purchase_price_cents').in('mm_material', ids)
-      : { data: [], error: null }
-
-    if (e2) {
-      console.error('Error loading materials:', e2)
-    }
-
-    // Join em memória + KPIs
-    const materialMap = new Map((mats || []).map((m: any) => [m.mm_material, m]))
-    inventory = (inv || []).map((item: any) => ({
-      ...item,
-      mm_material_data: materialMap.get(item.mm_material)
-    }))
-
-    // Calcular KPIs
-    totalItems = inventory.filter(r => Number(r.on_hand_qty) > 0).length
-    totalValue = inventory.reduce((acc, inv) => {
-      const price = inv.mm_material_data?.mm_purchase_price_cents || 0
-      return acc + (Number(inv.on_hand_qty) * Number(price))
-    }, 0)
-    lowStockItems = inventory.filter(r => Number(r.on_hand_qty) < 10).length
-
-    // Buscar movimentações de hoje
-    const today = new Date().toISOString().split('T')[0]
-    const { data: todayMovements, error: moveError } = await sb
-      .from('wh_inventory_ledger')
-      .select('ledger_id,plant_id,mm_material,movement,qty,ref_type,ref_id,created_at')
-      .gte('created_at', today)
-      .order('created_at', { ascending: false })
-      .limit(10)
-
-    if (moveError) {
-      console.error('Error loading movements:', moveError)
-    }
-
-    movements = todayMovements || []
-    movementsToday = movements.length
-
-    // Transferências removidas - tabela wh_transfer não existe no schema
-    transfers = []
-
-  } catch (error) {
-    console.error('Error loading WH data:', error)
-  }
-
-  return (
-    <div className="space-y-8">
-      {/* Header */}
-      <div className="flex items-center justify-between mb-8">
-        <Link href="/" className="btn-fiori-outline flex items-center gap-2">
-          <ArrowLeft className="w-4 h-4" />
-          Voltar
-        </Link>
-        <div className="text-center flex-1">
-          <h1 className="text-4xl font-bold text-fiori-primary mb-4">WH - Gestão de Estoque</h1>
-          <p className="text-xl text-fiori-secondary mb-2">Inventário e movimentações</p>
-          <p className="text-lg text-fiori-muted">Controle de estoque e movimentações de materiais</p>
-        </div>
-        <div className="w-20"></div> {/* Spacer para centralizar */}
-      </div>
-
-      {/* Tiles Principais */}
-      <div className="grid-fiori-3">
-        <Link href="/wh/inventory" className="group">
-          <div className="tile-fiori">
-            <div className="tile-fiori-icon">
-              <svg className="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
-              </svg>
-            </div>
-            <h3 className="tile-fiori-title">Inventário</h3>
-            <p className="tile-fiori-subtitle">Controle de estoque</p>
-          </div>
-        </Link>
-
-        <Link href="/wh/movements" className="group">
-          <div className="tile-fiori">
-            <div className="tile-fiori-icon">
-              <svg className="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
-              </svg>
-            </div>
-            <h3 className="tile-fiori-title">Movimentações</h3>
-            <p className="tile-fiori-subtitle">Entradas e saídas</p>
-          </div>
-        </Link>
-
-        <Link href="/wh/transfers" className="group">
-          <div className="tile-fiori">
-            <div className="tile-fiori-icon">
-              <svg className="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
-              </svg>
-            </div>
-            <h3 className="tile-fiori-title">Transferências</h3>
-            <p className="tile-fiori-subtitle">Entre locais</p>
-          </div>
-        </Link>
-      </div>
-
-      {/* Visão Geral - KPIs */}
-      <div className="grid-fiori-4">
-        <div className="card-fiori">
-          <div className="card-fiori-body">
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-sm font-medium text-fiori-secondary">Total de Itens</h3>
-              <svg className="w-5 h-5 text-fiori-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
-              </svg>
-            </div>
-            <div className="space-y-2">
-              <p className="kpi-fiori kpi-fiori-primary">{totalItems}</p>
-              <p className="text-sm text-fiori-muted">Itens em estoque</p>
-            </div>
-          </div>
+    return (
+      <div className="p-6 space-y-6">
+        <div className="flex justify-between items-center">
+          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
+            Warehouse Management
+          </h1>
         </div>
 
-        <div className="card-fiori">
-          <div className="card-fiori-body">
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-sm font-medium text-fiori-secondary">Valor Total</h3>
-              <svg className="w-5 h-5 text-fiori-success" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-              </svg>
-            </div>
-            <div className="space-y-2">
-              <p className="kpi-fiori kpi-fiori-success">{formatBRL(totalValue)}</p>
-              <p className="text-sm text-fiori-muted">Valor do inventário</p>
-            </div>
-          </div>
-        </div>
-
-        <div className="card-fiori">
-          <div className="card-fiori-body">
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-sm font-medium text-fiori-secondary">Baixo Estoque</h3>
-              <svg className="w-5 h-5 text-fiori-danger" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
-              </svg>
-            </div>
-            <div className="space-y-2">
-              <p className="kpi-fiori kpi-fiori-danger">{lowStockItems}</p>
-              <p className="text-sm text-fiori-muted">Itens críticos</p>
-            </div>
-          </div>
-        </div>
-
-        <div className="card-fiori">
-          <div className="card-fiori-body">
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-sm font-medium text-fiori-secondary">Movimentações Hoje</h3>
-              <svg className="w-5 h-5 text-fiori-warning" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
-              </svg>
-            </div>
-            <div className="space-y-2">
-              <p className="kpi-fiori kpi-fiori-warning">{movementsToday}</p>
-              <p className="text-sm text-fiori-muted">Movimentações do dia</p>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Seções de Listagem */}
-      <div className="grid-fiori-2">
-        <div className="card-fiori">
-          <div className="card-fiori-header">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center space-x-3">
-                <svg className="w-5 h-5 text-fiori-danger" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
+        {/* KPIs Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
+            <div className="flex items-center">
+              <div className="p-2 bg-blue-100 dark:bg-blue-900 rounded-lg">
+                <svg className="w-6 h-6 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
                 </svg>
-                <h2 className="card-fiori-title">Itens em Baixo Estoque</h2>
               </div>
-              <Link href="/wh/inventory?filter=low-stock" className="text-fiori-primary hover:text-fiori-accent-blue text-sm font-medium transition-colors">
-                Ver Todos
-              </Link>
+              <div className="ml-4">
+                <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Armazéns</p>
+                <p className="text-2xl font-semibold text-gray-900 dark:text-white">
+                  {warehousesCount || 0}
+                </p>
+              </div>
             </div>
           </div>
-          <div className="card-fiori-body">
-            {inventory.filter(item => (item.on_hand_qty || 0) < 10).length > 0 ? (
-              <div className="space-y-3">
-                {inventory.filter(item => (item.on_hand_qty || 0) < 10).slice(0, 5).map((item) => (
-                  <div key={item.mm_material} className="flex items-center justify-between p-3 bg-fiori-secondary rounded">
-                    <div>
-                      <p className="text-fiori-primary font-medium">{item.mm_material}</p>
-                      <p className="text-fiori-secondary text-sm">Qtd: {item.on_hand_qty || 0}</p>
-                    </div>
-                    <span className="text-fiori-danger text-sm font-medium">Crítico</span>
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <div className="text-center py-8">
-                <svg className="w-12 h-12 text-fiori-muted mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+
+          <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
+            <div className="flex items-center">
+              <div className="p-2 bg-green-100 dark:bg-green-900 rounded-lg">
+                <svg className="w-6 h-6 text-green-600 dark:text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
                 </svg>
-                <h3 className="text-lg font-medium text-fiori-secondary mb-2">Estoque em dia</h3>
-                <p className="text-fiori-muted mb-4">Todos os itens estão com estoque adequado</p>
-                <Link 
-                  href="/wh/inventory"
-                  className="btn-fiori-primary"
-                >
-                  Ver Inventário
-                </Link>
               </div>
-            )}
+              <div className="ml-4">
+                <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Materiais em Estoque</p>
+                <p className="text-2xl font-semibold text-gray-900 dark:text-white">
+                  {materialsInStockCount || 0}
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
+            <div className="flex items-center">
+              <div className="p-2 bg-red-100 dark:bg-red-900 rounded-lg">
+                <svg className="w-6 h-6 text-red-600 dark:text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
+                </svg>
+              </div>
+              <div className="ml-4">
+                <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Alertas Ativos</p>
+                <p className="text-2xl font-semibold text-gray-900 dark:text-white">
+                  {activeAlertsCount || 0}
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
+            <div className="flex items-center">
+              <div className="p-2 bg-purple-100 dark:bg-purple-900 rounded-lg">
+                <svg className="w-6 h-6 text-purple-600 dark:text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4" />
+                </svg>
+              </div>
+              <div className="ml-4">
+                <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Movimentos</p>
+                <p className="text-2xl font-semibold text-gray-900 dark:text-white">
+                  {movementsCount || 0}
+                </p>
+              </div>
+            </div>
           </div>
         </div>
 
-        <div className="card-fiori">
-          <div className="card-fiori-header">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center space-x-3">
-                <svg className="w-5 h-5 text-fiori-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
+        {/* Quick Actions */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <Link 
+            href="/wh/inventory" 
+            className="bg-white dark:bg-gray-800 rounded-lg shadow p-6 hover:shadow-lg transition-shadow"
+          >
+            <div className="flex items-center">
+              <div className="p-3 bg-green-100 dark:bg-green-900 rounded-lg">
+                <svg className="w-8 h-8 text-green-600 dark:text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
                 </svg>
-                <h2 className="card-fiori-title">Movimentações Recentes</h2>
               </div>
-              <Link href="/wh/movements" className="text-fiori-primary hover:text-fiori-accent-blue text-sm font-medium transition-colors">
-                Ver Todas
-              </Link>
+              <div className="ml-4">
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Saldo de Estoque</h3>
+                <p className="text-sm text-gray-600 dark:text-gray-400">Visualizar saldos por material</p>
+              </div>
             </div>
-          </div>
-          <div className="card-fiori-body">
-            {movements.length > 0 ? (
-              <div className="space-y-3">
-                {movements.slice(0, 5).map((movement) => (
-                  <div key={movement.ledger_id} className="flex items-center justify-between p-3 bg-fiori-secondary rounded">
-                    <div>
-                      <p className="text-fiori-primary font-medium capitalize">{movement.movement}</p>
-                      <p className="text-fiori-secondary text-sm">Qtd: {movement.qty}</p>
-                    </div>
-                    <span className="text-fiori-primary text-sm">
-                      {new Date(movement.created_at).toLocaleTimeString()}
-                    </span>
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <div className="text-center py-8">
-                <svg className="w-12 h-12 text-fiori-muted mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
+          </Link>
+
+          <Link 
+            href="/wh/movements" 
+            className="bg-white dark:bg-gray-800 rounded-lg shadow p-6 hover:shadow-lg transition-shadow"
+          >
+            <div className="flex items-center">
+              <div className="p-3 bg-purple-100 dark:bg-purple-900 rounded-lg">
+                <svg className="w-8 h-8 text-purple-600 dark:text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4" />
                 </svg>
-                <h3 className="text-lg font-medium text-fiori-secondary mb-2">Nenhuma movimentação</h3>
-                <p className="text-fiori-muted mb-4">Não há movimentações registradas hoje</p>
-                <Link 
-                  href="/wh/movements"
-                  className="btn-fiori-primary"
-                >
-                  Ver Histórico
-                </Link>
               </div>
-            )}
-          </div>
+              <div className="ml-4">
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Movimentos</h3>
+                <p className="text-sm text-gray-600 dark:text-gray-400">Histórico de movimentações</p>
+              </div>
+            </div>
+          </Link>
+
+          <Link 
+            href="/wh/alerts" 
+            className="bg-white dark:bg-gray-800 rounded-lg shadow p-6 hover:shadow-lg transition-shadow"
+          >
+            <div className="flex items-center">
+              <div className="p-3 bg-red-100 dark:bg-red-900 rounded-lg">
+                <svg className="w-8 h-8 text-red-600 dark:text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
+                </svg>
+              </div>
+              <div className="ml-4">
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Alertas</h3>
+                <p className="text-sm text-gray-600 dark:text-gray-400">Estoque baixo e alertas</p>
+              </div>
+            </div>
+          </Link>
+
+          <Link 
+            href="/wh/warehouses" 
+            className="bg-white dark:bg-gray-800 rounded-lg shadow p-6 hover:shadow-lg transition-shadow"
+          >
+            <div className="flex items-center">
+              <div className="p-3 bg-blue-100 dark:bg-blue-900 rounded-lg">
+                <svg className="w-8 h-8 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                </svg>
+              </div>
+              <div className="ml-4">
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Armazéns</h3>
+                <p className="text-sm text-gray-600 dark:text-gray-400">Gerenciar armazéns</p>
+              </div>
+            </div>
+          </Link>
         </div>
       </div>
-    </div>
-  )
+    )
+  } catch (error) {
+    console.error('Error loading WH dashboard:', error)
+    redirect('/login')
+  }
 }

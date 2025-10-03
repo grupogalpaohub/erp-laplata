@@ -1,4 +1,4 @@
-import { supabaseServer } from '@/lib/supabase/server'
+import { supabaseServerReadOnly } from '@/lib/supabase/server-readonly'
 import { requireTenantId } from '@/utils/tenant'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
@@ -7,7 +7,7 @@ import { Warehouse } from '@/lib/schemas/wh'
 export const dynamic = 'force-dynamic';
 
 export default async function WarehousesPage() {
-  const supabase = supabaseServer()
+  const supabase = supabaseServerReadOnly()
   
   try {
     const tenantId = await requireTenantId()

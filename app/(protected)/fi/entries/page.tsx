@@ -1,4 +1,4 @@
-import { supabaseServer } from '@/lib/supabase/server'
+import { supabaseServerReadOnly } from '@/lib/supabase/server-readonly'
 import { requireSession } from '@/lib/auth/requireSession'
 import Link from 'next/link'
 import { FileText, Plus, Eye, Calendar } from 'lucide-react'
@@ -27,7 +27,7 @@ interface AccountingEntry {
 }
 
 export default async function EntriesPage() {
-  const supabase = supabaseServer()
+  const supabase = supabaseServerReadOnly()
   await requireSession()
 
   // Buscar lançamentos contábeis

@@ -1,5 +1,5 @@
 import Link from 'next/link'
-import { supabaseServer } from '@/lib/supabase/server'
+import { supabaseServerReadOnly } from '@/lib/supabase/server-readonly'
 import { requireSession } from '@/lib/auth/requireSession'
 import { ArrowLeft, Search, Download, Filter, Plus, Eye, Edit, CheckCircle } from 'lucide-react'
 
@@ -26,7 +26,7 @@ export default async function PayablePage() {
   let totalCount = 0
 
   try {
-    const supabase = supabaseServer()
+    const supabase = supabaseServerReadOnly()
     await requireSession()
 
     // Buscar contas a pagar

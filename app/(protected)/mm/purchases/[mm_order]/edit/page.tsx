@@ -1,5 +1,5 @@
 import { requireSession } from '@/lib/auth/requireSession'
-import { supabaseServer } from '@/lib/supabase/server'
+import { supabaseServerReadOnly } from '@/lib/supabase/server-readonly'
 import EditPOClient from './EditPOClient'
 
 export const dynamic = 'force-dynamic'
@@ -13,7 +13,7 @@ interface EditPurchaseOrderPageProps {
 export default async function EditPurchaseOrderPage({ params }: EditPurchaseOrderPageProps) {
   await requireSession()
 
-  const supabase = supabaseServer()
+  const supabase = supabaseServerReadOnly()
 
   try {
     // Buscar dados do pedido

@@ -1,4 +1,4 @@
-import { supabaseServer } from '@/lib/supabase/server'
+import { supabaseServerReadOnly } from '@/lib/supabase/server-readonly'
 import { requireTenantId } from '@/utils/tenant'
 import { redirect } from 'next/navigation'
 import { Transaction } from '@/lib/schemas/fi'
@@ -6,7 +6,7 @@ import { Transaction } from '@/lib/schemas/fi'
 export const dynamic = 'force-dynamic';
 
 export default async function TransactionsPage() {
-  const supabase = supabaseServer()
+  const supabase = supabaseServerReadOnly()
   
   try {
     const tenantId = await requireTenantId()

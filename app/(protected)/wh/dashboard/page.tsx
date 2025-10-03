@@ -1,5 +1,5 @@
 import Link from 'next/link'
-import { supabaseServer } from '@/lib/supabase/server'
+import { supabaseServerReadOnly } from '@/lib/supabase/server-readonly'
 import { requireSession } from '@/lib/auth/requireSession'
 import { Package, AlertTriangle, TrendingUp, TrendingDown, BarChart3, PieChart } from 'lucide-react'
 
@@ -20,7 +20,7 @@ export default async function WHDashboardPage() {
   let topCollections: any[] = []
 
   try {
-    const supabase = supabaseServer()
+    const supabase = supabaseServerReadOnly()
     await requireSession()
 
     // Buscar estatísticas de estoque

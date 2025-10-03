@@ -1,5 +1,5 @@
 import Link from 'next/link'
-import { supabaseServer } from '@/lib/supabase/server'
+import { supabaseServerReadOnly } from '@/lib/supabase/server-readonly'
 import { requireSession } from '@/lib/auth/requireSession'
 import { ArrowLeft, Download, FileText, BarChart3, TrendingUp, Calendar } from 'lucide-react'
 
@@ -13,7 +13,7 @@ export default async function ReportsPage() {
   let totalProfit = 0
 
   try {
-    const supabase = supabaseServer()
+    const supabase = supabaseServerReadOnly()
     await requireSession()
 
     // Buscar dados para relatórios

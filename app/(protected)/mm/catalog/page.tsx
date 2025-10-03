@@ -1,7 +1,7 @@
 import Link from 'next/link'
 import { CheckCircle, XCircle } from 'lucide-react'
 import { formatBRL } from '@/lib/money'
-import { supabaseServer } from '@/lib/supabase/server'
+import { supabaseServerReadOnly } from '@/lib/supabase/server-readonly'
 import ExportCSVButton from './ExportCSVButton'
 
 type Material = {
@@ -23,7 +23,7 @@ type Material = {
 export const dynamic = 'force-dynamic'
 
 async function fetchMaterials(): Promise<Material[]> {
-  const supabase = supabaseServer()
+  const supabase = supabaseServerReadOnly()
   
   // Obter tenant_id da sessão
   const { data: { session } } = await supabase.auth.getSession()

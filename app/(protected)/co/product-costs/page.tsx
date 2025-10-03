@@ -1,4 +1,4 @@
-import { supabaseServer } from '@/lib/supabase/server'
+import { supabaseServerReadOnly } from '@/lib/supabase/server-readonly'
 import { requireSession } from '@/lib/auth/requireSession'
 import Link from 'next/link'
 import { Calculator, TrendingUp, TrendingDown, AlertTriangle } from 'lucide-react'
@@ -21,7 +21,7 @@ interface ProductCost {
 }
 
 export default async function ProductCostsPage() {
-  const supabase = supabaseServer()
+  const supabase = supabaseServerReadOnly()
   await requireSession()
 
   // Buscar custos de produtos

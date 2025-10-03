@@ -1,4 +1,4 @@
-import { supabaseServer } from '@/lib/supabase/server'
+import { supabaseServerReadOnly } from '@/lib/supabase/server-readonly'
 import { requireSession } from '@/lib/auth/requireSession'
 import Link from 'next/link'
 import { BarChart3, TrendingUp, Target, AlertCircle } from 'lucide-react'
@@ -19,7 +19,7 @@ interface MarginAnalysis {
 }
 
 export default async function MarginAnalysisPage() {
-  const supabase = supabaseServer()
+  const supabase = supabaseServerReadOnly()
   await requireSession()
 
   // Buscar análise de margens

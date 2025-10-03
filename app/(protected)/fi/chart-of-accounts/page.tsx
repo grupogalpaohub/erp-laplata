@@ -1,4 +1,4 @@
-import { supabaseServer } from '@/lib/supabase/server'
+import { supabaseServerReadOnly } from '@/lib/supabase/server-readonly'
 import { requireSession } from '@/lib/auth/requireSession'
 import Link from 'next/link'
 import { BookOpen, Plus, Edit, Eye } from 'lucide-react'
@@ -17,7 +17,7 @@ interface ChartOfAccounts {
 }
 
 export default async function ChartOfAccountsPage() {
-  const supabase = supabaseServer()
+  const supabase = supabaseServerReadOnly()
   await requireSession()
 
   // Buscar plano de contas

@@ -1,10 +1,10 @@
-import { supabaseServer } from '@/lib/supabase/server'
+import { supabaseServerReadOnly } from '@/lib/supabase/server-readonly'
 import { requireTenantId } from '@/utils/tenant'
 import { redirect } from 'next/navigation'
 import { LowStockAlert } from '@/lib/schemas/wh'
 
 export default async function AlertsPage() {
-  const supabase = supabaseServer()
+  const supabase = supabaseServerReadOnly()
   
   try {
     const tenantId = await requireTenantId()

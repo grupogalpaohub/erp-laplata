@@ -1,5 +1,5 @@
 import Link from 'next/link'
-import { supabaseServer } from '@/lib/supabase/server'
+import { supabaseServerReadOnly } from '@/lib/supabase/server-readonly'
 import { formatBRL } from '@/lib/money'
 import { Search, Download, Plus, Eye, Edit, CheckCircle, XCircle } from 'lucide-react'
 import StatusActionButtons from './StatusActionButtons'
@@ -40,7 +40,7 @@ export default async function SalesOrdersPage() {
   let totalCount = 0
 
   try {
-    const supabase = supabaseServer()
+    const supabase = supabaseServerReadOnly()
     
     // Obter tenant_id da sessão
     const { data: { session } } = await supabase.auth.getSession()

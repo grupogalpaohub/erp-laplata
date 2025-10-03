@@ -1,7 +1,7 @@
 import Link from 'next/link'
 import { ArrowLeft } from 'lucide-react'
 import { requireSession } from '@/lib/auth/requireSession'
-import { supabaseServer } from '@/lib/supabase/server'
+import { supabaseServerReadOnly } from '@/lib/supabase/server-readonly'
 import { formatBRL } from '@/lib/money'
 
 export const dynamic = 'force-dynamic'
@@ -19,7 +19,7 @@ export default async function COPage() {
 
   try {
     await requireSession() // Verificar se está autenticado
-    const supabase = supabaseServer()
+    const supabase = supabaseServerReadOnly()
 
     // Buscar dados para KPIs (RLS filtra automaticamente por tenant)
     const [productsResult, marginsResult, budgetsResult] = await Promise.allSettled([

@@ -1,11 +1,11 @@
-import { supabaseServer } from '@/lib/supabase/server'
+import { supabaseServerReadOnly } from '@/lib/supabase/server-readonly'
 import { requireSession } from '@/lib/auth/requireSession'
 import { formatBRL } from '@/lib/money'
 import { notFound } from 'next/navigation'
 
 async function getSalesOrder(soId: string) {
   await requireSession()
-  const supabase = supabaseServer()
+  const supabase = supabaseServerReadOnly()
 
   try {
     // Buscar dados do pedido

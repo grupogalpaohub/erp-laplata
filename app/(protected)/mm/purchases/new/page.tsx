@@ -1,5 +1,5 @@
 import Link from 'next/link'
-import { supabaseServer } from '@/lib/supabase/server'
+import { supabaseServerReadOnly } from '@/lib/supabase/server-readonly'
 import { requireSession } from '@/lib/auth/requireSession'
 import { ArrowLeft } from 'lucide-react'
 import NewPOClient from './NewPOClient'
@@ -18,7 +18,7 @@ export default async function NewPurchaseOrderPage({ searchParams }: NewPurchase
   let materials: any[] = []
 
   try {
-    const supabase = supabaseServer()
+    const supabase = supabaseServerReadOnly()
     
     // GUARDRAIL: Verificar autenticação via supabaseServer()
     const { data: { user }, error: authError } = await supabase.auth.getUser()

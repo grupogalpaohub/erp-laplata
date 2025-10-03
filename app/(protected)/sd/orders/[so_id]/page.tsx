@@ -1,5 +1,5 @@
 import Link from 'next/link'
-import { supabaseServer } from '@/lib/supabase/server'
+import { supabaseServerReadOnly } from '@/lib/supabase/server-readonly'
 import { requireSession } from '@/lib/auth/requireSession'
 import { formatBRL } from '@/lib/money'
 import { ArrowLeft, Edit, CheckCircle, XCircle, DollarSign, Percent } from 'lucide-react'
@@ -47,7 +47,7 @@ export default async function SalesOrderDetailPage({ params }: { params: { so_id
   let error = ''
 
   try {
-    const supabase = supabaseServer()
+    const supabase = supabaseServerReadOnly()
     
     // RLS filtra automaticamente por tenant_id - não precisa derivar manualmente
 

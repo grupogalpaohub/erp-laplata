@@ -1,10 +1,10 @@
-import { supabaseServer } from '@/lib/supabase/server'
+import { supabaseServerReadOnly } from '@/lib/supabase/server-readonly'
 import { requireTenantId } from '@/utils/tenant'
 import { redirect } from 'next/navigation'
 import { CreateMaterialForm } from './CreateMaterialForm'
 
 export default async function NewMaterialPage() {
-  const supabase = supabaseServer()
+  const supabase = supabaseServerReadOnly()
   
   try {
     const tenantId = await requireTenantId()

@@ -1,7 +1,7 @@
 import Link from 'next/link'
 import { ArrowLeft, Plus, Search, Edit, Eye } from 'lucide-react'
 import { requireSession } from '@/lib/auth/requireSession'
-import { supabaseServer } from '@/lib/supabase/server'
+import { supabaseServerReadOnly } from '@/lib/supabase/server-readonly'
 import ExportCSVButton from './ExportCSVButton'
 
 export const dynamic = 'force-dynamic'
@@ -35,7 +35,7 @@ export default async function VendorsPage() {
 
   try {
     await requireSession() // Verificar se está autenticado
-    const supabase = supabaseServer()
+    const supabase = supabaseServerReadOnly()
 
     // Buscar fornecedores com total movimentado
     const { data, error } = await supabase

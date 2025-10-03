@@ -2,7 +2,7 @@ export const dynamic = 'force-dynamic';
 export const revalidate = 0;
 export const fetchCache = 'force-no-store';
 
-import { supabaseServer } from '@/lib/supabase/server'
+import { supabaseServerReadOnly } from '@/lib/supabase/server-readonly'
 // import { DataTable } from '@/components/DataTable'
 
 type Row = {
@@ -14,7 +14,7 @@ type Row = {
 }
 
 export default async function ReceivingPage() {
-  const sb = supabaseServer()
+  const sb = supabaseServerReadOnly()
   const { data, error } = await sb
     .from('mm_receiving' as any)
     .select('mm_order,plant_id,mm_material,qty_received,received_at')

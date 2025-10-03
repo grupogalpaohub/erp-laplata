@@ -1,4 +1,4 @@
-import { supabaseServer } from '@/lib/supabase/server'
+import { supabaseServerReadOnly } from '@/lib/supabase/server-readonly'
 import { requireSession } from '@/lib/auth/requireSession'
 import Link from 'next/link'
 import { TrendingUp, Package, AlertTriangle, ShoppingCart } from 'lucide-react'
@@ -26,7 +26,7 @@ interface MRPSuggestion {
 }
 
 export default async function MRPPage() {
-  const supabase = supabaseServer()
+  const supabase = supabaseServerReadOnly()
   await requireSession()
 
   // Buscar sugestões MRP

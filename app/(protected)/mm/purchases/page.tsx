@@ -1,9 +1,9 @@
-import { supabaseServer } from '@/lib/supabase/server'
+import { supabaseServerReadOnly } from '@/lib/supabase/server-readonly'
 import Link from 'next/link'
 import { Plus, Eye, Calendar, DollarSign, User } from 'lucide-react'
 
 async function PurchasesList() {
-  const supabase = supabaseServer()
+  const supabase = supabaseServerReadOnly()
 
   // Buscar pedidos de compra
   const { data: orders, error } = await supabase

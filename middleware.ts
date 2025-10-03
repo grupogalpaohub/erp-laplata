@@ -8,9 +8,13 @@ export async function middleware(req: any) {
   if (pathname.startsWith('/auth/') || 
       pathname === '/login' || 
       pathname === '/onboarding' ||
-      pathname === '/landing' ||
-      pathname === '/') {
+      pathname === '/landing') {
     return NextResponse.next()
+  }
+  
+  // Redirecionar rota raiz para landing
+  if (pathname === '/') {
+    return NextResponse.redirect(new URL('/landing', req.url))
   }
   
   // Verificar auth para rotas protegidas

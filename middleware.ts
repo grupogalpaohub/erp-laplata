@@ -4,10 +4,12 @@ import { supabaseServer } from '@/lib/supabase/server'
 export async function middleware(req: any) {
   const { pathname } = req.nextUrl
   
-  // Permitir callback, login, onboarding
+  // Permitir callback, login, onboarding, landing
   if (pathname.startsWith('/auth/') || 
       pathname === '/login' || 
-      pathname === '/onboarding') {
+      pathname === '/onboarding' ||
+      pathname === '/landing' ||
+      pathname === '/') {
     return NextResponse.next()
   }
   

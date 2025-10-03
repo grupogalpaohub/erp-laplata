@@ -41,5 +41,5 @@ export default async function AuthCallback({
     redirect("/onboarding")
   }
 
-  redirect("/")
+  redirect("/dashboard")
 }

@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
 import { supabaseServer } from '@/lib/supabase/server'
+import { requireTenantId } from '@/utils/tenant'
 
 export async function GET(req: Request) {
   try {
@@ -90,13 +91,7 @@ export async function POST(req: Request) {
       }, { status: 401 })
     }
     
-    const tenant_id = user.user_metadata?.tenant_id
-    if (!tenant_id) {
-      return NextResponse.json({
-        ok: false,
-        error: { code: 'INVALID_TENANT', message: 'Tenant inválido' }
-      }, { status: 403 })
-    }
+    const tenant_id = await requireTenantId()
     
     const body = await req.json()
     

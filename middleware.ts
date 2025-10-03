@@ -9,10 +9,15 @@ export async function middleware(req: any) {
     return res;
   }
   
-  // Permitir acesso a arquivos estáticos e APIs
+  // Permitir acesso a arquivos estáticos, APIs e auth
   if (req.nextUrl.pathname.startsWith('/_next') || 
       req.nextUrl.pathname.startsWith('/api') ||
       req.nextUrl.pathname.startsWith('/auth')) {
+    return res;
+  }
+  
+  // Permitir acesso ao onboarding
+  if (req.nextUrl.pathname === "/onboarding") {
     return res;
   }
   

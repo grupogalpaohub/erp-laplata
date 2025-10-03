@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import { z } from 'zod'
 import { supabaseServer } from '@/lib/supabase/server'
+import { requireTenantId } from '@/utils/tenant'
 
 const BodySchema = z.object({
   mm_order: z.string().min(1),            // chave do cabeçalho (PK)
@@ -90,10 +91,7 @@ export async function POST(req: Request) {
     if (authErr || !user) {
       return NextResponse.json({ ok:false, error:{ message:'Unauthorized' } }, { status:401 })
     }
-    const tenant_id = user.user_metadata?.tenant_id
-    if (!tenant_id) {
-      return NextResponse.json({ ok:false, error:{ message:'Tenant inválido' } }, { status:403 })
-    }
+    const tenant_id = await requireTenantId()
 
     // 2) Validar payload (sem tenant_id)
     const payload = await req.json()

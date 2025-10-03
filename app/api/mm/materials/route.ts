@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
 import { supabaseServer } from '@/lib/supabase/server'
+import { requireTenantId } from '@/utils/tenant'
 
 export async function GET(req: Request) {
   try {
@@ -61,10 +62,7 @@ export async function POST(req: Request) {
     }
 
     // Obter tenant_id do usuário autenticado
-    const tenant_id = auth.user.user_metadata?.tenant_id
-    if (!tenant_id) {
-      return NextResponse.json({ ok: false, error: 'Tenant inválido' }, { status: 403 })
-    }
+    const tenant_id = await requireTenantId()
 
     // Inserir material - o trigger trg_mm_material_assign_id_bi gerará o mm_material automaticamente
     const { data, error: insErr } = await supabase

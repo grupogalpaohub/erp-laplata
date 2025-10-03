@@ -65,10 +65,10 @@ export async function createCustomerAction(formData: FormData) {
     if (authError || !user) {
       return { ok: false, error: 'Usuário não autenticado' };
     }
-    const tenant_id = user.user_metadata?.tenant_id;
-    if (!tenant_id) {
-      return { ok: false, error: 'Tenant não encontrado' };
-    }
+    
+    // Importar requireTenantId dinamicamente para evitar problemas de SSR
+    const { requireTenantId } = await import('@/utils/tenant');
+    const tenant_id = await requireTenantId();
 
     // ✅ Use EXATAMENTE os nomes REAIS das colunas do schema crm_customer
     const payload = {

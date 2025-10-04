@@ -73,8 +73,8 @@ export async function GET(request: Request) {
     })
 
     // Calcular totais
-    const totalInflows = transactionsData?.filter(t => t.type === 'credit').reduce((sum, t) => sum + t.amount_cents, 0) || 0
-    const totalOutflows = transactionsData?.filter(t => t.type === 'debit').reduce((sum, t) => sum + t.amount_cents, 0) || 0
+    const totalInflows = transactionsData?.filter(t => t.type === 'credit').reduce((sum: number, t: any) => sum + t.amount_cents, 0) || 0
+    const totalOutflows = transactionsData?.filter(t => t.type === 'debit').reduce((sum: number, t: any) => sum + t.amount_cents, 0) || 0
     const netFlow = totalInflows - totalOutflows
 
     const cashflow = {

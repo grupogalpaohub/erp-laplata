@@ -47,7 +47,7 @@ export async function GET(request: Request) {
       }, { status: 500 })
     }
 
-    const totalSpendingCents = spendingData?.reduce((sum, item) => sum + (item.line_total_cents || 0), 0) || 0
+    const totalSpendingCents = spendingData?.reduce((sum: number, item: any) => sum + (item.line_total_cents || 0), 0) || 0
 
     // 2. Pedidos Abertos
     const { count: openOrdersCount, error: openOrdersError } = await supabase
@@ -91,7 +91,7 @@ export async function GET(request: Request) {
       }).filter(days => days >= 0)
       
       averageLeadTimeDays = leadTimes.length > 0 
-        ? leadTimes.reduce((sum, days) => sum + days, 0) / leadTimes.length 
+        ? leadTimes.reduce((sum: number, days: number) => sum + days, 0) / leadTimes.length 
         : 0
     }
 

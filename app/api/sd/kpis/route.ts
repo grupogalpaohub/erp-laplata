@@ -45,7 +45,7 @@ export async function GET(request: Request) {
       }, { status: 500 })
     }
 
-    const totalRevenueCents = revenueData?.reduce((sum, order) => sum + (order.total_cents || 0), 0) || 0
+    const totalRevenueCents = revenueData?.reduce((sum: number, order: any) => sum + (order.total_cents || 0), 0) || 0
 
     // 2. Pedidos Abertos
     const { count: openOrdersCount, error: openOrdersError } = await supabase
@@ -79,7 +79,7 @@ export async function GET(request: Request) {
 
     let averageTicketCents = 0
     if (ticketData && ticketData.length > 0) {
-      const totalTicketCents = ticketData.reduce((sum, order) => sum + (order.total_cents || 0), 0)
+      const totalTicketCents = ticketData.reduce((sum: number, order: any) => sum + (order.total_cents || 0), 0)
       averageTicketCents = totalTicketCents / ticketData.length
     }
 

@@ -86,7 +86,7 @@ export async function POST(request: Request) {
     // Calcular total dos itens se fornecidos
     let totalAmountCents = 0
     if (validation.data.items && Array.isArray(validation.data.items)) {
-      totalAmountCents = validation.data.items.reduce((sum, item) => {
+      totalAmountCents = validation.data.items.reduce((sum: number, item: any) => {
         return sum + (item.line_total_cents || 0)
       }, 0)
     }

@@ -61,7 +61,7 @@ export async function GET(request: Request) {
       }, { status: 500 })
     }
 
-    const totalInventoryValueCents = inventoryData?.reduce((sum, item) => {
+    const totalInventoryValueCents = inventoryData?.reduce((sum: number, item: any) => {
       const price = (item.mm_material as any)?.unit_price_cents || 0
       return sum + (item.on_hand_qty * price)
     }, 0) || 0
@@ -125,11 +125,11 @@ export async function GET(request: Request) {
       }, { status: 500 })
     }
 
-    const totalOutMovements = movementsData?.reduce((sum, movement) => {
+    const totalOutMovements = movementsData?.reduce((sum: number, movement: any) => {
       return movement.movement_type === 'OUT' ? sum + Math.abs(movement.qty_change) : sum
     }, 0) || 0
 
-    const averageInventory = inventoryData?.reduce((sum, item) => sum + item.on_hand_qty, 0) || 0
+    const averageInventory = inventoryData?.reduce((sum: number, item: any) => sum + item.on_hand_qty, 0) || 0
     const inventoryTurnover = averageInventory > 0 ? (totalOutMovements / averageInventory) : 0
 
     const kpis = {

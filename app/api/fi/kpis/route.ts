@@ -45,7 +45,7 @@ export async function GET(request: Request) {
       }, { status: 500 })
     }
 
-    const totalRevenueCents = revenueData?.reduce((sum, transaction) => sum + (transaction.amount_cents || 0), 0) || 0
+    const totalRevenueCents = revenueData?.reduce((sum: number, transaction: any) => sum + (transaction.amount_cents || 0), 0) || 0
 
     // 2. Total de Despesas (débitos)
     const { data: expenseData, error: expenseError } = await supabase
@@ -64,7 +64,7 @@ export async function GET(request: Request) {
       }, { status: 500 })
     }
 
-    const totalExpenseCents = expenseData?.reduce((sum, transaction) => sum + (transaction.amount_cents || 0), 0) || 0
+    const totalExpenseCents = expenseData?.reduce((sum: number, transaction: any) => sum + (transaction.amount_cents || 0), 0) || 0
 
     // 3. Total de Faturas Emitidas
     const { data: invoicesData, error: invoicesError } = await supabase
@@ -82,7 +82,7 @@ export async function GET(request: Request) {
       }, { status: 500 })
     }
 
-    const totalInvoicesCents = invoicesData?.reduce((sum, invoice) => sum + (invoice.amount_cents || 0), 0) || 0
+    const totalInvoicesCents = invoicesData?.reduce((sum: number, invoice: any) => sum + (invoice.amount_cents || 0), 0) || 0
 
     // 4. Faturas Vencidas
     const today = new Date().toISOString().split('T')[0]
@@ -100,7 +100,7 @@ export async function GET(request: Request) {
       }, { status: 500 })
     }
 
-    const totalOverdueCents = overdueInvoicesData?.reduce((sum, invoice) => sum + (invoice.amount_cents || 0), 0) || 0
+    const totalOverdueCents = overdueInvoicesData?.reduce((sum: number, invoice: any) => sum + (invoice.amount_cents || 0), 0) || 0
 
     // 5. Total de Contas
     const { count: accountsCount, error: accountsError } = await supabase

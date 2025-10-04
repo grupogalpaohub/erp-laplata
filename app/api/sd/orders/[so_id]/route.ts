@@ -156,7 +156,7 @@ export async function PUT(req: Request, { params }: { params: Params }) {
     // Calcular novo total dos itens
     let newTotalAmountCents = 0
     if (body.items && Array.isArray(body.items)) {
-      newTotalAmountCents = body.items.reduce((sum, item) => {
+      newTotalAmountCents = body.items.reduce((sum: number, item: any) => {
         return sum + (item.line_total_cents || 0)
       }, 0)
     }

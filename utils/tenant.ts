@@ -32,7 +32,14 @@ export async function getTenantId(): Promise<string | null> {
 // lança se não houver tenant
 export async function requireTenantId(): Promise<string> {
   const t = await getTenantId();
-  if (!t) throw new Error("MISSING_TENANT_ID");
+  if (!t) {
+    // Em desenvolvimento, usar tenant padrão
+    if (process.env.NODE_ENV === 'development') {
+      console.log('requireTenantId - Usando tenant padrão para desenvolvimento')
+      return 'LaplataLunaria'
+    }
+    throw new Error("MISSING_TENANT_ID");
+  }
   return t;
 }
 

@@ -33,7 +33,7 @@ export async function GET(request: Request) {
       .from('wh_inventory_balance')
       .select('*', { count: 'exact', head: true })
       .eq('tenant_id', tenantId)
-      .gt('available_qty', 0)
+      .gt('on_hand_qty', 0)
 
     if (materialsError) {
       console.error('Error fetching total materials count:', materialsError)
@@ -47,11 +47,11 @@ export async function GET(request: Request) {
     const { data: inventoryData, error: inventoryError } = await supabase
       .from('wh_inventory_balance')
       .select(`
-        available_qty,
+        on_hand_qty,
         mm_material:mm_material(unit_price_cents)
       `)
       .eq('tenant_id', tenantId)
-      .gt('available_qty', 0)
+      .gt('on_hand_qty', 0)
 
     if (inventoryError) {
       console.error('Error fetching inventory data:', inventoryError)
@@ -63,7 +63,7 @@ export async function GET(request: Request) {
 
     const totalInventoryValueCents = inventoryData?.reduce((sum, item) => {
       const price = (item.mm_material as any)?.unit_price_cents || 0
-      return sum + (item.available_qty * price)
+      return sum + (item.on_hand_qty * price)
     }, 0) || 0
 
     // 3. Alertas de Estoque Baixo Ativos
@@ -129,7 +129,7 @@ export async function GET(request: Request) {
       return movement.movement_type === 'OUT' ? sum + Math.abs(movement.qty_change) : sum
     }, 0) || 0
 
-    const averageInventory = inventoryData?.reduce((sum, item) => sum + item.available_qty, 0) || 0
+    const averageInventory = inventoryData?.reduce((sum, item) => sum + item.on_hand_qty, 0) || 0
     const inventoryTurnover = averageInventory > 0 ? (totalOutMovements / averageInventory) : 0
 
     const kpis = {

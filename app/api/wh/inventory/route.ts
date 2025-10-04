@@ -23,8 +23,8 @@ export async function GET(request: Request) {
       .from('wh_inventory_balance')
       .select(`
         *,
-        mm_material:mm_material(material_name, category, classification),
-        wh_warehouse:plant_id(plant_name, address)
+        mm_material:mm_material(mm_desc, mm_mat_class, mm_mat_type),
+        wh_warehouse:plant_id(name, address)
       `, { count: 'exact' })
       .eq('tenant_id', tenantId)
       .order('mm_material', { ascending: true })
@@ -92,8 +92,8 @@ export async function PUT(request: Request) {
       .eq('mm_material', validation.data.mm_material)
       .select(`
         *,
-        mm_material:mm_material(material_name, category, classification),
-        wh_warehouse:plant_id(plant_name, address)
+        mm_material:mm_material(mm_desc, mm_mat_class, mm_mat_type),
+        wh_warehouse:plant_id(name, address)
       `)
       .single()
 

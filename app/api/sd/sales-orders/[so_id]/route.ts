@@ -83,7 +83,7 @@ export async function PUT(
       .eq('tenant_id', tenantId)
       .select(`
         *,
-        crm_customer:customer_id(customer_name, email, phone)
+        crm_customer:customer_id(name, email, telefone)
       `)
       .single()
 

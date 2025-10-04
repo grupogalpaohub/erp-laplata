@@ -31,7 +31,7 @@ export async function GET(request: Request) {
     // 1. Receita MTD (Month-to-Date)
     const { data: revenueData, error: revenueError } = await supabase
       .from('sd_sales_order')
-      .select('total_amount_cents')
+      .select('total_cents')
       .eq('tenant_id', tenantId)
       .eq('status', 'delivered')
       .gte('order_date', startDate.toISOString().split('T')[0])
@@ -45,7 +45,7 @@ export async function GET(request: Request) {
       }, { status: 500 })
     }
 
-    const totalRevenueCents = revenueData?.reduce((sum, order) => sum + (order.total_amount_cents || 0), 0) || 0
+    const totalRevenueCents = revenueData?.reduce((sum, order) => sum + (order.total_cents || 0), 0) || 0
 
     // 2. Pedidos Abertos
     const { count: openOrdersCount, error: openOrdersError } = await supabase
@@ -65,7 +65,7 @@ export async function GET(request: Request) {
     // 3. Ticket Médio
     const { data: ticketData, error: ticketError } = await supabase
       .from('sd_sales_order')
-      .select('total_amount_cents')
+      .select('total_cents')
       .eq('tenant_id', tenantId)
       .eq('status', 'delivered')
 
@@ -79,7 +79,7 @@ export async function GET(request: Request) {
 
     let averageTicketCents = 0
     if (ticketData && ticketData.length > 0) {
-      const totalTicketCents = ticketData.reduce((sum, order) => sum + (order.total_amount_cents || 0), 0)
+      const totalTicketCents = ticketData.reduce((sum, order) => sum + (order.total_cents || 0), 0)
       averageTicketCents = totalTicketCents / ticketData.length
     }
 

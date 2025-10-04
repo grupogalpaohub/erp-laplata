@@ -23,12 +23,12 @@ export async function GET(request: Request) {
       .from('crm_customer')
       .select('*', { count: 'exact' })
       .eq('tenant_id', tenantId)
-      .order('customer_name', { ascending: true })
+      .order('name', { ascending: true })
       .range(offset, offset + limit - 1)
 
     // Aplicar filtros
     if (search) {
-      query = query.or(`customer_name.ilike.%${search}%,email.ilike.%${search}%`)
+      query = query.or(`name.ilike.%${search}%,email.ilike.%${search}%`)
     }
     if (customer_type) {
       query = query.eq('customer_type', customer_type)

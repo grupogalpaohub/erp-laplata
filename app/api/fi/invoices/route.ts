@@ -23,7 +23,7 @@ export async function GET(request: Request) {
       .from('fi_invoice')
       .select(`
         *,
-        crm_customer:customer_id(customer_name, email),
+        crm_customer:customer_id(name, email),
         mm_vendor:vendor_id(vendor_name, email)
       `, { count: 'exact' })
       .eq('tenant_id', tenantId)

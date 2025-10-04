@@ -24,7 +24,7 @@ export async function GET(request: Request) {
       .select(`
         *,
         sd_sales_order:so_id(customer_id, order_date, status),
-        crm_customer:sd_sales_order.customer_id(customer_name, email, phone)
+        crm_customer:sd_sales_order.customer_id(name, email, telefone)
       `, { count: 'exact' })
       .eq('tenant_id', tenantId)
       .order('created_at', { ascending: false })
@@ -95,7 +95,7 @@ export async function POST(request: Request) {
       .select(`
         *,
         sd_sales_order:so_id(customer_id, order_date, status),
-        crm_customer:sd_sales_order.customer_id(customer_name, email, phone)
+        crm_customer:sd_sales_order.customer_id(name, email, telefone)
       `)
       .single()
 

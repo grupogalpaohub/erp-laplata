@@ -69,7 +69,7 @@ export async function GET(request: Request) {
     // 3. Total de Faturas Emitidas
     const { data: invoicesData, error: invoicesError } = await supabase
       .from('fi_invoice')
-      .select('total_amount_cents')
+      .select('amount_cents')
       .eq('tenant_id', tenantId)
       .gte('invoice_date', startDate.toISOString().split('T')[0])
       .lte('invoice_date', now.toISOString().split('T')[0])
@@ -82,13 +82,13 @@ export async function GET(request: Request) {
       }, { status: 500 })
     }
 
-    const totalInvoicesCents = invoicesData?.reduce((sum, invoice) => sum + (invoice.total_amount_cents || 0), 0) || 0
+    const totalInvoicesCents = invoicesData?.reduce((sum, invoice) => sum + (invoice.amount_cents || 0), 0) || 0
 
     // 4. Faturas Vencidas
     const today = new Date().toISOString().split('T')[0]
     const { data: overdueInvoicesData, error: overdueError } = await supabase
       .from('fi_invoice')
-      .select('total_amount_cents')
+      .select('amount_cents')
       .eq('tenant_id', tenantId)
       .lt('due_date', today)
 
@@ -100,7 +100,7 @@ export async function GET(request: Request) {
       }, { status: 500 })
     }
 
-    const totalOverdueCents = overdueInvoicesData?.reduce((sum, invoice) => sum + (invoice.total_amount_cents || 0), 0) || 0
+    const totalOverdueCents = overdueInvoicesData?.reduce((sum, invoice) => sum + (invoice.amount_cents || 0), 0) || 0
 
     // 5. Total de Contas
     const { count: accountsCount, error: accountsError } = await supabase

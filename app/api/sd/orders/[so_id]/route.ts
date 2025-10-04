@@ -165,7 +165,7 @@ export async function PUT(req: Request, { params }: { params: Params }) {
     if (newTotalAmountCents > 0) {
       const { error: updateTotalError } = await supabase
         .from('sd_sales_order')
-        .update({ total_amount_cents: newTotalAmountCents })
+        .update({ total_cents: newTotalAmountCents })
         .eq('so_id', soId)
         .eq('tenant_id', tenantId)
 

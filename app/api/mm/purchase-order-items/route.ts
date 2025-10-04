@@ -22,7 +22,7 @@ export async function GET(request: Request) {
       .from('mm_purchase_order_item')
       .select(`
         *,
-        mm_material:mm_material(material_name, category, classification, unit_price_cents)
+        mm_material:mm_material(mm_desc, mm_mat_class, mm_mat_type, mm_price_cents)
       `, { count: 'exact' })
       .eq('tenant_id', tenantId)
       .order('po_item_id', { ascending: true })
@@ -107,7 +107,7 @@ export async function POST(request: Request) {
       })
       .select(`
         *,
-        mm_material:mm_material(material_name, category, classification, unit_price_cents)
+        mm_material:mm_material(mm_desc, mm_mat_class, mm_mat_type, mm_price_cents)
       `)
       .single()
 

@@ -29,7 +29,7 @@ export async function GET(
           plant_id,
           currency,
           notes,
-          mm_material:mm_material(material_name, category, classification)
+          mm_material:mm_material(mm_desc, mm_mat_class, mm_mat_type)
         )
       `)
       .eq('mm_order', params.mm_order)

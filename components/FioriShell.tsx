@@ -19,7 +19,17 @@ export default function FioriShell({ children }: { children: React.ReactNode }) 
   
   // Para rotas protegidas, não fazer verificação de auth aqui
   // O requireSession() no layout já faz isso no server
-  const isProtectedRoute = pathname?.startsWith("/(protected)")
+  const isProtectedRoute = pathname?.startsWith("/dashboard") || 
+                          pathname?.startsWith("/mm") || 
+                          pathname?.startsWith("/sd") || 
+                          pathname?.startsWith("/wh") || 
+                          pathname?.startsWith("/fi") || 
+                          pathname?.startsWith("/crm") || 
+                          pathname?.startsWith("/co") || 
+                          pathname?.startsWith("/analytics") || 
+                          pathname?.startsWith("/reports") || 
+                          pathname?.startsWith("/setup") || 
+                          pathname?.startsWith("/onboarding")
   const isAuthRoute = pathname?.startsWith("/auth/") || pathname === "/login"
   
   useEffect(() => {
@@ -50,7 +60,7 @@ export default function FioriShell({ children }: { children: React.ReactNode }) 
     )
 
     return () => subscription.unsubscribe()
-  }, [pathname, isAuthRoute])
+  }, [pathname, isAuthRoute, isProtectedRoute])
 
   console.log('🔍 FioriShell render - pathname:', pathname, 'user:', user, 'isProtectedRoute:', isProtectedRoute)
 
@@ -65,7 +75,7 @@ export default function FioriShell({ children }: { children: React.ReactNode }) 
     console.log('🔍 FioriShell - rota protegida, renderizando com NavBar')
     return (
       <div className="min-h-screen bg-gray-900">
-        <NavBar user={user} />
+        {user && <NavBar user={user} />}
         <main className="flex-1">
           {children}
         </main>

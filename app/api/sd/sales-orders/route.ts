@@ -23,7 +23,7 @@ export async function GET(request: Request) {
       .from('sd_sales_order')
       .select(`
         *,
-        crm_customer:customer_id(customer_name, email, phone)
+        crm_customer:customer_id(name, email, telefone)
       `, { count: 'exact' })
       .eq('tenant_id', tenantId)
       .order('order_date', { ascending: false })
@@ -97,11 +97,11 @@ export async function POST(request: Request) {
         ...validation.data, 
         tenant_id: tenantId,
         so_id: crypto.randomUUID(),
-        total_amount_cents: totalAmountCents
+        total_cents: totalAmountCents
       })
       .select(`
         *,
-        crm_customer:customer_id(customer_name, email, phone)
+        crm_customer:customer_id(name, email, telefone)
       `)
       .single()
 

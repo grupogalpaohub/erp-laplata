@@ -22,12 +22,12 @@ export async function GET(request: Request) {
       .from('wh_warehouse')
       .select('*', { count: 'exact' })
       .eq('tenant_id', tenantId)
-      .order('plant_name', { ascending: true })
+      .order('name', { ascending: true })
       .range(offset, offset + limit - 1)
 
     // Aplicar filtro de busca
     if (search) {
-      query = query.or(`plant_name.ilike.%${search}%,plant_id.ilike.%${search}%`)
+      query = query.or(`name.ilike.%${search}%,plant_id.ilike.%${search}%`)
     }
 
     const { data, error, count } = await query

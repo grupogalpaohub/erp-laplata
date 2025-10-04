@@ -24,7 +24,7 @@ export const SalesOrderSchema = z.object({
   customer_id: z.string().uuid('ID do cliente deve ser um UUID válido'),
   order_date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Data deve estar no formato YYYY-MM-DD'),
   expected_ship: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Data deve estar no formato YYYY-MM-DD').optional(),
-  total_amount_cents: z.number().nonnegative('Total deve ser não negativo'),
+  total_cents: z.number().nonnegative('Total deve ser não negativo'),
   status: z.enum(['draft', 'confirmed', 'shipped', 'delivered']),
   tenant_id: z.string().min(1, 'Tenant ID é obrigatório')
 })
@@ -41,7 +41,7 @@ export const SalesOrderItemSchema = z.object({
   tenant_id: z.string().min(1, 'Tenant ID é obrigatório'),
   so_id: z.string().min(1, 'ID do pedido é obrigatório'),
   row_no: z.number().int().positive('Número da linha deve ser um número positivo'),
-  mm_material: z.string().uuid('ID do material deve ser um UUID válido'),
+  sku: z.string().min(1, 'SKU é obrigatório'),
   quantity: z.number().positive('Quantidade deve ser positiva'),
   unit_price_cents: z.number().positive('Preço unitário deve ser positivo'),
   line_total_cents: z.number().nonnegative('Total da linha deve ser não negativo')

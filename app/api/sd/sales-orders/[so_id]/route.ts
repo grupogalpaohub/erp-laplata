@@ -19,14 +19,13 @@ export async function GET(
       .from('sd_sales_order')
       .select(`
         *,
-        crm_customer:customer_id(customer_name, email, phone),
+        crm_customer:customer_id(name, email, telefone),
         items:sd_sales_order_item(
           row_no,
-          mm_material,
+          sku,
           quantity,
           unit_price_cents,
-          line_total_cents,
-          mm_material:mm_material(material_name, category, classification)
+          line_total_cents
         )
       `)
       .eq('so_id', params.so_id)

@@ -3,7 +3,7 @@ import { z } from 'zod'
 // ===== WH WAREHOUSE SCHEMAS =====
 export const WarehouseSchema = z.object({
   plant_id: z.string().min(1, 'ID da planta é obrigatório'),
-  plant_name: z.string().min(1, 'Nome da planta é obrigatório'),
+  name: z.string().min(1, 'Nome da planta é obrigatório'),
   address: z.string().optional(),
   tenant_id: z.string().min(1, 'Tenant ID é obrigatório')
 })
@@ -19,7 +19,7 @@ export const InventoryBalanceSchema = z.object({
   tenant_id: z.string().min(1, 'Tenant ID é obrigatório'),
   plant_id: z.string().min(1, 'ID da planta é obrigatório'),
   mm_material: z.string().uuid('ID do material deve ser um UUID válido'),
-  available_qty: z.number().nonnegative('Quantidade disponível deve ser não negativa'),
+  on_hand_qty: z.number().nonnegative('Quantidade em mãos deve ser não negativa'),
   reserved_qty: z.number().nonnegative('Quantidade reservada deve ser não negativa'),
   blocked_qty: z.number().nonnegative('Quantidade bloqueada deve ser não negativa')
 })
@@ -35,7 +35,7 @@ export const InventoryLedgerSchema = z.object({
   plant_id: z.string().min(1, 'ID da planta é obrigatório'),
   mm_material: z.string().uuid('ID do material deve ser um UUID válido'),
   movement_type: z.string().min(1, 'Tipo de movimento é obrigatório'),
-  qty_change: z.number().refine(val => val !== 0, 'Mudança de quantidade não pode ser zero'),
+  qty: z.number().refine(val => val !== 0, 'Quantidade não pode ser zero'),
   reference_type: z.string().optional(),
   reference_id: z.string().optional()
 })

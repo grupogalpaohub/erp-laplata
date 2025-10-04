@@ -94,11 +94,11 @@ export default async function MovementsPage() {
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <span className={`text-sm font-medium ${
-                        movement.qty_change > 0 
+                        movement.qty > 0 
                           ? 'text-green-600 dark:text-green-400'
                           : 'text-red-600 dark:text-red-400'
                       }`}>
-                        {movement.qty_change > 0 ? '+' : ''}{movement.qty_change}
+                        {movement.qty > 0 ? '+' : ''}{movement.qty}
                       </span>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">

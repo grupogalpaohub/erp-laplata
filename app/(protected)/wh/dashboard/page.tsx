@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import { supabaseServerReadOnly } from '@/lib/supabase/server-readonly'
 import { requireSession } from '@/lib/auth/requireSession'
+import { requireTenantId } from '@/utils/tenant'
 import { Package, AlertTriangle, TrendingUp, TrendingDown, BarChart3, PieChart } from 'lucide-react'
 
 export const dynamic = 'force-dynamic'
@@ -22,6 +23,7 @@ export default async function WHDashboardPage() {
   try {
     const supabase = supabaseServerReadOnly()
     await requireSession()
+    const tenantId = await requireTenantId()
 
     // Buscar estatísticas de estoque
     const [totalItemsResult, lowStockResult, zeroStockResult, blockedResult, activeResult] = await Promise.allSettled([
@@ -61,16 +63,16 @@ export default async function WHDashboardPage() {
     const { data: inventoryValueData } = await supabase
       .from('wh_inventory_balance')
       .select(`
-        available_qty,
-        mm_material:mm_material(unit_price_cents)
+        on_hand_qty,
+        mm_material:mm_material(mm_price_cents)
       `)
       .eq('tenant_id', tenantId)
-      .gt('available_qty', 0)
+      .gt('on_hand_qty', 0)
 
     if (inventoryValueData) {
       inventoryStats.totalValue = inventoryValueData.reduce((sum, item) => {
-        const price = (item.mm_material as any)?.unit_price_cents || 0
-        return sum + (item.available_qty * price)
+        const price = (item.mm_material as any)?.mm_price_cents || 0
+        return sum + (item.on_hand_qty * price)
       }, 0) / 100 // Converter de centavos para reais
     }
 

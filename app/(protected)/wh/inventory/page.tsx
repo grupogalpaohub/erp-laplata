@@ -15,8 +15,8 @@ export default async function InventoryPage() {
       .from('wh_inventory_balance')
       .select(`
         *,
-        mm_material:mm_material(material_name, category, classification, unit_price_cents),
-        wh_warehouse:plant_id(plant_name, address)
+        mm_material:mm_material(mm_desc, mm_mat_class, mm_mat_type, mm_price_cents),
+        wh_warehouse:plant_id(name, address)
       `)
       .eq('tenant_id', tenantId)
       .order('mm_material', { ascending: true })
@@ -68,7 +68,7 @@ export default async function InventoryPage() {
                   <tr key={`${item.plant_id}-${item.mm_material}`} className="hover:bg-gray-50 dark:hover:bg-gray-700">
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="text-sm font-medium text-gray-900 dark:text-white">
-                        {item.mm_material?.material_name || 'N/A'}
+                        {item.mm_material?.mm_desc || 'N/A'}
                       </div>
                       <div className="text-sm text-gray-500 dark:text-gray-400">
                         {item.mm_material?.category || 'N/A'} - {item.mm_material?.classification || 'N/A'}
@@ -76,16 +76,16 @@ export default async function InventoryPage() {
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="text-sm text-gray-900 dark:text-white">
-                        {item.wh_warehouse?.plant_name || item.plant_id}
+                        {item.wh_warehouse?.name || item.plant_id}
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
-                        item.available_qty > 0 
+                        item.on_hand_qty > 0 
                           ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200'
                           : 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200'
                       }`}>
-                        {item.available_qty}
+                        {item.on_hand_qty}
                       </span>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
@@ -96,7 +96,7 @@ export default async function InventoryPage() {
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
                       {item.mm_material?.unit_price_cents 
-                        ? `R$ ${((item.available_qty * item.mm_material.unit_price_cents) / 100).toFixed(2)}`
+                        ? `R$ ${((item.on_hand_qty * item.mm_material.mm_price_cents) / 100).toFixed(2)}`
                         : 'N/A'
                       }
                     </td>

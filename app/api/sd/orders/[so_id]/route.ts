@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
 import { supabaseServer } from '@/lib/supabase/server'
+import { requireTenantId } from '@/utils/tenant'
 
 type Params = { so_id: string }
 
@@ -70,6 +71,7 @@ export async function PUT(req: Request, { params }: { params: Params }) {
 
   try {
     const supabase = supabaseServer()
+    const tenantId = await requireTenantId()
     
     let body
     try {

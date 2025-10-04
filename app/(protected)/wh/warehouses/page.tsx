@@ -16,7 +16,7 @@ export default async function WarehousesPage() {
       .from('wh_warehouse')
       .select('*')
       .eq('tenant_id', tenantId)
-      .order('plant_name', { ascending: true })
+      .order('name', { ascending: true })
 
     if (error) {
       console.error('Error loading warehouses:', error)
@@ -70,7 +70,7 @@ export default async function WarehousesPage() {
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="text-sm font-medium text-gray-900 dark:text-white">
-                        {warehouse.plant_name}
+                        {warehouse.name}
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">

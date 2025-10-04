@@ -15,8 +15,8 @@ export default async function MovementsPage() {
       .from('wh_inventory_ledger')
       .select(`
         *,
-        mm_material:mm_material(material_name, category, classification),
-        wh_warehouse:plant_id(plant_name, address)
+        mm_material:mm_material(mm_desc, mm_mat_class, mm_mat_type),
+        wh_warehouse:plant_id(name, address)
       `)
       .eq('tenant_id', tenantId)
       .order('ledger_id', { ascending: false })
@@ -72,14 +72,14 @@ export default async function MovementsPage() {
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="text-sm font-medium text-gray-900 dark:text-white">
-                        {movement.mm_material?.material_name || 'N/A'}
+                        {movement.mm_material?.mm_desc || 'N/A'}
                       </div>
                       <div className="text-sm text-gray-500 dark:text-gray-400">
                         {movement.mm_material?.category || 'N/A'}
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
-                      {movement.wh_warehouse?.plant_name || movement.plant_id}
+                      {movement.wh_warehouse?.name || movement.plant_id}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${

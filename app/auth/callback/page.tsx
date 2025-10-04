@@ -10,7 +10,7 @@ export default function AuthCallback() {
   useEffect(() => {
     const handleAuthCallback = async () => {
       try {
-        const { data, error } = await supabaseBrowser.auth.getSession()
+        const { data, error } = await supabaseBrowser().auth.getSession()
         
         if (error) {
           console.error('Auth callback error:', error)
@@ -29,7 +29,7 @@ export default function AuthCallback() {
             // Configurar tenant padrão para o usuário
             console.log('Setting up default tenant for user')
             // Por enquanto, usar tenant fixo - depois implementar seleção de tenant
-            const { error: updateError } = await supabaseBrowser.auth.updateUser({
+            const { error: updateError } = await supabaseBrowser().auth.updateUser({
               data: { tenant_id: 'LaplataLunaria' }
             })
             

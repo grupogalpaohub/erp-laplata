@@ -22,7 +22,7 @@ export default async function HomePage() {
 
   try {
     // Em desenvolvimento, não verificar sessão (Google OAuth não funciona local)
-  if (process.env.NODE_ENV !== 'development') {
+  if (process.env.NODE_ENV === 'production') {
     await requireSession()
   } // Verificar se est� autenticado
     const supabase = supabaseServerReadOnly()

@@ -153,7 +153,26 @@ export async function PUT(req: Request, { params }: { params: Params }) {
       }, { status: 500 })
     }
 
-    // Atualização realizada com sucesso
+    // Calcular novo total dos itens
+    let newTotalAmountCents = 0
+    if (body.items && Array.isArray(body.items)) {
+      newTotalAmountCents = body.items.reduce((sum, item) => {
+        return sum + (item.line_total_cents || 0)
+      }, 0)
+    }
+
+    // Atualizar total do pedido
+    if (newTotalAmountCents > 0) {
+      const { error: updateTotalError } = await supabase
+        .from('sd_sales_order')
+        .update({ total_amount_cents: newTotalAmountCents })
+        .eq('so_id', soId)
+        .eq('tenant_id', tenantId)
+
+      if (updateTotalError) {
+        console.error('🔍 [DEBUG] Error updating order total:', updateTotalError)
+      }
+    }
 
     // Se há itens para atualizar, processar
     if (body.items && Array.isArray(body.items)) {

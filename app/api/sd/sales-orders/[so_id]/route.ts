@@ -25,7 +25,7 @@ export async function GET(
           mm_material,
           quantity,
           unit_price_cents,
-          total_cents,
+          line_total_cents,
           mm_material:mm_material(material_name, category, classification)
         )
       `)

@@ -83,12 +83,21 @@ export async function POST(request: Request) {
       }, { status: 400 })
     }
 
+    // Calcular total dos itens se fornecidos
+    let totalAmountCents = 0
+    if (validation.data.items && Array.isArray(validation.data.items)) {
+      totalAmountCents = validation.data.items.reduce((sum, item) => {
+        return sum + (item.line_total_cents || 0)
+      }, 0)
+    }
+
     const { data, error } = await supabase
       .from('sd_sales_order')
       .insert({ 
         ...validation.data, 
         tenant_id: tenantId,
-        so_id: crypto.randomUUID()
+        so_id: crypto.randomUUID(),
+        total_amount_cents: totalAmountCents
       })
       .select(`
         *,

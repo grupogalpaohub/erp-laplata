@@ -57,8 +57,22 @@ export default async function WHDashboardPage() {
     inventoryStats.blockedItems = blockedResult.status === 'fulfilled' ? (blockedResult.value.count || 0) : 0
     inventoryStats.activeItems = activeResult.status === 'fulfilled' ? (activeResult.value.count || 0) : 0
 
-    // Calcular valor total (simulado)
-    inventoryStats.totalValue = inventoryStats.totalItems * 1000 // Simulado
+    // Calcular valor total real
+    const { data: inventoryValueData } = await supabase
+      .from('wh_inventory_balance')
+      .select(`
+        available_qty,
+        mm_material:mm_material(unit_price_cents)
+      `)
+      .eq('tenant_id', tenantId)
+      .gt('available_qty', 0)
+
+    if (inventoryValueData) {
+      inventoryStats.totalValue = inventoryValueData.reduce((sum, item) => {
+        const price = (item.mm_material as any)?.unit_price_cents || 0
+        return sum + (item.available_qty * price)
+      }, 0) / 100 // Converter de centavos para reais
+    }
 
     // Buscar movimentações recentes (simulado por enquanto)
     recentMovements = []

@@ -65,7 +65,7 @@ export default function NewSalesOrderForm({ customers, materials, selectedCustom
         
         // Recalcular total da linha se quantidade ou preço mudaram
         if (field === 'quantity' || field === 'unit_price_cents' || field === 'mm_material') {
-          updatedItem.line_total_cents = updatedItem.quantity * updatedItem.unit_price_cents
+          updatedItem.line_total_cents = Math.round(updatedItem.quantity * updatedItem.unit_price_cents)
         }
         
         return updatedItem

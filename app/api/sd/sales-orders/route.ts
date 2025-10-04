@@ -83,13 +83,8 @@ export async function POST(request: Request) {
       }, { status: 400 })
     }
 
-    // Calcular total dos itens se fornecidos
-    let totalAmountCents = 0
-    if (validation.data.items && Array.isArray(validation.data.items)) {
-      totalAmountCents = validation.data.items.reduce((sum: number, item: any) => {
-        return sum + (item.line_total_cents || 0)
-      }, 0)
-    }
+    // Usar total fornecido no body
+    const totalAmountCents = validation.data.total_cents || 0
 
     const { data, error } = await supabase
       .from('sd_sales_order')

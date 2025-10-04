@@ -9,11 +9,11 @@ export const runtime = 'nodejs'
 export default async function ProtectedLayout({ children }: { children: React.ReactNode }) {
   // Em desenvolvimento, não fazer verificação de auth
   // Google OAuth só funciona em produção no Vercel
-  if (process.env.NODE_ENV === 'development') {
+  if (process.env.NODE_ENV !== 'production') {
     return <>{children}</>
   }
   
-  if (process.env.NODE_ENV === 'production') { if (process.env.NODE_ENV === 'production') { await requireSession() } }
+  await requireSession()
   return <>{children}</>
 }
 

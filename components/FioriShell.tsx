@@ -17,25 +17,27 @@ export default function FioriShell({ children }: { children: React.ReactNode }) 
   const [user, setUser] = useState<User | null>(null)
   const pathname = usePathname()
   
-  // Definir loading baseado na rota IMEDIATAMENTE
-  const loading = !(pathname?.startsWith("/auth/") || pathname === "/login")
-  const [userLoading, setUserLoading] = useState(true)
-
+  // Para rotas protegidas, não fazer verificação de auth aqui
+  // O requireSession() no layout já faz isso no server
+  const isProtectedRoute = pathname?.startsWith("/(protected)")
+  const isAuthRoute = pathname?.startsWith("/auth/") || pathname === "/login"
+  
   useEffect(() => {
-    console.log('🔍 FioriShell useEffect - pathname:', pathname)
-    if (pathname?.startsWith("/auth/") || pathname === "/login") {
-      console.log('🔍 FioriShell - rota permitida, setUserLoading(false)')
-      setUserLoading(false)
+    console.log('🔍 FioriShell useEffect - pathname:', pathname, 'isProtectedRoute:', isProtectedRoute)
+    
+    // Se for rota de auth, não fazer nada
+    if (isAuthRoute) {
+      console.log('🔍 FioriShell - rota de auth, não verificando')
       return
     }
 
     const supabase = supabaseBrowser()
     
-    // Get initial session
+    // Para rotas protegidas, apenas obter user para NavBar
+    // Para outras rotas, fazer verificação completa
     const getInitialSession = async () => {
       const { data: { session } } = await supabase.auth.getSession()
       setUser(session?.user ?? null)
-      setUserLoading(false)
     }
 
     getInitialSession()
@@ -44,32 +46,36 @@ export default function FioriShell({ children }: { children: React.ReactNode }) 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, session) => {
         setUser(session?.user ?? null)
-        setUserLoading(false)
       }
     )
 
     return () => subscription.unsubscribe()
-  }, [pathname])
+  }, [pathname, isAuthRoute])
 
-  console.log('🔍 FioriShell render - loading:', loading, 'userLoading:', userLoading, 'user:', user, 'pathname:', pathname)
+  console.log('🔍 FioriShell render - pathname:', pathname, 'user:', user, 'isProtectedRoute:', isProtectedRoute)
 
-  // Se for rota de login/auth, renderizar children imediatamente
-  if (!loading) {
-    console.log('🔍 FioriShell - rota permitida, renderizando children')
+  // Se for rota de auth, renderizar children imediatamente
+  if (isAuthRoute) {
+    console.log('🔍 FioriShell - rota de auth, renderizando children')
     return <>{children}</>
   }
 
-  if (userLoading) {
-    console.log('🔍 FioriShell - mostrando loading')
+  // Para rotas protegidas, renderizar com NavBar (requireSession já verificou auth)
+  if (isProtectedRoute) {
+    console.log('🔍 FioriShell - rota protegida, renderizando com NavBar')
     return (
-      <div className="min-h-screen bg-gray-900 flex items-center justify-center">
-        <div className="text-white">Carregando...</div>
+      <div className="min-h-screen bg-gray-900">
+        <NavBar user={user} />
+        <main className="flex-1">
+          {children}
+        </main>
       </div>
     )
   }
 
+  // Para outras rotas, fazer verificação de auth
   if (!user) {
-    console.log('🔍 FioriShell - mostrando redirect para login')
+    console.log('🔍 FioriShell - usuário não autenticado, redirecionando')
     return (
       <div className="min-h-screen bg-gray-900 flex items-center justify-center">
         <div className="text-center">

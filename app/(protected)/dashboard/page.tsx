@@ -1,5 +1,5 @@
 import Link from 'next/link'
-// import { requireSession } from '@/lib/auth/requireSession' // Desabilitado para desenvolvimento
+import { requireSession } from '@/lib/auth/requireSession'
 import { supabaseServerReadOnly } from '@/lib/supabase/server-readonly'
 import { formatBRL } from '@/lib/money'
 

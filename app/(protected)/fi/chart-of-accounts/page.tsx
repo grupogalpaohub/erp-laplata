@@ -18,7 +18,7 @@ interface ChartOfAccounts {
 
 export default async function ChartOfAccountsPage() {
   const supabase = supabaseServerReadOnly()
-  await requireSession()
+  if (process.env.NODE_ENV === 'production') { if (process.env.NODE_ENV === 'production') { await requireSession() } }
 
   // Buscar plano de contas
   const { data: accountsData, error } = await supabase
@@ -217,4 +217,5 @@ export default async function ChartOfAccountsPage() {
     </div>
   )
 }
+
 

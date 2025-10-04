@@ -11,7 +11,7 @@ export const revalidate = 0
 async function createVendor(formData: FormData) {
   'use server'
   
-  await requireSession() // Verificar se está autenticado
+  if (process.env.NODE_ENV === 'production') { if (process.env.NODE_ENV === 'production') { await requireSession() } } // Verificar se está autenticado
   const cookieStore = cookies()
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -368,4 +368,5 @@ export default async function NewVendorPage() {
     </div>
   )
 }
+
 

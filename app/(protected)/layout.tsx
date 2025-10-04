@@ -7,12 +7,13 @@ export const fetchCache = 'default-no-store'
 export const runtime = 'nodejs'
 
 export default async function ProtectedLayout({ children }: { children: React.ReactNode }) {
-  // Em desenvolvimento, não quebrar se não houver sessão
-  // O FioriShell vai lidar com a verificação de auth
+  // Em desenvolvimento, não fazer verificação de auth
+  // Google OAuth só funciona em produção no Vercel
   if (process.env.NODE_ENV === 'development') {
     return <>{children}</>
   }
   
-  await requireSession()
+  if (process.env.NODE_ENV === 'production') { if (process.env.NODE_ENV === 'production') { await requireSession() } }
   return <>{children}</>
 }
+

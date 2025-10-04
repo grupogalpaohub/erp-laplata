@@ -128,3 +128,4 @@ export default async function TransactionsPage() {
     redirect('/login')
   }
 }
+

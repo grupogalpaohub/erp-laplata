@@ -34,7 +34,7 @@ export default async function VendorsPage() {
   let activeVendors = 0
 
   try {
-    await requireSession() // Verificar se está autenticado
+    if (process.env.NODE_ENV === 'production') { if (process.env.NODE_ENV === 'production') { await requireSession() } } // Verificar se está autenticado
     const supabase = supabaseServerReadOnly()
 
     // Buscar fornecedores com total movimentado
@@ -270,4 +270,5 @@ export default async function VendorsPage() {
     </div>
   )
 }
+
 

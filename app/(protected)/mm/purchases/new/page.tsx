@@ -76,3 +76,4 @@ export default async function NewPurchaseOrderPage({ searchParams }: NewPurchase
     </div>
   )
 }
+

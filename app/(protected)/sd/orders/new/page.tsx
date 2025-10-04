@@ -27,7 +27,7 @@ export default async function NewSalesOrderPage({ searchParams }: NewSalesOrderP
       { cookies: { get: (k) => cookieStore.get(k)?.value } }
     )
     
-    await requireSession()
+    if (process.env.NODE_ENV === 'production') { if (process.env.NODE_ENV === 'production') { await requireSession() } }
     
     // GUARDRAIL: Derivar tenant_id da sessão
     const { data: session } = await supabase.auth.getSession();
@@ -108,4 +108,5 @@ export default async function NewSalesOrderPage({ searchParams }: NewSalesOrderP
     </div>
   )
 }
+
 

@@ -138,3 +138,4 @@ async function PurchasesList() {
 }
 
 export default PurchasesList
+

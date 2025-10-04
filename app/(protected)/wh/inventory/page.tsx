@@ -125,3 +125,4 @@ export default async function InventoryPage() {
     redirect('/login')
   }
 }
+

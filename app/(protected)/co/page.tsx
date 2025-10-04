@@ -18,7 +18,7 @@ export default async function COPage() {
   let grossMarginPercent = 0
 
   try {
-    await requireSession() // Verificar se está autenticado
+    if (process.env.NODE_ENV === 'production') { if (process.env.NODE_ENV === 'production') { await requireSession() } } // Verificar se está autenticado
     const supabase = supabaseServerReadOnly()
 
     // Buscar dados para KPIs (RLS filtra automaticamente por tenant)
@@ -272,3 +272,4 @@ export default async function COPage() {
     </div>
   )
 }
+

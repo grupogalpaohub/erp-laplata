@@ -23,7 +23,7 @@ export default async function CostsPage() {
 
   try {
     const supabase = supabaseServerReadOnly()
-    await requireSession()
+    if (process.env.NODE_ENV === 'production') { if (process.env.NODE_ENV === 'production') { await requireSession() } }
 
     // Buscar centros de custo
     const { data, count, error } = await supabase
@@ -285,4 +285,5 @@ export default async function CostsPage() {
     </div>
   )
 }
+
 

@@ -14,7 +14,7 @@ export default async function ReportsPage() {
 
   try {
     const supabase = supabaseServerReadOnly()
-    await requireSession()
+    if (process.env.NODE_ENV === 'production') { if (process.env.NODE_ENV === 'production') { await requireSession() } }
 
     // Buscar dados para relatórios
     const [revenueResult, costsResult] = await Promise.allSettled([
@@ -150,4 +150,5 @@ export default async function ReportsPage() {
     </div>
   )
 }
+
 

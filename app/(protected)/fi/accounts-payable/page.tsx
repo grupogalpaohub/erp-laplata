@@ -30,7 +30,7 @@ interface AccountsPayable {
 
 export default async function AccountsPayablePage() {
   const supabase = supabaseServerReadOnly()
-  await requireSession()
+  if (process.env.NODE_ENV === 'production') { if (process.env.NODE_ENV === 'production') { await requireSession() } }
 
   // Buscar contas a pagar
   const { data: apData, error } = await supabase
@@ -273,4 +273,5 @@ export default async function AccountsPayablePage() {
     </div>
   )
 }
+
 

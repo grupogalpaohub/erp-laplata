@@ -1,5 +1,5 @@
 import Link from 'next/link'
-import { requireSession } from '@/lib/auth/requireSession'
+// import { requireSession } from '@/lib/auth/requireSession' // Desabilitado para desenvolvimento
 import { supabaseServerReadOnly } from '@/lib/supabase/server-readonly'
 import { formatBRL } from '@/lib/money'
 
@@ -21,7 +21,10 @@ export default async function HomePage() {
   let totalProfit = 0
 
   try {
-    await requireSession() // Verificar se est� autenticado
+    // Em desenvolvimento, não verificar sessão (Google OAuth não funciona local)
+  if (process.env.NODE_ENV !== 'development') {
+    await requireSession()
+  } // Verificar se est� autenticado
     const supabase = supabaseServerReadOnly()
 
           // Buscar dados para KPIs com tratamento de erro (RLS filtra automaticamente por tenant)

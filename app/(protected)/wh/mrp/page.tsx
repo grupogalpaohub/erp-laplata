@@ -27,7 +27,7 @@ interface MRPSuggestion {
 
 export default async function MRPPage() {
   const supabase = supabaseServerReadOnly()
-  await requireSession()
+  if (process.env.NODE_ENV === 'production') { if (process.env.NODE_ENV === 'production') { await requireSession() } }
 
   // Buscar sugestões MRP
   const { data: mrpData, error } = await supabase
@@ -283,4 +283,5 @@ export default async function MRPPage() {
     </div>
   )
 }
+
 

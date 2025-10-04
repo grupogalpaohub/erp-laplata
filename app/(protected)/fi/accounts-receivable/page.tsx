@@ -30,7 +30,7 @@ interface AccountsReceivable {
 
 export default async function AccountsReceivablePage() {
   const supabase = supabaseServerReadOnly()
-  await requireSession()
+  if (process.env.NODE_ENV === 'production') { if (process.env.NODE_ENV === 'production') { await requireSession() } }
 
   // Buscar contas a receber
   const { data: arData, error } = await supabase
@@ -273,4 +273,5 @@ export default async function AccountsReceivablePage() {
     </div>
   )
 }
+
 

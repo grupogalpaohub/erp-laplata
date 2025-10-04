@@ -22,7 +22,7 @@ interface ProductCost {
 
 export default async function ProductCostsPage() {
   const supabase = supabaseServerReadOnly()
-  await requireSession()
+  if (process.env.NODE_ENV === 'production') { if (process.env.NODE_ENV === 'production') { await requireSession() } }
 
   // Buscar custos de produtos
   const { data: costsData, error } = await supabase
@@ -267,4 +267,5 @@ export default async function ProductCostsPage() {
     </div>
   )
 }
+
 

@@ -29,7 +29,7 @@ export default async function EntriesPage() {
 
   try {
     const supabase = supabaseServerReadOnly()
-    await requireSession()
+    if (process.env.NODE_ENV === 'production') { if (process.env.NODE_ENV === 'production') { await requireSession() } }
 
     // Buscar movimentações de estoque
     const { data, count, error } = await supabase
@@ -266,4 +266,5 @@ export default async function EntriesPage() {
     </div>
   )
 }
+
 

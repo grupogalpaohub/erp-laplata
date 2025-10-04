@@ -28,7 +28,7 @@ export default async function ExitsPage() {
 
   try {
     const supabase = supabaseServerReadOnly()
-    await requireSession()
+    if (process.env.NODE_ENV === 'production') { if (process.env.NODE_ENV === 'production') { await requireSession() } }
 
     // Buscar saídas de estoque
     const { data, count, error } = await supabase
@@ -257,4 +257,5 @@ export default async function ExitsPage() {
     </div>
   )
 }
+
 

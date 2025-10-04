@@ -187,3 +187,4 @@ export default async function CatalogoMateriais({ searchParams }: { searchParams
     </div>
   )
 }
+

@@ -22,7 +22,7 @@ export default async function WHDashboardPage() {
 
   try {
     const supabase = supabaseServerReadOnly()
-    await requireSession()
+    if (process.env.NODE_ENV === 'production') { if (process.env.NODE_ENV === 'production') { await requireSession() } }
     const tenantId = await requireTenantId()
 
     // Buscar estatísticas de estoque
@@ -376,4 +376,5 @@ export default async function WHDashboardPage() {
     </div>
   )
 }
+
 

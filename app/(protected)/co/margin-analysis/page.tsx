@@ -20,7 +20,7 @@ interface MarginAnalysis {
 
 export default async function MarginAnalysisPage() {
   const supabase = supabaseServerReadOnly()
-  await requireSession()
+  if (process.env.NODE_ENV === 'production') { if (process.env.NODE_ENV === 'production') { await requireSession() } }
 
   // Buscar análise de margens
   const { data: marginData, error } = await supabase
@@ -253,4 +253,5 @@ export default async function MarginAnalysisPage() {
     </div>
   )
 }
+
 

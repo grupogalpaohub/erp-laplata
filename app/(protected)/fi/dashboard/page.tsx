@@ -17,7 +17,7 @@ export default async function FIDashboardPage() {
 
   try {
     const supabase = supabaseServerReadOnly()
-    await requireSession()
+    if (process.env.NODE_ENV === 'production') { if (process.env.NODE_ENV === 'production') { await requireSession() } }
 
     // Buscar dados para KPIs
     const [revenueResult, payablesResult, receivablesResult, entriesResult] = await Promise.allSettled([
@@ -262,4 +262,5 @@ export default async function FIDashboardPage() {
     </div>
   )
 }
+
 

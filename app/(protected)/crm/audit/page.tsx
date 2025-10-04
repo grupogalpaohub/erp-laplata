@@ -23,7 +23,7 @@ export default async function AuditPage() {
 
   try {
     const supabase = supabaseServerReadOnly()
-    await requireSession()
+    if (process.env.NODE_ENV === 'production') { if (process.env.NODE_ENV === 'production') { await requireSession() } }
 
     // Buscar logs de auditoria do CRM
     const { data, count, error } = await supabase
@@ -298,4 +298,5 @@ export default async function AuditPage() {
     </div>
   )
 }
+
 

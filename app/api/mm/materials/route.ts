@@ -24,21 +24,21 @@ export async function GET(request: Request) {
       .from('mm_material')
       .select(`
         *,
-        mm_vendor:vendor_id(vendor_name, email, phone)
+        mm_vendor:mm_vendor_id(vendor_name, email, phone)
       `)
       .eq('tenant_id', tenantId)
-      .order('material_name', { ascending: true })
+      .order('mm_desc', { ascending: true })
       .range(offset, offset + limit - 1)
 
     // Aplicar filtros
     if (search) {
-      query = query.or(`material_name.ilike.%${search}%,category.ilike.%${search}%,classification.ilike.%${search}%`)
+      query = query.or(`mm_desc.ilike.%${search}%,mm_comercial.ilike.%${search}%`)
     }
     if (category) {
-      query = query.eq('category', category)
+      query = query.eq('mm_mat_class', category)
     }
     if (vendor_id) {
-      query = query.eq('vendor_id', vendor_id)
+      query = query.eq('mm_vendor_id', vendor_id)
     }
 
     const { data, error, count } = await query

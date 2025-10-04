@@ -1,9 +1,32 @@
-// Função temporária que retorna tenant padrão
-// TODO: Implementar verificação real de tenant quando necessário
+import { supabaseServer } from '@/lib/supabase/server'
+
+// Função que obtém tenant do JWT do usuário autenticado
 export async function getTenantId(): Promise<string | null> {
-  // Por enquanto, retornar tenant padrão
-  // Isso evita problemas de cookies no Vercel
-  return "LaplataLunaria";
+  try {
+    const supabase = supabaseServer()
+    
+    // Obter usuário autenticado
+    const { data: { user }, error } = await supabase.auth.getUser()
+    
+    if (error || !user) {
+      console.log('getTenantId - No authenticated user:', error?.message)
+      return null
+    }
+    
+    // Extrair tenant_id do JWT claims
+    const claims = user.user_metadata
+    const tenantId = claims?.tenant_id || claims?.tenantId
+    
+    if (!tenantId) {
+      console.log('getTenantId - No tenant_id in user metadata:', claims)
+      return null
+    }
+    
+    return tenantId
+  } catch (error) {
+    console.error('getTenantId - Error:', error)
+    return null
+  }
 }
 
 // lança se não houver tenant

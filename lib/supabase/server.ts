@@ -10,12 +10,9 @@ export function supabaseServer() {
     {
       cookies: {
         get: (name: string) => cookieStore.get(name)?.value,
-        set: (name: string, value: string, options: any) => {
-          cookieStore.set({ name, value, ...options })
-        },
-        remove: (name: string, options: any) => {
-          cookieStore.set({ name, value: '', ...options, expires: new Date(0) })
-        }
+        // set/remove SÓ em Route Handlers
+        set: () => {},
+        remove: () => {}
       }
     }
   )

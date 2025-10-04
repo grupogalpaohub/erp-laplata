@@ -44,7 +44,7 @@ export const SalesOrderItemSchema = z.object({
   mm_material: z.string().uuid('ID do material deve ser um UUID válido'),
   quantity: z.number().positive('Quantidade deve ser positiva'),
   unit_price_cents: z.number().positive('Preço unitário deve ser positivo'),
-  total_cents: z.number().nonnegative('Total deve ser não negativo')
+  line_total_cents: z.number().nonnegative('Total da linha deve ser não negativo')
 })
 
 export const CreateSalesOrderItemSchema = SalesOrderItemSchema.omit({ 

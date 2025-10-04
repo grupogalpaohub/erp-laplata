@@ -2,6 +2,10 @@ import { createServerClient } from '@supabase/ssr'
 import { cookies } from 'next/headers'
 import { NextResponse } from "next/server";
 
+// Forçar Node.js runtime para APIs que usam Supabase
+export const dynamic = 'force-dynamic'
+export const runtime = 'nodejs'
+
 export async function GET(req: Request) {
   // ✅ GUARDRAIL COMPLIANCE: API usando @supabase/ssr e cookies()
   const cookieStore = cookies()
@@ -54,7 +58,7 @@ export async function POST(req: Request) {
     status: body.status ?? "draft",
     order_date: body.order_date ?? new Date().toISOString().slice(0,10),
     expected_ship: body.expected_ship ?? null,
-    total_cents: body.total_cents ?? 0,
+    total_amount_cents: body.total_amount_cents ?? 0,
     created_at: new Date().toISOString(),
     doc_no: body.doc_no ?? null,
     payment_method: body.payment_method ?? null,

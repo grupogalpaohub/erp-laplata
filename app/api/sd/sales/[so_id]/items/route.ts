@@ -2,6 +2,9 @@ import { supabaseServer } from '@/lib/supabase/server'
 // app/api/sd/sales/[so_id]/items/route.ts
 import { NextResponse } from "next/server";
 
+// Forçar Node.js runtime para APIs que usam Supabase
+export const dynamic = 'force-dynamic'
+export const runtime = 'nodejs'
 
 import { toCents } from "@/lib/money";
 
